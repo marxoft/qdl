@@ -1,0 +1,7 @@
+<settings title="Blip.tv" icon="bliptv.jpg">
+    <list key="videoFormat" default="sd" title="Video format">
+        <element name="720P" value="hd720"></element>
+        <element name="360P" value="sd"></element>
+        <element name="480x270" value="ld"></element>
+    </list>
+</settings>

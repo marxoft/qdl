@@ -1,0 +1,26 @@
+Source: qdl
+Section: user/network
+Priority: optional
+Maintainer: Stuart Howarth <showarth@marxoft.co.uk>
+Build-Depends: debhelper (>= 5), libqt4-dev
+Standards-Version: 3.7.3
+Homepage: http://marxoft.co.uk/qdl
+
+Package: qdl
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, qdl-plugins-babevideo, qdl-plugins-bayfiles, qdl-plugins-billionuploads, 
+ qdl-plugins-bitshare, qdl-plugins-cloudstores, qdl-plugins-cramit, qdl-plugins-crocko, qdl-plugins-dailymotion, qdl-plugins-datafile, 
+ qdl-plugins-depositfiles, qdl-plugins-drtuber, qdl-plugins-extabit, qdl-plugins-filedefend, qdl-plugins-filefactory, qdl-plugins-filemates, 
+ qdl-plugins-fileom, qdl-plugins-filepost, qdl-plugins-filesmonster, qdl-plugins-filestay, qdl-plugins-filevice, qdl-plugins-fourshared, 
+ qdl-plugins-freakshare, qdl-plugins-fshare, qdl-plugins-googledrive, qdl-plugins-hotfile, qdl-plugins-interfile, qdl-plugins-joggs, 
+ qdl-plugins-jumbofiles, qdl-plugins-keeptoshare, qdl-plugins-luckyshare, qdl-plugins-lumfile, qdl-plugins-mediafire, qdl-plugins-megashares, 
+ qdl-plugins-metacafe, qdl-plugins-mixturecloud, qdl-plugins-netload, qdl-plugins-oneeightyupload, qdl-plugins-onefichier, qdl-plugins-pinktube, 
+ qdl-plugins-putlocker, qdl-plugins-rampanttv, qdl-plugins-rapidgator, qdl-plugins-rapidshare, qdl-plugins-ryushare, qdl-plugins-sendspace, 
+ qdl-plugins-sharevnn, qdl-plugins-soundcloud, qdl-plugins-superupl, qdl-plugins-titworld, qdl-plugins-tvgirlsplaza, qdl-plugins-twoshared, 
+ qdl-plugins-uloz, qdl-plugins-ultramegabit, qdl-plugins-uploaded, qdl-plugins-uploading, qdl-plugins-upstore, qdl-plugins-videobam, 
+ qdl-plugins-vimeo, qdl-plugins-winporn, qdl-plugins-xhamster, qdl-plugins-xvideos, qdl-plugins-youjizz, qdl-plugins-youtube, qdl-plugins-zippyshare
+Description: Meta-package for QDL plugins
+ This package is a meta-package that install all plugins 
+ available for the QDL download manager.
+XB-Maemo-Display-Name: QDL
+XB-Maemo-Icon-26: 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

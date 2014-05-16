@@ -1,0 +1,23 @@
+qdl-plugins-xhamster (0.1.2) unstable; urgency=low
+
+  * Fixed retrieval of download URL.
+
+ -- Stuart Howarth <showarth@marxoft.co.uk>  Sat, 29 Mar 2014 16:19:09 +0000
+
+qdl-plugins-xhamster (0.1.1) unstable; urgency=low
+
+  * Fixed encoding of download URL.
+
+ -- Stuart Howarth <showarth@marxoft.co.uk>  Mon, 17 Feb 2013 20:56:18 +0000
+
+qdl-plugins-xhamster (0.1.0) unstable; urgency=low
+
+  * Fixes and changes to base plugin class.
+
+ -- Stuart Howarth <showarth@marxoft.co.uk>  Sun, 03 Nov 2013 15:34:04 +0000
+
+qdl-plugins-xhamster (0.0.1) unstable; urgency=low
+
+  * Inital release.
+
+ -- Stuart Howarth <showarth@marxoft.co.uk>  Tue, 19 Mar 2013 17:02:04 +0000

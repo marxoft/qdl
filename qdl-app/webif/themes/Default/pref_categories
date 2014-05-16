@@ -1,0 +1,65 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/transitional.dtd">
+<html>
+    <head>
+        <title>QDL</title>
+        <meta name="generator" content="Bluefish 2.2.3" >
+        <meta name="author" content="Stuart Howarth" >
+        <meta name="date" content="2014-05-15T15:13:35+0100" >
+        <meta name="copyright" content="Stuart Howarth">
+        <meta name="keywords" content="QDL">
+        <meta name="description" content="">
+        <meta name="ROBOTS" content="NOINDEX, NOFOLLOW">
+        <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+        <meta http-equiv="content-type" content="application/xhtml+xml; charset=UTF-8">
+        <meta http-equiv="content-style-type" content="text/css">
+        <link rel="stylesheet" type="text/css" href="stylesheets/default.css"/>
+        <link rel="stylesheet" type="text/css" href="stylesheets/defaultcolors.css"/>
+        <script src="javascript/pref_categories.js"></script>
+        <script src="javascript/main.js"></script>
+        <meta http-equiv="expires" content="0"/>
+    </head>
+    <body onload="init()">
+        <img id="logo" src="images/logo.png" width="48" height="48" alt=""/>
+        <span style="font-size: 64px">QDL</span>
+        <span id="versionNumber"></span>
+        <br>
+        <br>
+        <span class="MainMenu">
+            <a href="queue">Queue</a>
+            <a class="current" href="pref_general">Preferences</a>
+            <div style="float: right">
+                <a href="javascript:quitQDL()">Quit</a>
+            </div>
+        </span>
+        <span class="SubMenu">
+            <a href="pref_general">General</a>
+            <a href="pref_proxy">Proxy</a>
+            <a class="current" href="pref_categories">Categories</a>
+            <a href="pref_accounts">Accounts</a>
+            <a href="pref_decaptcha">Decaptcha</a>
+        </span>
+        <br>
+        <table id="categoriesTable">
+            <tr>
+                <th width="30%">Name</th>
+                <th width="50%">Download path</th>
+                <th>Actions</th>
+            </tr>
+        </table>
+        <form>
+            <fieldset>
+                <legend>Add category</legend>
+                Name:
+                <input id="nameEdit" type="text">
+                Download path:
+                <input id="pathEdit" type="text">
+                <input id="addCategoryButton" type="button" disabled="true" value="Add" onclick="addCategory()">
+            </fieldset>
+        </form>
+        <div id="footer" class="Footer">
+            <div id="summary">
+                <b>Total downloads: 0</b> - <b>Active downloads: 0</b> - <b>Download speed: 0 kB/s</b>
+            </div>
+        </div>
+    </body>
+</html>

@@ -1,0 +1,10 @@
+[Desktop Entry]
+Encoding=UTF-8
+Version=1.0
+Type=Application
+Terminal=false
+Name=QDL
+X-logical-id=qdl
+X-translation-catalog=qdl
+Exec=/usr/bin/invoker --type=d -s --splash=/opt/qdl/splash/splash-portrait.png --splash-landscape=/opt/qdl/splash/splash-landscape.png  /opt/qdl/bin/qdl
+Icon=/usr/share/icons/hicolor/80x80/apps/qdl.png

@@ -1,0 +1,101 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/transitional.dtd">
+<html>
+    <head>
+        <title>QDL</title>
+        <meta name="generator" content="Bluefish 2.2.3" >
+        <meta name="author" content="Stuart Howarth" >
+        <meta name="date" content="2014-05-15T15:13:59+0100" >
+        <meta name="copyright" content="Stuart Howarth">
+        <meta name="keywords" content="QDL">
+        <meta name="description" content="">
+        <meta name="ROBOTS" content="NOINDEX, NOFOLLOW">
+        <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+        <meta http-equiv="content-type" content="application/xhtml+xml; charset=UTF-8">
+        <meta http-equiv="content-style-type" content="text/css">
+        <link rel="stylesheet" type="text/css" href="stylesheets/default.css"/>
+        <link rel="stylesheet" type="text/css" href="stylesheets/defaultcolors.css"/>
+        <script src="javascript/pref_proxy.js"></script>
+        <script src="javascript/main.js"></script>
+        <meta http-equiv="expires" content="0"/>
+    </head>
+    <body onload="init()">
+        <img id="logo" src="images/logo.png" width="48" height="48" alt=""/>
+        <span style="font-size: 64px">QDL</span>
+        <span id="versionNumber"></span>
+        <br>
+        <br>
+        <span class="MainMenu">
+            <a href="queue">Queue</a>
+            <a class="current" href="pref_general">Preferences</a>
+            <div style="float: right">
+                <a href="javascript:quitQDL()">Quit</a>
+            </div>
+        </span>
+        <span class="SubMenu">
+            <a href="pref_general">General</a>
+            <a class="current" href="pref_proxy">Proxy</a>
+            <a href="pref_categories">Categories</a>
+            <a href="pref_accounts">Accounts</a>
+            <a href="pref_decaptcha">Decaptcha</a>
+        </span>
+        <br>
+        <table id="proxyTable">
+            <tr>
+                <td colspan="4">
+                    <input id="proxyCheckbox" type="checkbox">
+                    Use network proxy
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    Proxy type:
+                </td>
+                <td>
+                    <select id="proxyTypeSelector" disabled="true">
+                        <option value="3">HTTP</option>
+                        <option value="4">HTTP caching</option>
+                        <option value="1">SOCKS5</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    Host:
+                </td>
+                <td>
+                    <input id="hostEdit" type="text" disabled="true">
+                </td>
+                <td>
+                    Port:
+                </td>
+                <td>
+                    <input id="portEdit" type="text" value="80" disabled="true">
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    Username:
+                </td>
+                <td>
+                    <input id="usernameEdit" type="text" disabled="true">
+                </td>
+                <td>
+                    Password:
+                </td>
+                <td>
+                    <input id="passwordEdit" type="password" disabled="true">
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <input type="button" value="Save" onclick="save()">
+                </td>
+            </tr>
+        </table>
+        <div id="footer" class="Footer">
+            <div id="summary">
+                <b>Total downloads: 0</b> - <b>Active downloads: 0</b> - <b>Download speed: 0 kB/s</b>
+            </div>
+        </div>
+    </body>
+</html>

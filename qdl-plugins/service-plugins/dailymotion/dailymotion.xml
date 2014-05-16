@@ -1,0 +1,9 @@
+<settings title="Dailymotion" icon="dailymotion.jpg">
+    <list key="videoFormat" default="stream_h264_url" title="Video format">
+	<element name="1080P" value="stream_h264_hd1080_url"></element>
+        <element name="720P" value="stream_h264_hd_url"></element>
+        <element name="480P" value="stream_h264_hq_url"></element>
+        <element name="Normal" value="stream_h264_url"></element>
+	<element name="240P" value="stream_h264_ld_url"></element>
+    </list>
+</settings>

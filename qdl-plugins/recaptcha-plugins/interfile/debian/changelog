@@ -1,0 +1,11 @@
+qdl-plugins-interfilerecaptcha (0.0.2) unstable; urgency=low
+
+  * Fix captcha URL.
+
+ -- Stuart Howarth <showarth@marxoft.co.uk>  Sat, 28 Dec 2013 17:35:04 +0000
+
+qdl-plugins-interfilerecaptcha (0.0.1) unstable; urgency=low
+
+  * Inital release.
+
+ -- Stuart Howarth <showarth@marxoft.co.uk>  Sat, 28 Dec 2013 15:23:04 +0000

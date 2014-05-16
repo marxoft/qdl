@@ -1,0 +1,17 @@
+qdl-plugins-fileom (0.1.1) unstable; urgency=low
+
+  * Now using SolveMedia recaptcha plugin.
+
+ -- Stuart Howarth <showarth@marxoft.co.uk>  Thu, 27 Nov 2014 01:28:45 +0000
+
+qdl-plugins-fileom (0.1.0) unstable; urgency=low
+
+  * Fixes and changes to base plugin class.
+
+ -- Stuart Howarth <showarth@marxoft.co.uk>  Sun, 03 Nov 2013 15:34:04 +0000
+
+qdl-plugins-fileom (0.0.1) unstable; urgency=low
+
+  * Inital release.
+
+ -- Stuart Howarth <showarth@marxoft.co.uk>  Fri, 12 Jun 2013 14:02:04 +0000

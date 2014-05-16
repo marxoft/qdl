@@ -1,0 +1,6 @@
+<settings title="Metacafe" icon="metacafe.jpg">
+    <list key="videoFormat" default="MP4" title="Video format">
+        <element name="720P" value="highDefinitionMP4"></element>
+        <element name="360P" value="MP4"></element>
+    </list>
+</settings>

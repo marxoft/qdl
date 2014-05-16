@@ -1,0 +1,4 @@
+[D-BUS Service]
+Name=com.marxoft.QDL
+Interface=com.marxoft.QDL
+Exec=/opt/qdl/bin/qdl

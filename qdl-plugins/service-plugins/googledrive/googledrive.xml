@@ -1,0 +1,10 @@
+<settings title="Google Drive" icon="googledrive.jpg">
+    <boolean key="useYouTubeForVideos" default="false" title="Use YouTube formats for video downloads" />
+    <list key="videoFormat" default="18" title="Video format">
+        <element name="1080P" value="22"></element>
+        <element name="720P" value="37"></element>
+        <element name="480P" value="35"></element>
+        <element name="360P" value="34"></element>
+        <element name="Normal" value="18"></element>
+    </list>
+</settings>

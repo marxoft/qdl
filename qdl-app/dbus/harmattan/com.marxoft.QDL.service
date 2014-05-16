@@ -1,0 +1,4 @@
+[D-BUS Service]
+Name=com.marxoft.QDL
+Interface=com.marxoft.QDL
+Exec=/usr/bin/invoker --type=d -s --splash=/opt/qdl/splash/splash-portrait.png --splash-landscape=/opt/qdl/splash/splash-landscape.png  /opt/qdl/bin/qdl

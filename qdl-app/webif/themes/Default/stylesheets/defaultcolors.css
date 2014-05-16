@@ -1,0 +1,150 @@
+body {
+    background-color: #fff;
+    color: #000;
+}
+
+a {
+    color: #000;
+}
+
+input, select {
+
+}
+
+legend {
+    color: #000;
+}
+
+fieldset.EntryFieldSet {
+    border-color:#3a3a3a;
+}
+
+.MainMenu a {
+    color: green;
+}
+
+.SubMenu a {
+    color: #f5f5f5;
+}
+
+a:hover {
+    background-color: green;
+    color: #000;
+}
+
+a.current {
+    color: green;
+    background-color: #000;
+}
+
+.SubMenu a.current {
+    background-color: #000;
+    color: #f5f5f5;
+}
+
+.blockWithBorder {
+    border-color: #b5b5b5;
+    background-color: #eeeeee;
+}
+
+.MainMenu {
+    background-color: #f5f5f5;
+}
+
+.SubMenu {
+    background-color: #000;
+}
+
+table {
+
+}
+
+th {
+    background: #fff;
+}
+
+tr.even{
+    background-color: #222222;
+    color:white;
+}
+
+tr.evenLine {
+    background-color: #f5f5f5;
+}
+
+tr.odd {
+    background-color: #222222;
+    color:white;
+}
+
+tr.oddLine {
+    background-color: #f5f5f5;
+}
+
+h1 {
+    border-bottom: 1px solid green;
+}
+
+#first {
+    color: black;
+}
+
+#second {
+    color: black;
+}
+
+#catchfrase {
+    color: black;
+}
+
+.Footer {
+    background-color: #f5f5f5;
+    border-top: 1px solid #000;
+    color:green;
+}
+
+.ProgressBar {
+    background-color: #fff; 
+    border: 1px solid #000; 
+}
+
+.ProgressBarFill {
+    background-color: green; 
+    height: 16px;
+    width: 0%;
+}
+
+.SubMenu, .blockWithBorder, a.current, tr.even, tr.odd{
+    background-color: green;
+    color:white;
+}
+
+th  {
+    background-color: #333;
+    color:white;
+}
+
+#first, #third {
+    color: green;
+}
+
+a.current:hover, a:hover {
+    background-color: black;
+    color:white
+}
+
+td > a, td > a {
+    color:white;
+}
+
+a.remove {
+    color:black;
+}
+
+.feedEnabled{
+    color:green;
+}
+
+.feedDisabled{
+    color:red;
+}

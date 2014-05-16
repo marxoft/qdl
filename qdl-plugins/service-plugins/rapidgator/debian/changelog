@@ -1,0 +1,11 @@
+qdl-plugins-rapidgator (0.1.0) unstable; urgency=low
+
+  * Fixes and changes to base plugin class.
+
+ -- Stuart Howarth <showarth@marxoft.co.uk>  Sun, 03 Nov 2013 15:34:04 +0000
+
+qdl-plugins-rapidgator (0.0.2) unstable; urgency=low
+
+  * Fixed regular expression used for matching URLs.
+
+ -- Stuart Howarth <showarth@marxoft.co.uk>  Sun, 31 Mar 2013 13:02:04 +0000

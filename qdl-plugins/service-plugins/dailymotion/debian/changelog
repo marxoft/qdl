@@ -1,0 +1,23 @@
+qdl-plugins-dailymotion (0.1.1) unstable; urgency=low
+
+  * Added 240P video format.
+
+ -- Stuart Howarth <showarth@marxoft.co.uk>  Wed, 12 Mar 2014 02:50:13 +0000
+
+qdl-plugins-dailymotion (0.1.0) unstable; urgency=low
+
+  * Fixes and changes to base plugin class.
+
+ -- Stuart Howarth <showarth@marxoft.co.uk>  Sun, 03 Nov 2013 15:34:04 +0000
+
+qdl-plugins-dailymotion (0.0.3) unstable; urgency=low
+
+  * Fix for video URL retrieval. All streams available.
+
+ -- Stuart Howarth <showarth@marxoft.co.uk>  Sat, 13 Jun 2013 15:02:04 +0000
+
+qdl-plugins-dailymotion (0.0.2) unstable; urgency=low
+
+  * Hotfix for video URL retrieval. Only iPhone stream available.
+
+ -- Stuart Howarth <showarth@marxoft.co.uk>  Sat, 30 Mar 2013 13:02:04 +0000

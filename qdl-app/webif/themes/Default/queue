@@ -1,0 +1,217 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/transitional.dtd">
+<html>
+    <head>
+        <title>QDL</title>
+        <meta name="generator" content="Bluefish 2.2.3" >
+        <meta name="author" content="Stuart Howarth" >
+        <meta name="date" content="2014-05-15T22:06:19+0100" >
+        <meta name="copyright" content="Stuart Howarth">
+        <meta name="keywords" content="QDL">
+        <meta name="description" content="">
+        <meta name="ROBOTS" content="NOINDEX, NOFOLLOW">
+        <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+        <meta http-equiv="content-type" content="application/xhtml+xml; charset=UTF-8">
+        <meta http-equiv="content-style-type" content="text/css">
+        <link rel="stylesheet" type="text/css" href="stylesheets/default.css"/>
+        <link rel="stylesheet" type="text/css" href="stylesheets/defaultcolors.css"/>
+        <script src="javascript/queue.js"></script>
+        <script src="javascript/utils.js"></script>
+        <script src="javascript/main.js"></script>
+        <meta http-equiv="expires" content="0"/>
+    </head>
+    <body onload="init()">
+        <img id="logo" src="images/logo.png" width="48" height="48" alt=""/>
+        <span style="font-size: 64px">QDL</span>
+        <span id="versionNumber"></span>
+        <br>
+        <br>
+        <span class="MainMenu">
+            <a class="current" href="queue">Queue</a>
+            <a href="pref_general">Preferences</a>
+            <div style="float: right">
+                <a href="javascript:quitQDL()">Quit</a>
+            </div>
+        </span>
+        <span class="SubMenu">
+            <a href="javascript:showAddUrlsDialog()">Add URLs</a>
+            <a href="javascript:showRetrieveUrlsDialog()">Retrieve URLs</a>
+            <a href="javascript:startAllTransfers()">Start</a>
+            <a href="javascript:pauseAllTransfers()">Pause</a>
+            <div style="float: right">
+                After current download(s):
+                <select id="actionSelector" onchange="setNextAction()">
+                    <option value="Continue" selected="true">Continue</option>
+                    <option value="Pause">Pause</option>
+                    <option value="Quit">Quit</option>
+                </select>
+            </div>
+            <br>
+            <br>
+            <span style="float: right">
+                Maximum concurrent downloads:
+                <select id="concurrentSelector" onchange="setMaximumConcurrentTransfers()">
+                    <option value="1" selected="true">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="4">5</option>
+                </select>
+                Maximum connections per download:
+                <select id="connectionsSelector" onchange="setMaximumConnectionsPerTransfer()">
+                    <option value="1" selected="true">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                </select>
+                Maximum download speed:
+                <select id="rateLimitSelector" onchange="setDownloadRateLimit()">
+                    <option value="0" selected="true">Unlimited</option>
+                    <option value="5000">5 kB/s</option>
+                    <option value="10000">10 kB/s</option>
+                    <option value="20000">20 kB/s</option>
+                    <option value="50000">50 kB/s</option>
+                    <option value="100000">100 kB/s</option>
+                    <option value="250000">250 kB/s</option>
+                    <option value="500000">500 kB/s</option>
+                    <option value="750000">750 kB/s</option>
+                </select>
+            </span>
+            <br>
+            <br>
+        </span>
+        <br>
+        <span class="SubMenu">
+            <input id="searchEdit" type="text">
+            <input type="button" value="Search" onclick="searchTransfers()">
+            <div style="float: right">
+                Show:
+                <select id="filterSelector" onchange="filterTransfers()">
+                    <option value="" selected="true">All</option>
+                    <option value="Downloading">Downloading</option>
+                    <option value="Queued">Queued</option>
+                    <option value="LongWait">Waiting</option>
+                    <option value="Paused">Paused</option>
+                    <option value="Failed">Failed</option>
+                </select>
+            </div>
+        </span>
+        <br>
+        <table id="queueTable">
+            <tr>
+                <th>Name</th>
+                <th>Category</th>
+                <th>Connections</th>
+                <th>Priority</th>
+                <th>Progress</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </table>
+        <div id="footer" class="Footer">
+            <span class="SubMenu">
+                <a id="firstButton" href="javascript:firstPage()">First</a>
+                <a id="prevButton" href="javascript:previousPage()">Previous</a>
+                <a id="nextButton" href="javascript:nextPage()">Next</a>
+                <a id="lastButton" href="javascript:lastPage()">Last</a>
+            </span>
+            <div id="summary">
+                <b>Total downloads: 0</b> - <b>Active downloads: 0</b> - <b>Download speed: 0 kB/s</b>
+            </div>
+        </div>
+        <div id="dialogBackground" class="DialogBackground"></div>
+        <div id="addUrlsDialog" class="Dialog">
+            <table width="100%">
+                <tr>
+                    <th>Add URLs</th>
+                </tr>
+                <tr>
+                    <td align="center">
+                        <textarea id="addUrlsEdit" rows="10" cols="50"></textarea>
+                    </td>
+                <tr>
+                <tr>
+                    <td>
+                        Category:
+                        <select id="urlsCategorySelector"></select>
+                        <span style="float: right">
+                            <form>
+                                <input id="cancelAddUrlsButton" type="button" value="Cancel" onclick="hideAddUrlsDialog()">
+                                <input id="addUrlsButton" type="button" value="Add" disabled="true" onclick="addUrls()">
+                            </form>
+                        </span>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div id="retrieveUrlsDialog" class="Dialog">
+            <table width="100%">
+                <tr>
+                    <th>Retrieve URLs</th>
+                </tr>
+                <tr>
+                    <td align="center">
+                        <textarea id="retrieveUrlsEdit" rows="10" cols="50"></textarea>
+                    </td>
+                <tr>
+                <tr>
+                    <td>
+                        <span style="float: right">
+                            <form>
+                                <input id="cancelRetrieveUrlsButton" type="button" value="Cancel" onclick="hideRetrieveUrlsDialog()">
+                                <input id="retrieveUrlsButton" type="button" value="Ok" disabled="true" onclick="retrieveUrls()">
+                            </form>
+                        </span>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div id="checkUrlsDialog" class="Dialog">
+            <table width="100%">
+                <tr>
+                    <th>Check URLs</th>
+                </tr>
+                <table id="checkUrlsTable" width="100%">
+                    <tr>
+                        <th>URL</th>
+                        <th>OK?</th>
+                    </tr>
+                </table>
+                <tr>
+                    <td>
+                        <div id="checkUrlsProgressBar" class="ProgressBar">
+                            <div id="checkUrlsProgressBarFill" class="ProgressBarFill"></div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <div id="checkUrlsLabel">
+                            <br><i>Checking URLs</i><br>
+                        </div>
+                        <span style="float: right">
+                            <input id="cancelUrlChecksButton" type="button" value="Cancel" onclick="cancelUrlChecks()">
+                            <input id="closeUrlChecksButton" type="button" value="Ok" disabled="true" onclick="hideCheckUrlsDialog()">
+                        </span>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div id="progressDialog" class="Dialog">
+            <table width="100%">
+                <tr>
+                    <th id="progressTitle">Please wait</th>
+                </tr>
+                <tr>
+                    <td id="progressMessage"></td>
+                </tr>
+                <tr>
+                    <td>
+                        <div id="progressBar" class="ProgressBar">
+                            <div id="progressBarFill" class="ProgressBarFill"></div>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </body>
+</html>

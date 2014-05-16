@@ -1,0 +1,11 @@
+[Desktop Entry]
+Encoding=UTF-8
+Version=1.0
+Type=Application
+Terminal=false
+Name=QDL
+GenericName=Download manager
+Comment=Download files from the internets
+Exec=/opt/qdl/bin/qdl
+Icon=/usr/share/icons/hicolor/64x64/apps/qdl.png
+Categories=Network

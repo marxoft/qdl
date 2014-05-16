@@ -1,0 +1,79 @@
+qdl (1.1.0) unstable; urgency=low
+
+  * Added web interface.
+  * Minor changes to DBus methods (see /usr/share/dbus-1/interfaces/com.marxoft.QDL.xml)
+  * Bug fix: URL retrieval not working if more than one link is added.
+  * Bug fix: Downloads not started when plugin status changes to Ready after a short wait.
+  * Bug fix: Files not always renamed correctly.
+  * Bug fix: Partially downloaded files not deleted if the application is restarted.
+
+ -- Stuart Howarth <showarth@marxoft.co.uk>  Thu, 15 May 2014 22:27:16 +0000
+
+
+qdl (1.0.5) unstable; urgency=low
+
+  * Bug fix: Downloaded sometimes not started after waiting has ended.
+  * Bug fix: Already active downloads started when increasing maximum concurrent downloads.
+  * Don't pause downloads that have failed.
+
+ -- Stuart Howarth <showarth@marxoft.co.uk>  Sat, 25 Dec 2013 14:45:04 +0000
+
+qdl (1.0.4) unstable; urgency=low
+
+  * Bug fix: Downloaded bytes not written to file when resuming paused downloads after restart of QDL.
+
+ -- Stuart Howarth <showarth@marxoft.co.uk>  Sat, 14 Dec 2013 16:00:04 +0000
+
+qdl (1.0.3) unstable; urgency=low
+
+  * Added option to choose next action (continue, pause or quit) after current download(s) are completed.
+  * Use default download path if creating category download path fails.
+  * Remove duplicates when retrieving URLs.
+  * Bug fix: URL retrieval not working in Maemo5 version.
+  * Bug fix: Wrong download speed reported when resuming a paused download.
+  * Bug fix: Current operation not cancelled when cancelling URL checks.
+  * Bug fix: Fix possible error in restoring partially completed connections.
+  * Bug fix: Reset request data when resuming paused/failed connections to avoid authentication errors.
+  * Bug fix: Register DBus service on startup in Maemo5 version.
+  * Bug fix: Ensure downloads use the global 'Connections per transfer' setting initially (if plugin allows it).
+
+ -- Stuart Howarth <showarth@marxoft.co.uk>  Mon, 09 Dec 2013 17:02:04 +0000
+
+qdl (1.0.2) unstable; urgency=low
+
+  * Changed plugin interface identifier.
+  * Bug fixes.
+  * See also the changelog for version 1.0.0 regarding plugins.
+
+ -- Stuart Howarth <showarth@marxoft.co.uk>  Fri, 06 Nov 2013 17:02:04 +0000
+
+qdl (1.0.1) unstable; urgency=low
+
+  * Changed plugin interface identifier.
+  * Bug fixes.
+  * See also the changelog for version 1.0.0 regarding plugins.
+
+ -- Stuart Howarth <showarth@marxoft.co.uk>  Fri, 06 Nov 2013 15:22:04 +0000
+
+qdl (1.0.0) unstable; urgency=low
+
+  * Added option to use multiple connections for each download (if supported by the plugin).
+  * Added option to set maximum download speed.
+  * Added option to extract and delete downloaded archive files (.rar, .zip and .gz supported).
+  * Added option to store passwords to be used when extracting archives.
+  * Downloads with split archives are now grouped into packages.
+  * Added option to filter downloads according to status and name.
+  * Added option to retreive URLs from web pages.
+  * Added DBus methods to add/control downloads and retreive download information (see /usr/share/dbus-1/interfaces/com.marxoft.QDL.xml).
+  * UI improvements.
+  * Bug fixes and code re-factoring.
+  * Note: Database is no longer used for storing downloads, so existing downloads will not be restored. The database file is left intact.
+  * Note: The old plugins will not work with this version, due to interface changes. Please update any installed plugins.
+
+ -- Stuart Howarth <showarth@marxoft.co.uk>  Fri, 29 Nov 2013 15:22:04 +0000
+
+qdl (0.8.1) unstable; urgency=low
+
+  * Fixed connection to plugin signals.
+
+ -- Stuart Howarth <showarth@marxoft.co.uk>  Thu, 21 Mar 2013 15:22:04 +0000

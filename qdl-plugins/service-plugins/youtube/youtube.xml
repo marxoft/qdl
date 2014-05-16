@@ -1,0 +1,11 @@
+<settings title="YouTube" icon="youtube.jpg">
+    <list key="videoFormat" default="18" title="Video format">
+        <element name="1080P" value="37"></element>
+        <element name="720P" value="22"></element>
+        <element name="480P" value="35"></element>
+        <element name="360P" value="34"></element>
+        <element name="Normal" value="18"></element>
+        <element name="240P" value="36"></element>
+        <element name="144P" value="17"></element>
+    </list>
+</settings>

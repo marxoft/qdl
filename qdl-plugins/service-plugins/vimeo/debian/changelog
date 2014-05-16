@@ -1,0 +1,11 @@
+qdl-plugins-vimeo (0.1.0) unstable; urgency=low
+
+  * Fixes and changes to base plugin class.
+
+ -- Stuart Howarth <showarth@marxoft.co.uk>  Sun, 03 Nov 2013 15:34:04 +0000
+
+qdl-plugins-vimeo (0.0.1) unstable; urgency=low
+
+  * Inital release.
+
+ -- Stuart Howarth <showarth@marxoft.co.uk>  Tue, 19 Mar 2013 17:02:04 +0000

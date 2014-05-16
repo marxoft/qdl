@@ -1,0 +1,12 @@
+qdl-plugins-googledrive (0.0.2) unstable; urgency=low
+
+  * Handle Google Docs URLs.
+  * Re-direction fix.
+
+ -- Stuart Howarth <showarth@marxoft.co.uk>  Wed, 05 Mar 2014 13:23:12 +0000
+
+qdl-plugins-googledrive (0.0.1) unstable; urgency=low
+
+  * Inital release.
+
+ -- Stuart Howarth <showarth@marxoft.co.uk>  Sat, 16 Nov 2013 15:34:04 +0000

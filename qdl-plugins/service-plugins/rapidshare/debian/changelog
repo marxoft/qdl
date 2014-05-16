@@ -1,0 +1,17 @@
+qdl-plugins-rapidshare (0.1.1) unstable; urgency=low
+
+  * Support 'old' URLs.
+
+ -- Stuart Howarth <showarth@marxoft.co.uk>  Fri, 20 Dec 2013 22:31:08 +0000
+
+qdl-plugins-rapidshare (0.1.0) unstable; urgency=low
+
+  * Fixes and changes to base plugin class.
+
+ -- Stuart Howarth <showarth@marxoft.co.uk>  Sun, 03 Nov 2013 15:34:04 +0000
+
+qdl-plugins-rapidshare (0.0.1) unstable; urgency=low
+
+  * Inital release.
+
+ -- Stuart Howarth <showarth@marxoft.co.uk>  Tue, 19 Mar 2013 17:02:04 +0000

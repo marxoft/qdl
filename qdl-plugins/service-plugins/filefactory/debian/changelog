@@ -1,0 +1,24 @@
+qdl-plugins-filefactory (0.1.2) unstable; urgency=low
+
+  * Fix filename detection when checking the URL.
+
+ -- Stuart Howarth <showarth@marxoft.co.uk>  Tue, 29 Apr 2014 14:51:32 +0000
+
+qdl-plugins-filefactory (0.1.1) unstable; urgency=low
+
+  * Ensure correct filename is retrieved.
+  * Fix for cases where captcha is not required.
+
+ -- Stuart Howarth <showarth@marxoft.co.uk>  Sat, 21 Dec 2013 13:54:04 +0000
+
+qdl-plugins-filefactory (0.1.0) unstable; urgency=low
+
+  * Fixes and changes to base plugin class.
+
+ -- Stuart Howarth <showarth@marxoft.co.uk>  Sun, 03 Nov 2013 15:34:04 +0000
+
+qdl-plugins-filefactory (0.0.1) unstable; urgency=low
+
+  * Inital release.
+
+ -- Stuart Howarth <showarth@marxoft.co.uk>  Tue, 19 Mar 2013 17:02:04 +0000

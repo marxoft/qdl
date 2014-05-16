@@ -1,0 +1,6 @@
+<settings title="SoundCloud" icon="soundcloud.jpg">
+    <list key="audioFormat" default="original" title="Audio format">
+        <element name="Original" value="original"></element>
+        <element name="MP3" value="mp3"></element>
+    </list>
+</settings>

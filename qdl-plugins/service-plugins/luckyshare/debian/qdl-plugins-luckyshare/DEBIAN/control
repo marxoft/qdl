@@ -1,0 +1,10 @@
+Package: qdl-plugins-luckyshare
+Version: 0.1.0
+Section: user/network
+Priority: optional
+Architecture: armel
+Depends: qdl (>= 1.0.2), qdl-plugins-googlerecaptcha (>= 0.1.0)
+Installed-Size: 120
+Maintainer: Stuart Howarth <showarth@marxoft.co.uk>
+Description: LuckyShare plugin for the QDL download manager.
+ This plugin provides access to file downloads via LuckyShare.

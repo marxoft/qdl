@@ -1,0 +1,46 @@
+/*
+ * Copyright (C) 2014 Stuart Howarth <showarth@marxoft.co.uk>
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms and conditions of the GNU Lesser General Public License,
+ * version 3, as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for
+ * more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St - Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
+#include "pluginsettingscheckbox.h"
+#include <QSettings>
+
+PluginSettingsCheckbox::PluginSettingsCheckbox(QWidget *parent) :
+    QCheckBox(parent)
+{
+    this->connect(this, SIGNAL(clicked(bool)), this, SLOT(onClicked(bool)));
+}
+
+PluginSettingsCheckbox::~PluginSettingsCheckbox() {}
+
+void PluginSettingsCheckbox::setKey(const QString &key) {
+    m_key = key;
+}
+
+void PluginSettingsCheckbox::setDefaultValue(const QVariant &value) {
+    m_default = value;
+}
+
+void PluginSettingsCheckbox::load() {
+    bool enabled = QSettings("QDL", "QDL").value(this->key(), this->defaultValue()).toBool();
+    this->setChecked(enabled);
+}
+
+void PluginSettingsCheckbox::onClicked(bool checked) {
+    if (!this->key().isEmpty()) {
+        QSettings("QDL", "QDL").setValue(this->key(), checked);
+    }
+}

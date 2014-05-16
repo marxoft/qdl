@@ -1,0 +1,13 @@
+Source: qdl-plugins-bliptv
+Section: user/network
+Priority: optional
+Maintainer: Stuart Howarth <showarth@marxoft.co.uk>
+Build-Depends: debhelper (>= 5), libqt4-dev
+Standards-Version: 3.7.3
+Homepage: https://sites.google.com/site/marxodian/home/qdl
+
+Package: qdl-plugins-bliptv
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, qdl (>= 0.8.1)
+Description: Blip.tv plugin for the QDL download manager.
+ This plugin provides access to file downloads via Blip.tv.

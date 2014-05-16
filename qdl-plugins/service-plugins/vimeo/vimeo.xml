@@ -1,0 +1,6 @@
+<settings title="Vimeo" icon="vimeo.jpg">
+    <list key="videoFormat" default="sd" title="Video format">
+        <element name="720P" value="hd"></element>
+        <element name="Normal" value="sd"></element>
+    </list>
+</settings>

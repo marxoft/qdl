@@ -1,0 +1,6 @@
+qdl
+===================
+
+QDL is a plugin-based download manager enabling file downloads from many different filehosts/sites.
+
+In addition to using the main application, QDL can also be controlled by DBus and the QDL web interface.
