@@ -34,6 +34,7 @@
 #include "../shared/utils.h"
 #include "../dbus/dbusservice.h"
 #include "../dbus/dbusserviceadaptor.h"
+#include "../webif/webinterfacethememodel.h"
 #include "folderlistmodel.h"
 #include "maskeditem.h"
 #include <QApplication>
@@ -73,6 +74,7 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
     qmlRegisterType<NetworkProxyTypeModel>("com.marxoft.models",1,0,"NetworkProxyTypeModel");
     qmlRegisterType<PackageTransferModel>("com.marxoft.models",1,0,"PackageTransferModel");
     qmlRegisterType<ArchivePasswordsModel>("com.marxoft.models",1,0,"ArchivePasswordsModel");
+    qmlRegisterType<WebInterfaceThemeModel>("com.marxoft.models",1,0,"WebInterfaceThemeModel");
     qmlRegisterType<SelectionModel>("com.marxoft.models",1,0,"SelectionModel");
     qmlRegisterType<MaskedItem>("com.marxoft.items",1,0,"MaskedItem");
     qmlRegisterType<Transfer>("com.marxoft.items",1,0,"Transfer");

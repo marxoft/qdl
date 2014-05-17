@@ -137,7 +137,6 @@ Item {
 
     Connections {
         target: UrlChecker
-        onProgressChanged: visible = true
         onCancelled: root.state = "cancelled"
     }
 }

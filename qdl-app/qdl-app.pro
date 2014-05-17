@@ -86,7 +86,7 @@ maemo5 {
     target.path = /opt/qdl/bin
 
 } else:contains(MEEGO_EDITION,harmattan) {
-    DEFINES += QML_USER_INTERFACE
+    DEFINES += QML_USER_INTERFACE WEB_INTERFACE
     QT+= opengl declarative dbus
     CONFIG += qdeclarative-boostable
 
@@ -98,7 +98,7 @@ maemo5 {
 
     RESOURCES += qml/harmattan/resources.qrc
 
-#    OTHER_FILES += $$files(qml/harmattan/*.qml)
+    OTHER_FILES += $$files(qml/harmattan/*.qml)
 
     desktopfile.files = desktop/harmattan/qdl.desktop
     desktopfile.path = /usr/share/applications

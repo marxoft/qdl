@@ -20,18 +20,8 @@ Item {
         progressBar.maximumValue = 0;
     }
 
-    Connections {
-        target: PluginManager
-        onBusy: root.open(message, numberOfOperations)
-        onProgressChanged: progressBar.value = progress
-        onPluginsReady: root.close()
-    }
-
-    Connections {
-        target: UrlRetreiver
-        onBusy: root.open(message, numberOfOperations)
-        onProgressChanged: progressBar.value = progress
-        onFinished: root.close()
+    function updateProgress(progress) {
+        progressBar.value = progress;
     }
 
     Label {

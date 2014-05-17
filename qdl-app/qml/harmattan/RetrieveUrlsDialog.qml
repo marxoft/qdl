@@ -7,6 +7,8 @@ MySheet {
 
     property alias text: urlsEdit.text
 
+    signal urlsAvailable(string urls)
+
     rejectButtonText: qsTr("Cancel")
     acceptButtonText: urlsEdit.text == "" ? "" : qsTr("Done")
     content: Item {
@@ -43,7 +45,7 @@ MySheet {
     }
 
     onAccepted: {
-        UrlRetreiver.parseUrlsFromText(urlsEdit.text);
+        root.urlsAvailable(urlsEdit.text);
         urlsEdit.text = "";
     }
     onRejected: urlsEdit.text = ""

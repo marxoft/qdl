@@ -47,7 +47,7 @@ Dialog {
                 width: parent.width
                 wrapMode: Text.WordWrap
                 horizontalAlignment: Text.AlignHCenter
-                text: qsTr("A user-friendly download manager.<br><br>&copy; Stuart Howarth 2012-2013<br>")
+                text: qsTr("A user-friendly download manager.<br><br>&copy; Stuart Howarth 2012-2014<br>")
             }
 
             Label {

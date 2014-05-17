@@ -14,6 +14,7 @@
 	<file>FileBrowserDelegate.qml</file>
 	<file>FileBrowserDialog.qml</file>
 	<file>GeneralSettingsPage.qml</file>
+	<file>InterfacesSettingsPage.qml</file>
 	<file>ListItem.qml</file>
 	<file>main.qml</file>
 	<file>MainPage.qml</file>

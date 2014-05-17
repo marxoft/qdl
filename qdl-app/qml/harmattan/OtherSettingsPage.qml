@@ -40,15 +40,6 @@ Page {
                 model: ScreenOrientationModel {}
                 value: Settings.screenOrientation
                 onValueChanged: Settings.screenOrientation = value
-                Component.onCompleted: {
-                    for (var i = 0; i < model.count; i++) {
-                        if (model.data(i, "value") === value) {
-                            subTitle = model.data(i, "name");
-
-                            return;
-                        }
-                    }
-                }
             }
         }
     }

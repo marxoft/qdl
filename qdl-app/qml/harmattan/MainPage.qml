@@ -263,9 +263,9 @@ Page {
         ValueDialog {
             titleText: qsTr("After current download(s)")
             model: TransferActionModel {}
+	    value: TransferModel.nextAction
             onNameChanged: nextActionMenuItem.subTitle = name
             onValueChanged: TransferModel.nextAction = value
-            Component.onCompleted: value = TransferModel.nextAction
         }
     }
 
@@ -322,7 +322,12 @@ Page {
     Component {
         id: addUrlsDialog
 
-        AddUrlsDialog {}
+        AddUrlsDialog {
+            onUrlsAvailable: {
+                urlCheckInfo.visible = true;
+                UrlChecker.parseUrlsFromText(urls);
+            }
+        }
     }
 
     Component {
@@ -338,7 +343,12 @@ Page {
     Component {
         id: retrieveUrlsDialog
 
-        RetrieveUrlsDialog {}
+        RetrieveUrlsDialog {
+            onUrlsAvailable: {
+                urlRetrieverConnections.target = UrlRetriever;
+                UrlRetriever.parseUrlsFromText(urls);
+            }
+        }
     }
 
     Component {
@@ -348,15 +358,21 @@ Page {
     }
 
     Connections {
-        target: UrlRetreiver
+        id: urlRetrieverConnections
+
+        target: null
+        onBusy: progressInfo.open(message, numberOfOperations)
+        onProgressChanged: progressInfo.updateProgress(progress)
         onFinished: {
-            var results = UrlRetreiver.resultsString();
+            target = null;
+            progressInfo.close();
+            var results = UrlRetriever.resultsString();
 
             if (results) {
                 dialogLoader.sourceComponent = addUrlsDialog;
                 dialogLoader.item.text = results;
                 dialogLoader.item.open();
-                UrlRetreiver.clearResults();
+                UrlRetriever.clearResults();
             }
             else {
                 banner.displayMessage(qsTr("No supported URLs found"));
@@ -366,7 +382,15 @@ Page {
 
     Connections {
         target: PluginManager
-        onPluginsReady: if (!TransferModel.count) TransferModel.restoreStoredTransfers();
+        onBusy: progressInfo.open(message, numberOfOperations)
+        onProgressChanged: progressInfo.updateProgress(progress)
+        onPluginsReady: {
+            progressInfo.close();
+
+            if (!TransferModel.count) {
+                TransferModel.restoreStoredTransfers();
+            }
+        }
     }
 
     Component.onCompleted: PluginManager.loadPlugins()

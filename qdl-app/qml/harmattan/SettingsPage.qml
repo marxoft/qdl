@@ -18,7 +18,7 @@ Page {
         id: view
 
         anchors.fill: parent
-        model: [ qsTr("General"), qsTr("Archives"), qsTr("Network"), qsTr("Categories"), qsTr("Accounts"), qsTr("Plugins"), qsTr("Other") ]
+        model: [ qsTr("General"), qsTr("Archives"), qsTr("Network"), qsTr("Interfaces"), qsTr("Categories"), qsTr("Accounts"), qsTr("Plugins"), qsTr("Other") ]
 
         header: TitleHeader {
             title: qsTr("Settings")
@@ -36,15 +36,18 @@ Page {
                     appWindow.pageStack.push(Qt.resolvedUrl("NetworkSettingsPage.qml"));
                     return;
                 case 3:
-                    appWindow.pageStack.push(Qt.resolvedUrl("CategoriesPage.qml"));
+                    appWindow.pageStack.push(Qt.resolvedUrl("InterfacesSettingsPage.qml"));
                     return;
                 case 4:
-                    appWindow.pageStack.push(Qt.resolvedUrl("AccountsPage.qml"));
+                    appWindow.pageStack.push(Qt.resolvedUrl("CategoriesPage.qml"));
                     return;
                 case 5:
-                    appWindow.pageStack.push(Qt.resolvedUrl("PluginsSettingsPage.qml"));
+                    appWindow.pageStack.push(Qt.resolvedUrl("AccountsPage.qml"));
                     return;
                 case 6:
+                    appWindow.pageStack.push(Qt.resolvedUrl("PluginsSettingsPage.qml"));
+                    return;
+                case 7:
                     appWindow.pageStack.push(Qt.resolvedUrl("OtherSettingsPage.qml"));
                     return;
                 default:
