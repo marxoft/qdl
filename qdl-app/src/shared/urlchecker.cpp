@@ -127,6 +127,7 @@ void UrlChecker::checkFileDownload() {
 
 void UrlChecker::addUrlToQueue(const QUrl &url) {
     m_cancelled = false;
+    bool start = m_urlQueue.isEmpty();
 
     if (m_model->rowCount() == 0) {
         m_index = 0;
@@ -135,7 +136,7 @@ void UrlChecker::addUrlToQueue(const QUrl &url) {
     m_urlQueue.enqueue(url);
     m_model->addUrlCheck(url.toString());
 
-    if (m_urlQueue.size() == 1) {
+    if (start) {
         emit progressChanged(this->progress());
         this->checkUrl(m_urlQueue.dequeue());
     }
@@ -143,6 +144,7 @@ void UrlChecker::addUrlToQueue(const QUrl &url) {
 
 void UrlChecker::addUrlToQueue(const QString &url) {
     m_cancelled = false;
+    bool start = m_urlQueue.isEmpty();
 
     if (m_model->rowCount() == 0) {
         m_index = 0;
@@ -155,25 +157,51 @@ void UrlChecker::addUrlToQueue(const QString &url) {
 #endif
     m_model->addUrlCheck(url);
 
-    if (m_urlQueue.size() == 1) {
+    if (start) {
         emit progressChanged(this->progress());
         this->checkUrl(m_urlQueue.dequeue());
     }
 }
 
 void UrlChecker::addUrlsToQueue(QList<QUrl> urls) {
+    m_cancelled = false;
+    bool start = m_urlQueue.isEmpty();
+
+    if (m_model->rowCount() == 0) {
+        m_index = 0;
+    }
+
     foreach (QUrl url, urls) {
-        this->addUrlToQueue(url);
+        m_urlQueue.enqueue(url);
+        m_model->addUrlCheck(url.toString());
+    }
+
+    if (start) {
+        emit progressChanged(this->progress());
+        this->checkUrl(m_urlQueue.dequeue());
     }
 }
 
 void UrlChecker::addUrlsToQueue(QStringList urls) {
+    m_cancelled = false;
+    bool start = m_urlQueue.isEmpty();
+
+    if (m_model->rowCount() == 0) {
+        m_index = 0;
+    }
+
     foreach (QString url, urls) {
 #if QT_VERSION >= 0x040600
-        this->addUrlToQueue(QUrl::fromUserInput(url));
+        m_urlQueue.enqueue(QUrl::fromUserInput(url));
 #else
-        this->addUrlToQueue(url.startsWith("http") ? url : "http://" + url);
+        m_urlQueue.enqueue(url.startsWith("http") ? url : "http://" + url);
 #endif
+        m_model->addUrlCheck(url);
+    }
+
+    if (start) {
+        emit progressChanged(this->progress());
+        this->checkUrl(m_urlQueue.dequeue());
     }
 }
 

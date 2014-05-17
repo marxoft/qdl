@@ -59,11 +59,12 @@ int UrlRetriever::progress() const {
 
 void UrlRetriever::addUrlToQueue(const QUrl &url) {
     m_cancelled = false;
+    bool start = m_urlQueue.isEmpty();
     m_urlQueue.enqueue(url);
     m_total = m_urlQueue.size();
 
-    if (m_total == 1) {
-	m_index = 0;
+    if (start) {
+	    m_index = 0;
         emit busy(tr("Retrieving URLs"), 100);
         emit progressChanged(0);
         this->getWebPage(m_urlQueue.dequeue());
@@ -72,11 +73,12 @@ void UrlRetriever::addUrlToQueue(const QUrl &url) {
 
 void UrlRetriever::addUrlToQueue(const QString &url) {
     m_cancelled = false;
+    bool start = m_urlQueue.isEmpty();
     m_urlQueue.enqueue(url);
     m_total = m_urlQueue.size();
 
-    if (m_total == 1) {
-	m_index = 0;
+    if (start) {
+	    m_index = 0;
         emit busy(tr("Retrieving URLs"), 100);
         emit progressChanged(0);
         this->getWebPage(m_urlQueue.dequeue());
@@ -84,14 +86,38 @@ void UrlRetriever::addUrlToQueue(const QString &url) {
 }
 
 void UrlRetriever::addUrlsToQueue(QList<QUrl> urls) {
-    foreach (QUrl url, urls) {
-        this->addUrlToQueue(url);
+    m_cancelled = false;
+    bool start = m_urlQueue.isEmpty();
+    
+    while (!urls.isEmpty()) {
+        m_urlQueue.enqueue(urls.takeFirst());
+    }
+
+    m_total = m_urlQueue.size();
+
+    if (start) {
+	    m_index = 0;
+        emit busy(tr("Retrieving URLs"), 100);
+        emit progressChanged(0);
+        this->getWebPage(m_urlQueue.dequeue());
     }
 }
 
 void UrlRetriever::addUrlsToQueue(QStringList urls) {
-    foreach (QString url, urls) {
-        this->addUrlToQueue(url);
+    m_cancelled = false;
+    bool start = m_urlQueue.isEmpty();
+    
+    while (!urls.isEmpty()) {
+        m_urlQueue.enqueue(urls.takeFirst());
+    }
+
+    m_total = m_urlQueue.size();
+
+    if (start) {
+	    m_index = 0;
+        emit busy(tr("Retrieving URLs"), 100);
+        emit progressChanged(0);
+        this->getWebPage(m_urlQueue.dequeue());
     }
 }
 
