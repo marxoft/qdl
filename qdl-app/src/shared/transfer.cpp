@@ -35,7 +35,6 @@
 #include <qplatformdefs.h>
 #ifdef MEEGO_EDITION_HARMATTAN
 #include "../harmattan/captchaimageprovider.h"
-#include "../harmattan/qmlutils.h"
 #include <QDeclarativeView>
 #include <QDeclarativeEngine>
 #include <QDeclarativeContext>
@@ -1182,7 +1181,7 @@ void Transfer::onCaptchaReady(const QByteArray &imageData) {
         this->setStatusInfo(tr("Awaiting captcha response"));
         QDeclarativeView *view = new QDeclarativeView;
         view->engine()->addImageProvider(QString("captcha"), new CaptchaImageProvider);
-        view->rootContext()->setContextProperty("Utils", new QmlUtils(view));
+        view->rootContext()->setContextProperty("Utils", new Utils(view));
         view->setSource(QUrl("qrc:/CaptchaDialog.qml"));
 
         if (QGraphicsObject *dialog = view->rootObject()) {
