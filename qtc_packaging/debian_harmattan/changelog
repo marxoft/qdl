@@ -1,3 +1,14 @@
+qdl (1.1.1) unstable; urgency=low
+
+  * Added web interface.
+  * Minor changes to DBus methods (see /usr/share/dbus-1/interfaces/com.marxoft.QDL.xml)
+  * Bug fix: URL retrieval not working if more than one link is added.
+  * Bug fix: Downloads not started when plugin status changes to Ready after a short wait.
+  * Bug fix: Files not always renamed correctly.
+  * Bug fix: Partially downloaded files not deleted if the application is restarted.
+
+ -- Stuart Howarth <showarth@marxoft.co.uk>  Thu, 15 May 2014 22:27:16 +0000
+
 qdl (1.0.5) unstable; urgency=low
   * Bug fixes.
 
