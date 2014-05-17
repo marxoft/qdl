@@ -29,7 +29,6 @@ SUBDIRS += \
     freakshare \
     fshare \
     googledrive \
-    hotfile \
     hugefiles \
     interfile \
     joggs \
@@ -62,6 +61,7 @@ SUBDIRS += \
     twoshared \
     uloz \
     ultramegabit \
+    uploadable \
     uploaded \
     uploading \
     upstore \
