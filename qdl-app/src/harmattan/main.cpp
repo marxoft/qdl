@@ -85,7 +85,7 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
     context->setContextProperty("TransferModel", TransferModel::instance());
     context->setContextProperty("UrlChecker", UrlChecker::instance());
     context->setContextProperty("UrlCheckModel", UrlChecker::instance()->model());
-    context->setContextProperty("UrlRetreiver", UrlRetriever::instance());
+    context->setContextProperty("UrlRetriever", UrlRetriever::instance());
     context->setContextProperty("PluginManager", PluginManager::instance());
     context->setContextProperty("ClipboardMonitor", ClipboardMonitor::instance());
     context->setContextProperty("Database", Database::instance());
