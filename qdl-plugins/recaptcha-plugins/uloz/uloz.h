@@ -20,10 +20,12 @@ public:
     bool cancelCurrentOperation();
 
 private:
+    void downloadCaptchaImage(const QUrl &url);
     void reportError(int errorCode);
 
 private slots:
     void onCaptchaDownloaded();
+    void onCaptchaImageDownloaded();
 
 signals:
     void currentOperationCancelled();

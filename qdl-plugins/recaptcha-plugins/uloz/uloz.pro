@@ -6,10 +6,12 @@ TEMPLATE = lib
 HEADERS += \
     uloz.h \
     recaptchainterface.h \
-    recaptchaplugin.h
+    recaptchaplugin.h \
+    json.h
 
 SOURCES += \
-    uloz.cpp
+    uloz.cpp \
+    json.cpp
 
 unix {
     target.path = /opt/qdl/recaptcha_plugins
