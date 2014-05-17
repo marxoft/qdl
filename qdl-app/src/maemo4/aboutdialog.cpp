@@ -33,7 +33,7 @@ AboutDialog::AboutDialog(QWidget *parent) :
     QLabel *icon = new QLabel(this);
     icon->setPixmap(QPixmap(ICON_PATH + "qdl.png"));
     QLabel *title = new QLabel(QString("<b><font size='40'>QDL %1</font></b>").arg(VERSION_NUMBER), this);
-    QLabel *description = new QLabel("A user-friendly download manager.<br><br>&copy; Stuart Howarth 2012-2013", this);
+    QLabel *description = new QLabel("A user-friendly download manager.<br><br>&copy; Stuart Howarth 2012-2014", this);
     description->setWordWrap(true);
     QDialogButtonBox *buttonBox = new QDialogButtonBox(Qt::Horizontal, this);
     QPushButton *donateButton = new QPushButton(tr("Donate"), this);
