@@ -1,11 +1,15 @@
 #include "uloz.h"
+#include "json.h"
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QNetworkRequest>
 #include <QRegExp>
+#include <QDateTime>
 #if QT_VERSION >= 0x050000
 #include <QUrlQuery>
 #endif
+
+using namespace QtJson;
 
 Uloz::Uloz(QObject *parent) :
     ServicePlugin(parent),
@@ -14,7 +18,7 @@ Uloz::Uloz(QObject *parent) :
 }
 
 QRegExp Uloz::urlPattern() const {
-    return QRegExp("http(s|)://(www.|)uloz.to/\\w+/[-\\w]+", Qt::CaseInsensitive);
+    return QRegExp("http(s|)://(www.|)(uloz.to|ulozto.net)/\\w+/[-\\w]+", Qt::CaseInsensitive);
 }
 
 bool Uloz::urlSupported(const QUrl &url) const {
@@ -132,16 +136,16 @@ void Uloz::onWebPageDownloaded() {
             emit downloadRequestReady(request);
         }
         else {
-            m_captchaId = response.section("captcha_id\" value=\"", 1, 1).section('"', 0, 0);
-            m_captchaKey = response.section("captcha_key\" value=\"", 1, 1).section('"', 0, 0);
+	        m_token = response.section("frmfreeDownloadForm-_token_\" value=\"", 1, 1).section('"', 0, 0);
             m_timestamp = response.section("frmfreeDownloadForm-ts\" value=\"", 1, 1).section('"', 0, 0);
             m_cid = response.section("frmfreeDownloadForm-cid\" value=\"", 1, 1).section('"', 0, 0);
             m_sign = response.section("frmfreeDownloadForm-sign\" value=\"", 1, 1).section('"', 0, 0);
 
-            if ((m_captchaId.isEmpty()) || (m_captchaKey.isEmpty()) || (m_timestamp.isEmpty()) || (m_cid.isEmpty()) || (m_sign.isEmpty())) {
+            if ((m_token.isEmpty()) || (m_timestamp.isEmpty()) || (m_cid.isEmpty()) || (m_sign.isEmpty())) {
                 emit error(UnknownError);
             }
             else {
+                m_captchaKey = QString::number(QDateTime::currentMSecsSinceEpoch());
                 emit statusChanged(CaptchaRequired);
             }
         }
@@ -151,7 +155,7 @@ void Uloz::onWebPageDownloaded() {
 }
 
 void Uloz::submitCaptchaResponse(const QString &challenge, const QString &response) {
-    QString data = QString("captcha_value=%1&captcha_id=%2&captcha_key=%3&ts=%4&cid=%5&sign=%6").arg(response).arg(challenge).arg(m_captchaKey).arg(m_timestamp).arg(m_cid).arg(m_sign);
+    QString data = QString("captcha_value=%1&%2&_token_=%3&ts=%4&cid=%5&sign=%6").arg(response).arg(challenge).arg(m_token).arg(m_timestamp).arg(m_cid).arg(m_sign);
     QUrl url(m_url);
 #if QT_VERSION >= 0x050000
     QUrlQuery query(url);
@@ -162,7 +166,9 @@ void Uloz::submitCaptchaResponse(const QString &challenge, const QString &respon
 #endif
     QNetworkRequest request(url);
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
+    request.setRawHeader("Accept", "text/javascript, text/html, application/xml, text/xml, */*");
     request.setRawHeader("Accept-Language", "en-GB,en-US;q=0.8,en;q=0.6");
+    request.setRawHeader("X-Requested-With", "XMLHttpRequest");
     QNetworkReply *reply = this->networkAccessManager()->post(request, data.toUtf8());
     this->connect(reply, SIGNAL(finished()), this, SLOT(onCaptchaSubmitted()));
     this->connect(this, SIGNAL(currentOperationCancelled()), reply, SLOT(deleteLater()));
@@ -183,8 +189,35 @@ void Uloz::onCaptchaSubmitted() {
     }
     else {
         QString response(reply->readAll());
+        QVariantMap result = Json::parse(response).toMap();
 
-        if (response.contains("Text je ops")) {
+        if (!result.isEmpty()) {
+            redirect = result.value("url").toUrl();
+
+            if (redirect.isValid()) {
+                emit downloadRequestReady(QNetworkRequest(redirect));
+            }
+            else {
+                QVariantList errors = result.value("errors").toList();
+
+                if (!errors.isEmpty()) {
+                    QString errorString = errors.first().toString();
+
+                    if ((errorString.startsWith("Error rewriting")) || (errorString.startsWith("Text je op"))) {
+                        m_captchaKey = QString::number(QDateTime::currentMSecsSinceEpoch());
+                        emit error(CaptchaError);
+                    }
+                    else {
+                        emit error(UnknownError);
+                    }
+                }
+                else {
+                    emit error(UnknownError);
+                }
+            }
+        }
+        else if ((response.contains("Error rewriting")) || (response.contains("Text je ops"))) {
+            m_captchaKey = QString::number(QDateTime::currentMSecsSinceEpoch());
             emit error(CaptchaError);
         }
         else {

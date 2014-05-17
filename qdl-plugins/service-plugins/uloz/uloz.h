@@ -22,7 +22,7 @@ public:
     inline bool loginSupported() const { return true; }
     void login(const QString &username, const QString &password);
     inline bool recaptchaRequired() const { return true; }
-    inline QString recaptchaKey() const { return m_captchaId; }
+    inline QString recaptchaKey() const { return m_captchaKey; }
     inline QString recaptchaServiceName() const { return QString("Uloz"); }
     inline int maximumConnections() const { return m_connections; }
     bool cancelCurrentOperation();
@@ -41,8 +41,8 @@ signals:
 
 private:
     QUrl m_url;
-    QString m_captchaId;
     QString m_captchaKey;
+    QString m_token;
     QString m_timestamp;
     QString m_cid;
     QString m_sign;

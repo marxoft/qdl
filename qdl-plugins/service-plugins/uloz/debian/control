@@ -8,6 +8,6 @@ Homepage: http://marxoft.co.uk/qdl
 
 Package: qdl-plugins-uloz
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, qdl (>= 1.0.2), qdl-plugins-ulozrecaptcha (>= 0.1.0)
+Depends: ${shlibs:Depends}, ${misc:Depends}, qdl (>= 1.0.2), qdl-plugins-ulozrecaptcha (>= 0.1.1)
 Description: Uloz.to plugin for the QDL download manager.
  This plugin provides access to file downloads via Uloz.to.

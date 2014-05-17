@@ -6,10 +6,12 @@ TEMPLATE = lib
 HEADERS += \
     uloz.h \
     serviceinterface.h \
-    serviceplugin.h
+    serviceplugin.h \
+    json.h
 
 SOURCES += \
-    uloz.cpp
+    uloz.cpp \
+    json.cpp
 
 icon.files = "$$TARGET".jpg
 

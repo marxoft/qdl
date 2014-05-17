@@ -1,3 +1,9 @@
+qdl-plugins-uloz (0.1.1) unstable; urgency=low
+
+  * Fix download URL retrieval.
+
+ -- Stuart Howarth <showarth@marxoft.co.uk>  Sat, 17 May 2014 23:19:17 +0000
+
 qdl-plugins-uloz (0.1.0) unstable; urgency=low
 
   * Fixes and changes to base plugin class.
