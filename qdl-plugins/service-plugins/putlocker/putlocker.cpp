@@ -2,20 +2,15 @@
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QNetworkRequest>
-#include <QTimer>
 #include <QRegExp>
 
 PutLocker::PutLocker(QObject *parent) :
-    ServicePlugin(parent),
-    m_waitTimer(new QTimer(this)),
-    m_waitTime(0),
-    m_connections(1)
+    ServicePlugin(parent)
 {
-    this->connect(m_waitTimer, SIGNAL(timeout()), this, SLOT(updateWaitTime()));
 }
 
 QRegExp PutLocker::urlPattern() const {
-    return QRegExp("http(s|)://(www.|)putlocker.com/file/\\w+", Qt::CaseInsensitive);
+    return QRegExp("http(s|)://(www.|)(putlocker|firedrive).com/file/\\w+", Qt::CaseInsensitive);
 }
 
 bool PutLocker::urlSupported(const QUrl &url) const {
@@ -24,7 +19,7 @@ bool PutLocker::urlSupported(const QUrl &url) const {
 
 void PutLocker::login(const QString &username, const QString &password) {
     QString data = QString("user=%1&pass=%2").arg(username).arg(password);
-    QUrl url("http://www.putlocker.com/authenticate.php?login");
+    QUrl url("http://www.firedrive.com/authenticate.php?login");
     QNetworkRequest request(url);
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
     QNetworkReply *reply = this->networkAccessManager()->post(request, data.toUtf8());
@@ -46,11 +41,9 @@ void PutLocker::checkLogin() {
     case 302:
     case 200:
     case 201:
-        m_connections = 0;
         emit loggedIn(true);
         break;
     default:
-        m_connections = 1;
         emit loggedIn(false);
         break;
     }
@@ -75,7 +68,7 @@ void PutLocker::checkUrlIsValid() {
     }
 
     QString redirect = reply->attribute(QNetworkRequest::RedirectionTargetAttribute).toString();
-    QRegExp re("/get_file.php\\?id=[^\"]+");
+    QRegExp re("http://dl.firedrive.com/\\?key=[^\"']+");
 
     if ((!redirect.isEmpty()) && (re.indexIn(redirect) == -1)) {
         this->checkUrl(QUrl(redirect));
@@ -87,7 +80,7 @@ void PutLocker::checkUrlIsValid() {
             emit urlChecked(false);
         }
         else {
-            QString fileName = response.section("<title>", 1, 1).section('|', 0, 0).trimmed();
+            QString fileName = response.section("external_title_left\">", 1, 1).section('<', 0, 0).trimmed();
 
             if (fileName.isEmpty()) {
                 emit urlChecked(false);
@@ -102,7 +95,6 @@ void PutLocker::checkUrlIsValid() {
 }
 
 void PutLocker::getDownloadRequest(const QUrl &webUrl) {
-    m_url = webUrl;
     emit statusChanged(Connecting);
     QNetworkRequest request(webUrl);
     request.setRawHeader("Accept-Language", "en-GB,en-US;q=0.8,en;q=0.6");
@@ -119,7 +111,7 @@ void PutLocker::onWebPageDownloaded() {
         return;
     }
 
-    QRegExp re("/get_file.php\\?id=[^\"]+");
+    QRegExp re("http://dl.firedrive.com/\\?key=[^\"']+");
     QString redirect = reply->attribute(QNetworkRequest::RedirectionTargetAttribute).toString();
 
     if (re.indexIn(redirect) >= 0) {
@@ -135,17 +127,17 @@ void PutLocker::onWebPageDownloaded() {
 
         if (re.indexIn(response) >= 0) {
             QNetworkRequest request;
-            request.setUrl(QUrl("http://www.putlocker.com" + re.cap()));
+            request.setUrl(QUrl(re.cap()));
             emit downloadRequestReady(request);
         }
         else {
-            m_hash = response.section("\" name=\"hash", 0, 0).section('"', -1);
+            QByteArray hash = response.section("confirm\" value=\"", 1, 1).section('"', 0, 0).toUtf8();
 
-            if (m_hash.isEmpty()) {
+            if (hash.isEmpty()) {
                 emit error(UnknownError);
             }
             else {
-                this->getDownloadLink();
+                this->getDownloadLink(reply->request().url(), hash);
             }
         }
     }
@@ -153,12 +145,11 @@ void PutLocker::onWebPageDownloaded() {
     reply->deleteLater();
 }
 
-void PutLocker::getDownloadLink() {
-    QString data = QString("hash=%1&confirm=Continue as Free User").arg(m_hash);
-    QNetworkRequest request(m_url);
+void PutLocker::getDownloadLink(const QUrl &url, const QByteArray &hash) {
+    QNetworkRequest request(url);
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
-    request.setRawHeader("Referer", m_url.toString().toUtf8());
-    QNetworkReply *reply = this->networkAccessManager()->post(request, data.toUtf8());
+    request.setRawHeader("Referer", url.toString().toUtf8());
+    QNetworkReply *reply = this->networkAccessManager()->post(request, "confirm=" + hash.toPercentEncoding());
     this->connect(reply, SIGNAL(finished()), this, SLOT(checkDownloadLink()));
     this->connect(this, SIGNAL(currentOperationCancelled()), reply, SLOT(deleteLater()));
 }
@@ -171,7 +162,7 @@ void PutLocker::checkDownloadLink() {
         return;
     }
 
-    QRegExp re("/get_file.php\\?id=[^\"]+");
+    QRegExp re("http://dl.firedrive.com/\\?key=[^\"']+");
     QString redirect = reply->attribute(QNetworkRequest::RedirectionTargetAttribute).toString();
 
     if (re.indexIn(redirect) >= 0) {
@@ -184,7 +175,7 @@ void PutLocker::checkDownloadLink() {
 
         if (re.indexIn(response) >= 0) {
             QNetworkRequest request;
-            request.setUrl(QUrl("http://www.putlocker.com" + re.cap()));
+            request.setUrl(QUrl(re.cap()));
             emit downloadRequestReady(request);
         }
         else {
@@ -195,36 +186,7 @@ void PutLocker::checkDownloadLink() {
     reply->deleteLater();
 }
 
-void PutLocker::startWait(int msecs) {
-    if (msecs > 30000) {
-        emit statusChanged(LongWait);
-    }
-    else {
-        emit statusChanged(ShortWait);
-    }
-
-    emit waiting(msecs);
-    m_waitTime = msecs;
-    m_waitTimer->start(1000);
-}
-
-void PutLocker::updateWaitTime() {
-    m_waitTime -= m_waitTimer->interval();
-    emit waiting(m_waitTime);
-
-    if (m_waitTime <= 0) {
-        m_waitTimer->stop();
-        emit waitFinished();
-    }
-}
-
-void PutLocker::onWaitFinished() {
-    emit statusChanged(Ready);
-    this->disconnect(this, SIGNAL(waitFinished()), this, SLOT(onWaitFinished()));
-}
-
 bool PutLocker::cancelCurrentOperation() {
-    m_waitTimer->stop();
     emit currentOperationCancelled();
 
     return true;

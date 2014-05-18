@@ -1,3 +1,10 @@
+qdl-plugins-putlocker (0.1.1) unstable; urgency=low
+
+  * Fixed download URL retrieval.
+  * Enable multiple connections for downloads.
+
+ -- Stuart Howarth <showarth@marxoft.co.uk>  Sun, 18 Nov 2014 15:20:18 +0000
+
 qdl-plugins-putlocker (0.1.0) unstable; urgency=low
 
   * Fixes and changes to base plugin class.

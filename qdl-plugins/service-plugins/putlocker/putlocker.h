@@ -5,8 +5,6 @@
 #include <QUrl>
 #include "serviceplugin.h"
 
-class QTimer;
-
 class PutLocker : public ServicePlugin
 {
     Q_OBJECT
@@ -24,30 +22,20 @@ public:
     void login(const QString &username, const QString &password);
     inline bool loginSupported() const { return true; }
     inline bool recaptchaRequired() const { return false; }
-    inline int maximumConnections() const { return m_connections; }
+    inline int maximumConnections() const { return 0; }
     bool cancelCurrentOperation();
 
 private:
-    void startWait(int msecs);
+    void getDownloadLink(const QUrl &url, const QByteArray &hash);
 
 private slots:
     void checkLogin();
     void checkUrlIsValid();
     void onWebPageDownloaded();
-    void updateWaitTime();
-    void onWaitFinished();
-    void getDownloadLink();
     void checkDownloadLink();
 
 signals:
     void currentOperationCancelled();
-
-private:
-    QUrl m_url;
-    QString m_hash;
-    QTimer *m_waitTimer;
-    int m_waitTime;
-    int m_connections;
 };
 
 #endif // PUTLOCKER_H
