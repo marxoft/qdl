@@ -51,7 +51,9 @@ SUBDIRS += \
     rapidshare \
     ryushare \
     sendspace \
+    shareonline \
     sharevnn \
+    sockshare \
     soundcloud \
     superupl \
     terafile \
