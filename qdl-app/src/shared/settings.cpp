@@ -198,7 +198,7 @@ void Settings::setMaximumConnectionsPerTransfer(int maximum) {
 
     if ((maximum != oldMaximum) && (maximum > 0) && (maximum <= MAX_CONNECTIONS)) {
         m_maxConnections = maximum;
-        emit maximumConcurrentTransfersChanged(oldMaximum, maximum);
+        emit maximumConnectionsPerTransferChanged(oldMaximum, maximum);
     }
 }
 
