@@ -9,6 +9,10 @@
 #include <QUrlQuery>
 #endif
 
+static const QString SESSION_ID("28d3724ebe3cc77cc2088727c5b184bb");
+static const QString JS_HTTP_REQUEST("14009408677681-xml");
+static const QString TOKEN("fl504ee47586080");
+
 using namespace QtJson;
 
 FilePost::FilePost(QObject *parent) :
@@ -32,14 +36,14 @@ void FilePost::login(const QString &username, const QString &password) {
     QUrl url("http://filepost.com/general/login_form/");
 #if QT_VERSION >= 0x050000
     QUrlQuery query(url);
-    query.addQueryItem("SID", "402c1c051b7c6a729cc73f93d98bbefc");
-    query.addQueryItem("JsHttpRequest", "13528451120440-xml");
+    query.addQueryItem("SID", SESSION_ID);
+    query.addQueryItem("JsHttpRequest", JS_HTTP_REQUEST);
     url.setQuery(query);
 #else
-    url.addQueryItem("SID", "402c1c051b7c6a729cc73f93d98bbefc");
-    url.addQueryItem("JsHttpRequest", "13528451120440-xml");
+    url.addQueryItem("SID", SESSION_ID);
+    url.addQueryItem("JsHttpRequest", JS_HTTP_REQUEST);
 #endif
-    QString data = QString("email=%1&password=%2&remember=on&recaptcha_response_field=&token=fl504ee47586080").arg(username).arg(password);
+    QString data = QString("email=%1&password=%2&remember=on&recaptcha_response_field=&token=%3").arg(username).arg(password).arg(TOKEN);
     QNetworkRequest request(url);
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
     QNetworkReply *reply = this->networkAccessManager()->post(request, data.toUtf8());
@@ -75,7 +79,7 @@ void FilePost::checkLogin() {
 
 void FilePost::checkUrl(const QUrl &webUrl) {
     QNetworkRequest request(webUrl);
-    request.setRawHeader("Accept-Language", "en-GB,en-US;q=0.8,en;q=0.6");
+    request.setRawHeader("Accept-Language", "en-US,en;q=0.5");
     QNetworkReply *reply = this->networkAccessManager()->get(request);
     this->connect(reply, SIGNAL(finished()), this, SLOT(checkUrlIsValid()));
     this->connect(this, SIGNAL(currentOperationCancelled()), reply, SLOT(deleteLater()));
@@ -113,7 +117,7 @@ void FilePost::checkUrlIsValid() {
 void FilePost::getDownloadRequest(const QUrl &webUrl) {
     emit statusChanged(Connecting);
     QNetworkRequest request(webUrl);
-    request.setRawHeader("Accept-Language", "en-GB,en-US;q=0.8,en;q=0.6");
+    request.setRawHeader("Accept-Language", "en-US,en;q=0.5");
     QNetworkReply *reply = this->networkAccessManager()->get(request);
     this->connect(reply, SIGNAL(finished()), this, SLOT(onWebPageDownloaded()));
     this->connect(this, SIGNAL(currentOperationCancelled()), reply, SLOT(deleteLater()));
@@ -139,20 +143,22 @@ void FilePost::onWebPageDownloaded() {
         this->getDownloadRequest(QUrl(redirect));
     }
     else {
-        QString response(reply->readAll().simplified());
+        QString response(reply->readAll());
 
         if (re.indexIn(response) >= 0) {
             QNetworkRequest request;
             request.setUrl(QUrl(re.cap()));
             emit downloadRequestReady(request);
         }
+        else if (response.contains("file_info file_info_deleted")) {
+            emit error(NotFound);
+        }
         else {
-            QString response(reply->readAll().simplified());
-            m_captchaKey = response.section("key: '", 1, 1).section('\'', 0, 0);
-            m_code = response.section("action: 'set_download', code: '", 1, 1).section('\'', 0, 0);
+            m_captchaKey = response.section(QRegExp("key:\\s+'"), 1, 1).section('\'', 0, 0);
+            m_code = response.section("name=\"code\" value=\"", 1, 1).section('"', 0, 0);
 
             if ((m_captchaKey.isEmpty()) || (m_code.isEmpty())) {
-                emit error(UrlError);
+                emit error(UnknownError);
             }
             else {
                 this->getWaitTime();
@@ -167,21 +173,17 @@ void FilePost::getWaitTime() {
     QUrl url("http://filepost.com/files/get/");
 #if QT_VERSION >= 0x050000
     QUrlQuery query(url);
-    query.addQueryItem("SID", "402c1c051b7c6a729cc73f93d98bbefc");
-    query.addQueryItem("JsHttpRequest", "13528451120440-xml");
-    query.addQueryItem("action", "set_download");
-    query.addQueryItem("code", m_code);
-    query.addQueryItem("token", "fl504ee47586080");
+    query.addQueryItem("SID", SESSION_ID);
+    query.addQueryItem("JsHttpRequest", JS_HTTP_REQUEST);
     url.setQuery(query);
 #else
-    url.addQueryItem("SID", "402c1c051b7c6a729cc73f93d98bbefc");
-    url.addQueryItem("JsHttpRequest", "13528451120440-xml");
-    url.addQueryItem("action", "set_download");
-    url.addQueryItem("code", m_code);
-    url.addQueryItem("token", "fl504ee47586080");
+    url.addQueryItem("SID", SESSION_ID);
+    url.addQueryItem("JsHttpRequest", JS_HTTP_REQUEST);
 #endif
+    QString data = QString("action=set_download&code=%1&token=%2").arg(m_code).arg(TOKEN);
     QNetworkRequest request(url);
-    QNetworkReply *reply = this->networkAccessManager()->get(request);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
+    QNetworkReply *reply = this->networkAccessManager()->post(request, data.toUtf8());
     this->connect(reply, SIGNAL(finished()), this, SLOT(checkWaitTime()));
     this->connect(this, SIGNAL(currentOperationCancelled()), reply, SLOT(deleteLater()));
 }
@@ -222,7 +224,7 @@ void FilePost::checkWaitTime() {
             }
         }
         else {
-            emit error(UnknownError);
+            emit statusChanged(CaptchaRequired);
         }
     }
     else {
@@ -241,23 +243,17 @@ void FilePost::submitCaptchaResponse(const QString &challenge, const QString &re
     QUrl url("http://filepost.com/files/get/");
 #if QT_VERSION >= 0x050000
     QUrlQuery query(url);
-    query.addQueryItem("code", m_code);
-    query.addQueryItem("SID", "a72b35fafce99c6f0e43b21b892c994b");
-    query.addQueryItem("JsHttpRequest", "13528451120440-xml");
-    query.addQueryItem("recaptcha_challenge_field", challenge);
-    query.addQueryItem("recaptcha_response_field", response);
-    query.addQueryItem("token", "fl504ee47586080");
+    query.addQueryItem("SID", SESSION_ID);
+    query.addQueryItem("JsHttpRequest", JS_HTTP_REQUEST);
     url.setQuery(query);
 #else
-    url.addQueryItem("code", m_code);
-    url.addQueryItem("SID", "a72b35fafce99c6f0e43b21b892c994b");
-    url.addQueryItem("JsHttpRequest", "13528451120440-xml");
-    url.addQueryItem("recaptcha_challenge_field", challenge);
-    url.addQueryItem("recaptcha_response_field", response);
-    url.addQueryItem("token", "fl504ee47586080");
+    url.addQueryItem("SID", SESSION_ID);
+    url.addQueryItem("JsHttpRequest", JS_HTTP_REQUEST);
 #endif
+    QString data = QString("code=%1&file_pass=&recaptcha_challenge_field=%2&recaptcha_response_field=%3&token=%4").arg(m_code).arg(challenge).arg(response).arg(TOKEN);
     QNetworkRequest request(url);
-    QNetworkReply *reply = this->networkAccessManager()->get(request);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
+    QNetworkReply *reply = this->networkAccessManager()->post(request, data.toUtf8());
     this->connect(reply, SIGNAL(finished()), this, SLOT(onCaptchaSubmitted()));
     this->connect(this, SIGNAL(currentOperationCancelled()), reply, SLOT(deleteLater()));
 }
@@ -329,6 +325,7 @@ void FilePost::onWaitFinished() {
 
 bool FilePost::cancelCurrentOperation() {
     m_waitTimer->stop();
+    this->disconnect(this, SIGNAL(waitFinished()), this, 0);
     emit currentOperationCancelled();
 
     return true;

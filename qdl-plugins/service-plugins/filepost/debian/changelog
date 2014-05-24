@@ -1,3 +1,10 @@
+qdl-plugins-filepost (0.1.1) unstable; urgency=low
+
+  * Fix download URL retrieval.
+  * Disconnect from timer signal when canceling current operation.
+
+ -- Stuart Howarth <showarth@marxoft.co.uk>  Sat, 24 May 2014 15:28:17 +0000
+
 qdl-plugins-filepost (0.1.0) unstable; urgency=low
 
   * Fixes and changes to base plugin class.
