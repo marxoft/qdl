@@ -151,7 +151,7 @@ void ShareOnline::onWebPageDownloaded() {
             request.setUrl(QUrl(re.cap()));
             emit downloadRequestReady(request);
         }
-        else if (response.contains("File Not Found")) {
+        else if (response.contains("file is not available")) {
             emit error(NotFound);
         }
         else {
