@@ -748,6 +748,7 @@ void Transfer::restoreConnection(qint64 start, qint64 end) {
 void Transfer::addConnection(qint64 start, qint64 end, bool startWhenAdded) {
     if (!m_nam) {
         m_nam = NetworkAccessManager::create();
+	    m_nam->setParent(this);
     }
 
     qDebug() << "Adding connection with range start:" << start << "end:" << end;
