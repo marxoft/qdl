@@ -28,10 +28,10 @@ class NetworkAccessManager : public QNetworkAccessManager
 
 public:
     static NetworkAccessManager* instance();
-    static NetworkAccessManager* create();
+    static NetworkAccessManager* create(QObject *parent = 0);
 
 private:
-    NetworkAccessManager();
+    NetworkAccessManager(QObject *parent = 0);
     ~NetworkAccessManager();
     
 private:

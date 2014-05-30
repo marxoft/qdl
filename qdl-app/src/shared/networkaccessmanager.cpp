@@ -21,18 +21,19 @@
 NetworkAccessManager* NetworkAccessManager::self = 0;
 CookieJar* NetworkAccessManager::m_cookieJar = 0;
 
-NetworkAccessManager::NetworkAccessManager() :
-    QNetworkAccessManager()
+NetworkAccessManager::NetworkAccessManager(QObject *parent) :
+    QNetworkAccessManager(parent)
 {
     if (!self) {
         self = this;
     }
 
     if (!m_cookieJar) {
-        m_cookieJar = new CookieJar(self);
+        m_cookieJar = new CookieJar;
     }
 
     this->setCookieJar(m_cookieJar);
+    m_cookieJar->setParent(0);
 }
 
 NetworkAccessManager::~NetworkAccessManager() {}
@@ -41,6 +42,6 @@ NetworkAccessManager* NetworkAccessManager::instance() {
     return !self ? new NetworkAccessManager : self;
 }
 
-NetworkAccessManager* NetworkAccessManager::create() {
-    return new NetworkAccessManager;
+NetworkAccessManager* NetworkAccessManager::create(QObject *parent) {
+    return new NetworkAccessManager(parent);
 }
