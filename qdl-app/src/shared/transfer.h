@@ -24,7 +24,6 @@
 #include "../interfaces/recaptchaplugin.h"
 #include "../interfaces/decaptchaplugin.h"
 #include <QUrl>
-#include <QFile>
 #include <QNetworkRequest>
 #include <QTime>
 #include <QStringList>
@@ -101,6 +100,14 @@ class Transfer : public QObject
     Q_PROPERTY(int maximumConnections
                READ maximumConnections
                CONSTANT)
+    Q_PROPERTY(QString captchaFileName
+               READ captchaFileName
+               CONSTANT)
+    Q_PROPERTY(int captchaTimeOut
+               READ captchaTimeOut)
+    Q_PROPERTY(QString captchaResponse
+               READ captchaResponse
+               WRITE submitCaptchaResponse)
     Q_PROPERTY(bool convertibleToAudio
                READ convertibleToAudio
                CONSTANT)
@@ -132,8 +139,8 @@ class Transfer : public QObject
 public:
     enum Roles {
         NameRole = Qt::UserRole + 1,
-        IconRole,
         ServiceNameRole,
+        IconRole,
         CategoryRole,
         PriorityRole,
         PriorityStringRole,
@@ -147,6 +154,9 @@ public:
         PreferredConnectionsRole,
         MaximumConnectionsRole,
         DownloadResumableRole,
+        CaptchaFileNameRole,
+        CaptchaTimeOutRole,
+        CaptchaResponseRole,
         TransferCountRole,
         IdRole,
         PackageIdRole,
@@ -252,6 +262,12 @@ public:
 
     int activeConnections() const;
 
+    QString captchaFileName() const;
+
+    int captchaTimeOut() const;
+
+    QString captchaResponse() const;
+
     bool downloadIsResumable() const;
 
     int count() const;
@@ -275,9 +291,12 @@ public slots:
     void start();
     void pause();
     void cancel();
+
     void queuePackage();
     void pausePackage();
     void cancelPackage();
+    
+    bool submitCaptchaResponse(const QString &response);
 
 private:
     void setIconFileName(const QString &fileName);
@@ -318,6 +337,8 @@ private slots:
     void onArchiveExtractionFinished();
     void onArchiveExtractionError();
     void moveFiles();
+    void removeCaptchaFile();
+    void removeFiles();
 
 signals:
     void statusChanged(Transfers::Status status);
@@ -374,6 +395,8 @@ private:
     int m_row;
     int m_preferredConnections;
     int m_maxConnections;
+    QTime m_captchaTime;
+    QString m_captchaResponse;
 #ifdef QML_USER_INTERFACE
     bool m_expanded;
 #endif

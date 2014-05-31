@@ -132,7 +132,6 @@ private slots:
     void onTransferStatusChanged(Transfers::Status status);
     void onMaximumConcurrentTransfersChanged(int oldMaximum, int newMaximum);
     void storeAndDeleteTransfers();
-    void onTransfersRestored(const QList<Transfer*> &transfers);
 
 signals:
     void countChanged(int count);

@@ -79,8 +79,8 @@ CaptchaDialog::CaptchaDialog(QWidget *parent) :
 
 CaptchaDialog::~CaptchaDialog() {}
 
-void CaptchaDialog::setCaptchaImage(const QPixmap &image) {
-    m_imageLabel->setPixmap(image);
+void CaptchaDialog::setCaptchaFileName(const QString &fileName) {
+    m_imageLabel->setPixmap(QPixmap(fileName));
 }
 
 void CaptchaDialog::setTimeout(int secs) {

@@ -32,9 +32,9 @@
 #include <QDateTime>
 #include <QNetworkReply>
 #include <QDir>
+#include <QFile>
 #include <qplatformdefs.h>
 #ifdef MEEGO_EDITION_HARMATTAN
-#include "../harmattan/captchaimageprovider.h"
 #include <QDeclarativeView>
 #include <QDeclarativeEngine>
 #include <QDeclarativeContext>
@@ -42,6 +42,7 @@
 #endif
 
 static const qint64 MIN_FRAGMENT_SIZE = 1024 * 2048;
+static const int CAPTCHA_TIMEOUT = 120;
 static const QString VIDEO_SUFFIXES("mp4:flv:avi:divx:mpg:mpeg:mpeg2:mpeg4:ts:mkv:wmv:xvid:mov");
 static const QString ARCHIVE_SUFFIXES("rar:zip:tar:gz");
 static const QRegExp ILLEGAL_CHARS_RE("[\"@&~=\\/:?#!|<>*^]");
@@ -82,10 +83,10 @@ QVariant Transfer::data(int role) const {
     switch (role) {
     case NameRole:
         return this->fileName();
-    case IconRole:
-        return this->iconFileName();
     case ServiceNameRole:
         return this->serviceName();
+    case IconRole:
+        return this->iconFileName();
     case CategoryRole:
         return this->category();
     case PriorityRole:
@@ -110,6 +111,12 @@ QVariant Transfer::data(int role) const {
         return this->preferredConnections();
     case MaximumConnectionsRole:
         return this->maximumConnections();
+    case CaptchaFileNameRole:
+        return this->captchaFileName();
+    case CaptchaTimeOutRole:
+        return this->captchaTimeOut();
+    case CaptchaResponseRole:
+        return this->captchaResponse();
     case DownloadResumableRole:
         return this->downloadIsResumable();
     case TransferCountRole:
@@ -150,6 +157,9 @@ QMap<int, QVariant> Transfer::itemData() const {
     map[ConvertToAudioRole] = this->convertToAudio();
     map[PreferredConnectionsRole] = this->preferredConnections();
     map[MaximumConnectionsRole] = this->maximumConnections();
+    map[CaptchaFileNameRole] = this->captchaFileName();
+    map[CaptchaTimeOutRole] = this->captchaTimeOut();
+    map[CaptchaResponseRole] = this->captchaResponse();
     map[IdRole] = this->id();
     map[PackageIdRole] = this->packageId();
 
@@ -173,6 +183,9 @@ QVariantMap Transfer::itemDataWithRoleNames() const {
     map["convertToAudio"] = this->convertToAudio();
     map["preferredConnections"] = this->preferredConnections();
     map["maximumConnections"] = this->maximumConnections();
+    map["captchaFileName"] = this->captchaFileName();
+    map["captchaTimeOut"] = this->captchaTimeOut();
+    map["captchaResponse"] = this->captchaResponse();
     map["id"] = this->id();
     map["packageId"] = this->packageId();
 
@@ -207,6 +220,8 @@ bool Transfer::setData(int role, const QVariant &value) {
     case PreferredConnectionsRole:
         this->setPreferredConnections(value.toInt());
         break;
+    case CaptchaResponseRole:
+        return this->submitCaptchaResponse(value.toString());
     case PackageStatusRole:
         switch (value.toInt()) {
         case Transfers::Queued:
@@ -581,14 +596,11 @@ void Transfer::setStatus(Transfers::Status status) {
         case Transfers::Downloading:
             m_downloadTime.start();
             break;
+        case Transfers::CaptchaRequired:
+            m_captchaTime.start();
+            break;
         case Transfers::Cancelled:
-            if (!m_file.remove()) {
-                QFile::remove(QString("%1%2%3").arg(this->downloadPath()).arg(this->downloadPath().endsWith("/") ? "" : "/").arg(this->fileName()));
-            }
-
-            if ((m_transfers.isEmpty()) && (this->isPackage())) {
-                QDir().rmdir(this->downloadPath());
-            }
+            this->removeFiles();
 
             if (m_servicePlugin) m_servicePlugin->cancelCurrentOperation();
             if (m_recaptchaPlugin) m_recaptchaPlugin->cancelCurrentOperation();
@@ -713,6 +725,24 @@ int Transfer::activeConnections() const {
     }
 
     return active;
+}
+
+QString Transfer::captchaFileName() const {
+    return QString("%1captcha_%2.jpg").arg(this->downloadPath()).arg(this->id());
+}
+
+int Transfer::captchaTimeOut() const {
+    switch (this->status()) {
+    case Transfers::CaptchaRequired:
+        return m_captchaTime.elapsed() > 0 ? CAPTCHA_TIMEOUT - m_captchaTime.elapsed() / 1000
+                                           : 0;
+    default:
+        return 0;
+    }
+}
+
+QString Transfer::captchaResponse() const {
+    return m_captchaResponse;
 }
 
 bool Transfer::downloadIsResumable() const {
@@ -929,9 +959,9 @@ void Transfer::start() {
     case Transfers::Failed:
     case Transfers::Queued:
     case Transfers::ShortWait:
-	break;
+	    break;
     default:
-	return;
+	    return;
     }
 
     if (!m_nam) {
@@ -1029,14 +1059,14 @@ void Transfer::onServicePluginStatusChanged(ServicePlugin::Status status) {
         this->onCaptchaRequired();
         return;
     case ServicePlugin::Ready:
-	switch (this->status()) {
-	case Transfers::ShortWait:
-	    this->start();
-	    return;
+	    switch (this->status()) {
+	    case Transfers::ShortWait:
+	        this->start();
+	        return;
         default:
             this->setStatus(Transfers::Queued);
             return;
-	}
+	    }
     }
 }
 
@@ -1177,20 +1207,32 @@ void Transfer::onCaptchaReady(const QByteArray &imageData) {
         m_decaptchaPlugin->getCaptchaResponse(imageData);
     }
     else {
-#ifdef MEEGO_EDITION_HARMATTAN
+        QFile file(this->captchaFileName());
+
+        if ((!QDir().mkpath(this->downloadPath())) || !file.open(QIODevice::WriteOnly) || (file.write(imageData) < 0)) {
+            file.remove();
+            this->setStatusInfo(tr("Cannot write captcha image"));
+            this->setStatus(Transfers::Failed);
+            return;
+        }
+
+        file.close();
+
         this->setStatusInfo(tr("Awaiting captcha response"));
+        this->setStatus(Transfers::CaptchaRequired);
+#ifdef MEEGO_EDITION_HARMATTAN
         QDeclarativeView *view = new QDeclarativeView;
-        view->engine()->addImageProvider(QString("captcha"), new CaptchaImageProvider);
         view->rootContext()->setContextProperty("Utils", new Utils(view));
         view->setSource(QUrl("qrc:/CaptchaDialog.qml"));
 
         if (QGraphicsObject *dialog = view->rootObject()) {
-            dialog->setProperty("captchaImage", QString("image://captcha/" + imageData.toBase64()));
-            dialog->setProperty("timeOut", 120);
+            dialog->setProperty("captchaFileName", this->captchaFileName());
+            dialog->setProperty("timeOut", CAPTCHA_TIMEOUT);
             this->connect(dialog, SIGNAL(rejected()), view, SLOT(deleteLater()));
             this->connect(dialog, SIGNAL(rejected()), this, SLOT(onCaptchaRejectedByUser()));
             this->connect(dialog, SIGNAL(captchaResponseReady(QString)), view, SLOT(deleteLater()));
             this->connect(dialog, SIGNAL(captchaResponseReady(QString)), this, SLOT(onCaptchaResponseReady(QString)));
+            this->connect(this, SIGNAL(statusChanged(Transfers::Status)), view, SLOT(deleteLater()));
             view->showFullScreen();
         }
         else {
@@ -1198,21 +1240,13 @@ void Transfer::onCaptchaReady(const QByteArray &imageData) {
             this->setStatus(Transfers::Failed);
         }
 #else
-        QPixmap image;
-
-        if (image.loadFromData(imageData)) {
-            this->setStatusInfo(tr("Awaiting captcha response"));
-            CaptchaDialog *dialog = new CaptchaDialog;
-            dialog->setCaptchaImage(image);
-            dialog->setTimeout(120);
-            dialog->open();
-            this->connect(dialog, SIGNAL(captchaResponseReady(QString)), this, SLOT(onCaptchaResponseReady(QString)));
-            this->connect(dialog, SIGNAL(rejected()), this, SLOT(onCaptchaRejectedByUser()));
-        }
-        else {
-            this->setStatusInfo(tr("Captcha image error"));
-            this->setStatus(Transfers::Failed);
-        }
+        CaptchaDialog *dialog = new CaptchaDialog;
+        dialog->setCaptchaFileName(this->captchaFileName());
+        dialog->setTimeout(CAPTCHA_TIMEOUT);
+        dialog->open();
+        this->connect(dialog, SIGNAL(captchaResponseReady(QString)), this, SLOT(onCaptchaResponseReady(QString)));
+        this->connect(dialog, SIGNAL(rejected()), this, SLOT(onCaptchaRejectedByUser()));
+        this->connect(this, SIGNAL(statusChanged(Transfers::Status)), dialog, SLOT(deleteLater()));
 #endif
     }
 }
@@ -1260,13 +1294,32 @@ void Transfer::onDecaptchaPluginError(DecaptchaPlugin::ErrorType errorType) {
     this->setStatus(Transfers::Failed);
 }
 
+bool Transfer::submitCaptchaResponse(const QString &response) {
+    switch (this->status()) {
+    case Transfers::CaptchaRequired:
+        if (response.isEmpty()) {
+            this->onCaptchaRejectedByUser();
+        }
+        else {
+            this->onCaptchaResponseReady(response);
+        }
+
+        return true;
+    default:
+        return false;
+    }
+}
+
 void Transfer::onCaptchaResponseReady(const QString &response) {
+    m_captchaResponse = response;
+
     if ((!m_servicePlugin) || (!m_recaptchaPlugin)) {
         this->setStatusInfo(tr("Cannot submit captcha response"));
         this->setStatus(Transfers::Failed);
         return;
     }
 
+    this->setStatus(Transfers::ShortWait);
     this->setStatusInfo(tr("Submitting captcha response"));
 
     m_servicePlugin->submitCaptchaResponse(m_recaptchaPlugin->challenge(), response);
@@ -1411,54 +1464,6 @@ void Transfer::onMaximumConnectionsChanged(int oldMaximum, int newMaximum) {
     this->setPreferredConnections(!plugin ? 1 : qMin(plugin->maximumConnections(), newMaximum));
 }
 
-void Transfer::moveFiles() {
-    QDir destinationDir(Settings::instance()->downloadPath());
-
-    if (!this->category().isEmpty()) {
-        QString categoryPath = Database::instance()->getCategoryPath(this->category());
-
-        if (!categoryPath.isEmpty()) {
-            destinationDir.setPath(categoryPath);
-        }
-    }
-
-    if (!destinationDir.mkpath(destinationDir.path())) {
-        destinationDir.setPath(Settings::instance()->downloadPath());
-
-        if (!destinationDir.mkpath(destinationDir.path())) {
-            this->setStatusInfo(tr("Cannot move downloaded files"));
-            this->setStatus(Transfers::Failed);
-            return;
-        }
-    }
-
-    QDir downloadDir(this->downloadPath());
-
-    foreach (QString oldFileName, downloadDir.entryList(QDir::Files)) {
-        QString fileName = destinationDir.path() + "/" + oldFileName;
-
-        int i = 1;
-
-        while ((destinationDir.exists(fileName)) && (i < 100)) {
-            fileName = (i == 1 ? QString("%1(%2)%3").arg(fileName.left(fileName.lastIndexOf('.'))).arg(i).arg(fileName.mid(fileName.lastIndexOf('.')))
-                              : QString("%1(%2)%3").arg(fileName.left(fileName.lastIndexOf('('))).arg(i).arg(fileName.mid(fileName.lastIndexOf('.'))));
-            i++;
-        }
-
-        qDebug() << "Renaming downloaded file to:" << fileName;
-
-        if (!destinationDir.rename(downloadDir.absoluteFilePath(oldFileName), fileName)) {
-            this->setStatusInfo(tr("Cannot move downloaded files"));
-            this->setStatus(Transfers::Failed);
-            return;
-        }
-    }
-
-    downloadDir.rmdir(downloadDir.path());
-
-    this->setStatus(Transfers::Completed);
-}
-
 void Transfer::startAudioConversion() {
     this->setStatus(Transfers::Converting);
 
@@ -1522,5 +1527,73 @@ void Transfer::onArchiveExtractionError() {
     }
     else {
         this->moveFiles();
+    }
+}
+
+void Transfer::moveFiles() {
+    this->removeCaptchaFile();
+
+    QDir destinationDir(Settings::instance()->downloadPath());
+
+    if (!this->category().isEmpty()) {
+        QString categoryPath = Database::instance()->getCategoryPath(this->category());
+
+        if (!categoryPath.isEmpty()) {
+            destinationDir.setPath(categoryPath);
+        }
+    }
+
+    if (!destinationDir.mkpath(destinationDir.path())) {
+        destinationDir.setPath(Settings::instance()->downloadPath());
+
+        if (!destinationDir.mkpath(destinationDir.path())) {
+            this->setStatusInfo(tr("Cannot move downloaded files"));
+            this->setStatus(Transfers::Failed);
+            return;
+        }
+    }
+
+    QDir downloadDir(this->downloadPath());
+
+    foreach (QString oldFileName, downloadDir.entryList(QDir::Files)) {
+        QString fileName = destinationDir.path() + "/" + oldFileName;
+
+        int i = 1;
+
+        while ((destinationDir.exists(fileName)) && (i < 100)) {
+            fileName = (i == 1 ? QString("%1(%2)%3").arg(fileName.left(fileName.lastIndexOf('.'))).arg(i).arg(fileName.mid(fileName.lastIndexOf('.')))
+                              : QString("%1(%2)%3").arg(fileName.left(fileName.lastIndexOf('('))).arg(i).arg(fileName.mid(fileName.lastIndexOf('.'))));
+            i++;
+        }
+
+        qDebug() << "Renaming downloaded file to:" << fileName;
+
+        if (!destinationDir.rename(downloadDir.absoluteFilePath(oldFileName), fileName)) {
+            this->setStatusInfo(tr("Cannot move downloaded files"));
+            this->setStatus(Transfers::Failed);
+            return;
+        }
+    }
+
+    downloadDir.rmdir(downloadDir.path());
+
+    this->setStatus(Transfers::Completed);
+}
+
+void Transfer::removeCaptchaFile() {
+    if (QFile::exists(this->captchaFileName())) {
+        QFile::remove(this->captchaFileName());
+    }
+}
+
+void Transfer::removeFiles() {
+    this->removeCaptchaFile();
+
+    if (!m_file.remove()) {
+        QFile::remove(QString("%1%2%3").arg(this->downloadPath()).arg(this->downloadPath().endsWith("/") ? "" : "/").arg(this->fileName()));
+    }
+
+    if ((m_transfers.isEmpty()) && (this->isPackage())) {
+        QDir().rmdir(this->downloadPath());
     }
 }

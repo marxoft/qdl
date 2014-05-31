@@ -34,7 +34,7 @@ public:
     ~CaptchaDialog();
     
 public slots:
-    void setCaptchaImage(const QPixmap &image);
+    void setCaptchaFileName(const QString &fileName);
     void setTimeout(int secs);
 
 private slots:

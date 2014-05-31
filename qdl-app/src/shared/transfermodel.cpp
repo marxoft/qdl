@@ -38,8 +38,8 @@ TransferModel::TransferModel() :
     }
 
     m_roleNames[Transfer::NameRole] = "name";
-    m_roleNames[Transfer::IconRole] = "icon";
     m_roleNames[Transfer::ServiceNameRole] = "serviceName";
+    m_roleNames[Transfer::IconRole] = "icon";
     m_roleNames[Transfer::CategoryRole] = "category";
     m_roleNames[Transfer::PriorityRole] = "priority";
     m_roleNames[Transfer::PriorityStringRole] = "priorityString";
@@ -52,6 +52,9 @@ TransferModel::TransferModel() :
     m_roleNames[Transfer::ConvertToAudioRole] = "convertToAudio";
     m_roleNames[Transfer::PreferredConnectionsRole] = "preferredConnections";
     m_roleNames[Transfer::MaximumConnectionsRole] = "maximumConnections";
+    m_roleNames[Transfer::CaptchaFileNameRole] = "captchaFileName";
+    m_roleNames[Transfer::CaptchaTimeOutRole] = "captchaTimeOut";
+    m_roleNames[Transfer::CaptchaResponseRole] = "captchaResponse";
     m_roleNames[Transfer::DownloadResumableRole] = "downloadResumable";
     m_roleNames[Transfer::TransferCountRole] = "transferCount";
     m_roleNames[Transfer::IdRole] = "id";
@@ -805,21 +808,21 @@ void TransferModel::onMaximumConcurrentTransfersChanged(int oldMaximum, int newM
 }
 
 void TransferModel::storeTransfers() {
-    Storage::instance()->storeTransfers(m_rootItem->childTransfers(), false);
+    Storage::storeTransfers(m_rootItem->childTransfers(), false);
 }
 
 void TransferModel::storeAndDeleteTransfers() {
     this->resetFilters(); // Ugly fix
-    Storage::instance()->storeTransfers(m_rootItem->childTransfers(), true);
+    Storage::storeTransfers(m_rootItem->childTransfers(), true);
 }
 
 void TransferModel::restoreStoredTransfers() {
-    this->connect(Storage::instance(), SIGNAL(transfersRestored(QList<Transfer*>)), this, SLOT(onTransfersRestored(QList<Transfer*>)));
-    Storage::instance()->restoreTransfers();
-}
+    QList<Transfer*> transfers = Storage::restoreTransfers();
 
-void TransferModel::onTransfersRestored(const QList<Transfer *> &transfers) {
-    this->disconnect(Storage::instance(), SIGNAL(transfersRestored(QList<Transfer*>)), this, SLOT(onTransfersRestored(QList<Transfer*>)));
+    if (transfers.isEmpty()) {
+        return;
+    }
+
     this->beginInsertRows(QModelIndex(), 0, transfers.size() - 1);
 
     foreach (Transfer *transfer, transfers) {
