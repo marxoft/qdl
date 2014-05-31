@@ -605,7 +605,7 @@ void WebInterface::onNewRequest(QHttpRequest *request, QHttpResponse *response) 
             path += "queue";
         }
 
-        data = resource(path.startsWith("/opt/") ? path : QString("%1themes/%2%3").arg(m_path).arg(Settings::instance()->webInterfaceTheme()).arg(path));
+        data = resource(QFile::exists(path) ? path : QString("%1themes/%2%3").arg(m_path).arg(Settings::instance()->webInterfaceTheme()).arg(path));
 
         if (data.isEmpty()) {
             response->writeHead(404);
