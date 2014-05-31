@@ -24,7 +24,6 @@
 
 class Settings;
 class Database;
-class Storage;
 class UrlChecker;
 class UrlRetriever;
 class PluginManager;
@@ -47,7 +46,6 @@ private:
     NetworkAccessManager *m_nam;
     Settings *m_settings;
     Database *m_database;
-    Storage *m_storage;
     UrlChecker *m_urlChecker;
     UrlRetriever *m_urlRetriever;
     PluginManager *m_pluginManager;

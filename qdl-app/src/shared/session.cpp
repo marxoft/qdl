@@ -19,7 +19,6 @@
 #include "networkaccessmanager.h"
 #include "settings.h"
 #include "database.h"
-#include "storage.h"
 #include "urlchecker.h"
 #include "urlretriever.h"
 #include "pluginmanager.h"
@@ -34,7 +33,6 @@ Session::Session(QObject *parent) :
     m_nam(NetworkAccessManager::instance()),
     m_settings(Settings::instance()),
     m_database(Database::instance()),
-    m_storage(Storage::instance()),
     m_urlChecker(UrlChecker::instance()),
     m_urlRetriever(UrlRetriever::instance()),
     m_pluginManager(PluginManager::instance()),
@@ -47,7 +45,6 @@ Session::Session(QObject *parent) :
     m_nam->setParent(this);
     m_settings->setParent(this);
     m_database->setParent(this);
-    m_storage->setParent(this);
     m_urlChecker->setParent(this);
     m_urlRetriever->setParent(this);
     m_pluginManager->setParent(this);

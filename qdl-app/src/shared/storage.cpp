@@ -26,64 +26,41 @@
 #else
 #include <QDesktopServices>
 #endif
+#include <QDebug>
 
-Storage* Storage::self = 0;
-
-Storage::Storage() :
-    QObject()
-{
-    if (!self) {
-        self = this;
-    }
-#if QT_VERSION >= 0x050000
-    this->setDirectory(QStandardPaths::writableLocation(QStandardPaths::HomeLocation) + "/.QDL/");
+#if (defined Q_WS_MAEMO_5) || (defined MEEGO_EDITION_HARMATTAN)
+static const QString DIRECTORY("/home/user/.QDL/");
+#elif (defined Q_OS_SYMBIAN)
+static const QString DIRECTORY("C:/.config/QDL/");
+#elif QT_VERSION >= 0x050000
+static const QString DIRECTORY(QStandardPaths::writableLocation(QStandardPaths::HomeLocation) + "/.QDL/");
 #else
-    this->setDirectory(QDesktopServices::storageLocation(QDesktopServices::HomeLocation) + "/.QDL/");
+static const QString DIRECTORY(QDesktopServices::storageLocation(QDesktopServices::HomeLocation) + "/.QDL/");
 #endif
+
+Storage::Storage(QObject *parent) :
+    QObject(parent)
+{
 }
 
 Storage::~Storage() {}
 
-Storage* Storage::instance() {
-    return !self ? new Storage : self;
-}
-
-QString Storage::directory() const {
-    return m_directory;
-}
-
-void Storage::setDirectory(const QString &directory) {
-    m_directory = directory.endsWith('/') ? directory : directory + '/';
-}
-
-QString Storage::errorString() const {
-    return m_errorString;
-}
-
-void Storage::setErrorString(const QString &errorString) {
-    m_errorString = errorString;
-}
-
-bool Storage::storeTransfers(QList<Transfer *> transfers, bool deleteWhenStored) {
+bool Storage::storeTransfers(QList<Transfer*> transfers, bool deleteWhenStored) {
     if (transfers.isEmpty()) {
         return false;
     }
 
     QDir dir;
 
-    if (!dir.mkpath(this->directory())) {
-        this->setErrorString(QString("%1 %2").arg(tr("Cannot create directory").arg(this->directory())));
-        emit error();
-
+    if (!dir.mkpath(DIRECTORY)) {
+        qDebug() << "Storage::storeTransfers(): Cannot create directory" << DIRECTORY;
         return false;
     }
 
-    QFile file(this->directory() + "downloads.xml");
+    QFile file(DIRECTORY + "downloads.xml");
 
     if (!file.open(QIODevice::WriteOnly)) {
-        this->setErrorString(QString("%1 %2").arg(tr("Cannot open file").arg(file.fileName())));
-        emit error();
-
+        qDebug() << "Storage::storeTransfers():" << file.errorString();
         return false;
     }
 
@@ -158,26 +135,22 @@ bool Storage::storeTransfers(QList<Transfer *> transfers, bool deleteWhenStored)
     writer.writeEndElement();
     writer.writeEndDocument();
 
-    emit transfersStored();
-
     return true;
 }
 
-bool Storage::restoreTransfers() {
-    if (!QFile::exists(this->directory() + "downloads.xml")) {
-        return false;
+QList<Transfer*> Storage::restoreTransfers() {
+    QList<Transfer*> transfers;
+
+    if (!QFile::exists(DIRECTORY + "downloads.xml")) {
+        return transfers;
     }
 
-    QFile file(this->directory() + "downloads.xml");
+    QFile file(DIRECTORY + "downloads.xml");
 
     if (!file.open(QIODevice::ReadOnly)) {
-        this->setErrorString(QString("%1 %2").arg(tr("Cannot open file").arg(file.fileName())));
-        emit error();
-
-        return false;
+        qDebug() << "Storage::restoreTransfers():" << file.errorString();
+        return transfers;
     }
-
-    QList<Transfer*> transfers;
 
     QXmlStreamReader reader(&file);
 
@@ -290,18 +263,9 @@ bool Storage::restoreTransfers() {
         }
     }
 
-    emit transfersRestored(transfers);
-
-    if (reader.hasError()) {
-        this->setErrorString(reader.errorString());
-        emit error();
-
-        return false;
-    }
-
-    return true;
+    return transfers;
 }
 
 bool Storage::clearStoredTransfers() {
-    return QFile::remove(this->directory() + "downloads.xml");
+    return QFile::remove(DIRECTORY + "downloads.xml");
 }

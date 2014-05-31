@@ -26,34 +26,12 @@ class Storage : public QObject
     Q_OBJECT
 
 public:
-    static Storage* instance();
-
-    QString directory() const;
-    void setDirectory(const QString &directory);
-
-    QString errorString() const;
-
-public slots:
-    bool storeTransfers(QList<Transfer*> transfers, bool deleteWhenStored);
-    bool restoreTransfers();
-    bool clearStoredTransfers();
-    
-private:
-    Storage();
+    explicit Storage(QObject *parent = 0);
     ~Storage();
 
-    void setErrorString(const QString &errorString);
-
-signals:
-    void transfersStored();
-    void transfersRestored(QList<Transfer*> transfers);
-    void error();
-
-private:
-    static Storage *self;
-
-    QString m_directory;
-    QString m_errorString;
+    Q_INVOKABLE static bool storeTransfers(QList<Transfer*> transfers, bool deleteWhenStored);
+    Q_INVOKABLE static QList<Transfer*> restoreTransfers();
+    Q_INVOKABLE static bool clearStoredTransfers();
 };
 
 #endif // STORAGE_H
