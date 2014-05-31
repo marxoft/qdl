@@ -77,8 +77,11 @@ void MediaFire::checkUrlIsValid() {
     QString redirect = reply->attribute(QNetworkRequest::RedirectionTargetAttribute).toString();
     QRegExp re("http://download\\d+.mediafire.com/[^'\"]+");
 
-    if ((!redirect.isEmpty()) && (re.indexIn(redirect) == -1)) {
-        if (redirect.contains("error.php")) {
+    if (!redirect.isEmpty()) {
+        if (re.indexIn(redirect) == 0) {
+            emit urlChecked(true, reply->request().url(), this->serviceName(), redirect.section('/', -1));
+        }
+        else if (redirect.contains("error.php")) {
             emit urlChecked(false);
         }
         else if (redirect.startsWith('/')) {
