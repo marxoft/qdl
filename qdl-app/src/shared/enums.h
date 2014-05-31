@@ -44,7 +44,7 @@ public:
 
     inline static QString orientationString(Orientation orientation) {
         switch (orientation) {
-            case Automatic:
+        case Automatic:
             return tr("Automatic");
         case LockPortrait:
             return tr("Portrait");
@@ -78,6 +78,7 @@ public:
         Queued,
         Connecting,
         ShortWait,
+        CaptchaRequired,
         Downloading,
         Converting,
         Extracting,
@@ -105,9 +106,10 @@ public:
         case Connecting:
             return tr("Connecting");
         case ShortWait:
+	    case LongWait:
             return tr("Waiting");
-        case LongWait:
-            return tr("Waiting");
+        case CaptchaRequired:
+            return tr("Captcha required");
         case Downloading:
             return tr("Downloading");
         case Cancelled:
