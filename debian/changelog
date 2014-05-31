@@ -1,3 +1,16 @@
+qdl (1.1.2) unstable; urgency=low
+
+  * Captchas can now be completed via DBus / web interface.
+  * Minor bug fixes and code re-factoring.
+
+ -- Stuart Howarth <showarth@marxoft.co.uk>  Sat, 31 May 2014 22:31:54 +0000
+
+qdl (1.1.1) unstable; urgency=low
+
+  * Bug fix: URLs can be added in the wrong order.
+
+ -- Stuart Howarth <showarth@marxoft.co.uk>  Sat, 17 May 2014 15:03:11 +0000
+
 qdl (1.1.0) unstable; urgency=low
 
   * Added web interface.
@@ -8,7 +21,6 @@ qdl (1.1.0) unstable; urgency=low
   * Bug fix: Partially downloaded files not deleted if the application is restarted.
 
  -- Stuart Howarth <showarth@marxoft.co.uk>  Thu, 15 May 2014 22:27:16 +0000
-
 
 qdl (1.0.5) unstable; urgency=low
 
