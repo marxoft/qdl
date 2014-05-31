@@ -5,7 +5,7 @@ import "file:///usr/lib/qt4/imports/com/nokia/meego/UIConstants.js" as UI
 Window {
     id: window
 
-    property alias captchaImage: image.source
+    property alias captchaFileName: image.source
     property int timeOut: 0
 
     signal captchaResponseReady(string response)
