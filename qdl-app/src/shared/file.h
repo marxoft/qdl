@@ -44,8 +44,9 @@ public:
     void setMetaInfo(const MetaInfo &info);
 
     void write(qint64 offset, const QByteArray &data);
-    QString fileName() const;
     bool remove();
+
+    QString fileName() const;
     qint64 size() const;
 
     QString errorString() const;
@@ -56,6 +57,7 @@ protected:
 private:
     bool generateFiles();
     bool writeBlock(qint64 offset, const QByteArray &data);
+    void setErrorString(const QString &errorString);
 
 private slots:
     void wakeUp();

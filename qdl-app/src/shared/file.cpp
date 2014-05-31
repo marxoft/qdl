@@ -18,6 +18,7 @@
 #include "file.h"
 #include <QByteArray>
 #include <QDir>
+#include <QDebug>
 
 File::File(QObject *parent)
     : QThread(parent),
@@ -58,14 +59,14 @@ void File::write(qint64 offset, const QByteArray &data) {
     }
 }
 
-QString File::fileName() const {
-    return m_file.fileName();
-}
-
 bool File::remove() {
     m_writeRequests.clear();
 
     return this->fileName().isEmpty() ? false : m_file.remove();
+}
+
+QString File::fileName() const {
+    return m_file.fileName();
 }
 
 qint64 File::size() const {
@@ -74,6 +75,11 @@ qint64 File::size() const {
 
 QString File::errorString() const {
     return m_errString;
+}
+
+void File::setErrorString(const QString &errorString) {
+    qDebug() << errorString;
+    m_errString = errorString;
 }
 
 void File::run() {
@@ -115,6 +121,8 @@ void File::run() {
         WriteRequest request = newWriteRequests.takeFirst();
         this->writeBlock(request.offset, request.data);
     }
+
+    m_file.close();
 }
 
 bool File::generateFiles() {
@@ -131,7 +139,7 @@ bool File::generateFiles() {
         QDir dir;
 
         if (!dir.mkpath(prefix)) {
-            m_errString = tr("Failed to create directory %1").arg(prefix);
+            this->setErrorString(tr("Failed to create directory %1").arg(prefix));
             emit error();
 
             return false;
@@ -142,8 +150,8 @@ bool File::generateFiles() {
 
     if (m_writeOnly) {
         if (!m_file.open(m_file.exists() ? QFile::Append : QFile::WriteOnly)) {
-            m_errString = tr("Failed to open file %1: %2")
-                    .arg(m_file.fileName()).arg(m_file.errorString());
+            this->setErrorString(tr("Failed to open file %1: %2")
+                    .arg(m_file.fileName()).arg(m_file.errorString()));
 
             emit error();
 
@@ -152,8 +160,8 @@ bool File::generateFiles() {
     }
     else {
         if (!m_file.open(QFile::ReadWrite)) {
-            m_errString = tr("Failed to open file %1: %2")
-                    .arg(m_file.fileName()).arg(m_file.errorString());
+            this->setErrorString(tr("Failed to open file %1: %2")
+                    .arg(m_file.fileName()).arg(m_file.errorString()));
 
             emit error();
 
@@ -164,8 +172,8 @@ bool File::generateFiles() {
             m_newFile = true;
 
             if (!m_file.resize(m_metaInfo.size)) {
-                m_errString = tr("Failed to resize file %1: %2")
-                        .arg(m_file.fileName()).arg(m_file.errorString());
+                this->setErrorString(tr("Failed to resize file %1: %2")
+                        .arg(m_file.fileName()).arg(m_file.errorString()));
 
                 m_file.close();
 
@@ -186,8 +194,8 @@ bool File::writeBlock(qint64 offset, const QByteArray &data) {
         if (m_writeOnly) {
             if (!m_file.isOpen()) {
                 if (!m_file.open(QFile::Append)) {
-                    m_errString = tr("Failed to write to file %1: %2")
-                            .arg(m_file.fileName()).arg(m_file.errorString());
+                    this->setErrorString(tr("Failed to write to file %1: %2")
+                            .arg(m_file.fileName()).arg(m_file.errorString()));
 
                     emit error();
 
@@ -196,11 +204,10 @@ bool File::writeBlock(qint64 offset, const QByteArray &data) {
             }
 
             qint64 bytesWritten = m_file.write(data);
-            m_file.close();
 
             if (bytesWritten <= 0) {
-                m_errString = tr("Failed to write to file %1: %2")
-                        .arg(m_file.fileName()).arg(m_file.errorString());
+                this->setErrorString(tr("Failed to write to file %1: %2")
+                        .arg(m_file.fileName()).arg(m_file.errorString()));
 
                 emit error();
 
@@ -210,8 +217,8 @@ bool File::writeBlock(qint64 offset, const QByteArray &data) {
         else if (m_bytesRemaining > 0) {
             if (!m_file.isOpen()) {
                 if (!m_file.open(QFile::ReadWrite)) {
-                    m_errString = tr("Failed to write to file %1: %2")
-                            .arg(m_file.fileName()).arg(m_file.errorString());
+                    this->setErrorString(tr("Failed to write to file %1: %2")
+                            .arg(m_file.fileName()).arg(m_file.errorString()));
 
                     emit error();
 
@@ -222,11 +229,10 @@ bool File::writeBlock(qint64 offset, const QByteArray &data) {
             m_file.seek(offset);
             qint64 bytesWritten = m_file.write(data.constData(),
                                                qMin<qint64>(data.size(), m_file.size() - m_file.pos()));
-            m_file.close();
 
             if (bytesWritten <= 0) {
-                m_errString = tr("Failed to write to file %1: %2")
-                        .arg(m_file.fileName()).arg(m_file.errorString());
+                this->setErrorString(tr("Failed to write to file %1: %2")
+                        .arg(m_file.fileName()).arg(m_file.errorString()));
 
                 emit error();
 
@@ -236,6 +242,7 @@ bool File::writeBlock(qint64 offset, const QByteArray &data) {
             m_bytesRemaining -= bytesWritten;
 
             if (m_bytesRemaining == 0) {
+                m_file.close();
                 emit writeCompleted();
             }
         }
