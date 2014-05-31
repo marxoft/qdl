@@ -33,6 +33,10 @@ var limitPerPage = document.URL.indexOf("limit=") > 0 ? parseInt(document.URL.sp
 var filter = document.URL.indexOf("filter=") > 0 ? document.URL.split("filter=")[1].split("&")[0] : "";
 var query = document.URL.indexOf("query=") > 0 ? document.URL.split("query=")[1].split("&")[0] : "";
 
+var captchaId = "";
+var captchaFileName = "";
+var captchaTimeOut = 0;
+
 function init() {
     /* Connect handlers */
     
@@ -50,6 +54,14 @@ function init() {
     
     document.getElementById("retrieveUrlsEdit").onchange = function() {
         document.getElementById("retrieveUrlsButton").disabled = (this.value == "");
+    }
+
+    document.getElementById("captchaResponseEdit").onkeyup = function() {
+        document.getElementById("submitCaptchaButton").disabled = (this.value == "");
+    }
+
+    document.getElementById("captchaResponseEdit").onchange = function() {
+        document.getElementById("submitCaptchaButton").disabled = (this.value == "");
     }
     
     /* Load data */
@@ -103,7 +115,18 @@ function init() {
                                         transfers = JSON.parse(request.responseText).transfers;
                                         
                                         for (var i = 0; i < transfers.length; i++) {
-                                            appendRow(transfers[i]);
+                                            var transfer = transfers[i];
+                                            appendRow(transfer);
+
+                                            if ((transfer.status == 8) && (!captchaId)) {
+                                                captchaId = transfer.id;
+                                                captchaFileName = transfer.captchaFileName;
+                                                captchaTimeOut = transfer.captchaTimeOut;
+                                            }
+                                        }
+
+                                        if (captchaId) {
+                                            showCaptchaDialog();
                                         }
                                     }
                                 }
@@ -123,6 +146,36 @@ function init() {
 
     request.open("GET", "status");
     request.send(null);
+}
+
+function showCaptchaDialog() {
+    /* Display the captcha dialog enabling the user to submit a captcha response */
+
+    document.getElementById("dialogBackground").style.display = "block";
+    document.getElementById("captchaDialog").style.display = "block";
+    document.getElementById("captchaImage").src = captchaFileName;
+    document.getElementById("captchaTimeOut").innerHTML = formatSecs(captchaTimeOut);
+}
+
+function hideCaptchaDialog() {
+    document.getElementById("captchaDialog").style.display = "none";
+    document.getElementById("dialogBackground").style.display = "none";
+    document.getElementById("captchaResponseEdit").value = "";
+}
+
+function submitCaptcha() {
+    /* Submit the captcha response */
+
+    var response = document.getElementById("captchaResponseEdit").value;
+    setTransferProperty(captchaId, "captchaResponse", response);
+    hideCaptchaDialog();
+}
+
+function cancelCaptcha() {
+    /* Cancel the captcha submission by submitting an empty string as the response */
+
+    setTransferProperty(captchaId, "captchaResponse", "");
+    hideCaptchaDialog();
 }
 
 function showAddUrlsDialog(urls) {

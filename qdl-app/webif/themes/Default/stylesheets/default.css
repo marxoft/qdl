@@ -204,6 +204,13 @@ h2 {
     width: 0%;
 }
 
+td input[type="text"] {
+     width: 100%; 
+     box-sizing: border-box;
+     -webkit-box-sizing:border-box;
+     -moz-box-sizing: border-box;
+}
+
 #queueTable, #categoriesTable, #accountsTable {
     width:100%;
 }

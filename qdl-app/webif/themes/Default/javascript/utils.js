@@ -36,3 +36,27 @@ function formatBytes(bytes) {
 
     return bytes + "B";
 }
+
+function formatMSecs(msecs) {
+    /* Format milliseconds to a string in "mins:secs" format */
+
+    var date = new Date(msecs);
+    var mins = date.getMinutes();
+    var secs = date.getSeconds();
+
+    if (mins < 10) {
+	    mins = "0" + mins;
+    }
+
+    if (secs < 10) {
+	    secs = "0" + secs;
+    }
+
+    return mins + ":" + secs;
+}
+
+function formatSecs(secs) {
+    /* Format seconds to a string in "mins:secs" format */
+
+    return formatMSecs(secs * 1000);
+}
