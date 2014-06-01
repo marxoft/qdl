@@ -391,6 +391,7 @@ void FilesMonster::onWaitFinished() {
 
 bool FilesMonster::cancelCurrentOperation() {
     m_waitTimer->stop();
+    this->disconnect(this, SIGNAL(waitFinished()), this, 0);
     emit currentOperationCancelled();
 
     return true;

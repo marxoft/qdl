@@ -82,7 +82,7 @@ void Ultramegabit::checkUrlIsValid() {
     }
     else {
         QString response(reply->readAll());
-        QString fileName = response.section("<title>ULTRAMEGABIT.COM - ", 1, 1).section('<', 0, 0).trimmed();        
+        QString fileName = response.section("<title>ULTRAMEGABIT.COM -", 1, 1).section('<', 0, 0).trimmed();        
         emit urlChecked(true, reply->request().url(), this->serviceName(), fileName);
     }
 
@@ -106,8 +106,12 @@ void Ultramegabit::onWebPageDownloaded() {
         return;
     }
 
-    QRegExp re("http://\\w+.ultramegabit.com/files/[^'\"]+");
+    QRegExp re("http://storage\\d+.ultramegabit.com/[^'\"]+");
     QString redirect = reply->attribute(QNetworkRequest::RedirectionTargetAttribute).toString();
+
+    if (redirect.isEmpty()) {
+        redirect = reply->header(QNetworkRequest::LocationHeader).toString();
+    }
 
     if (re.indexIn(redirect) == 0) {
         QNetworkRequest request;
@@ -149,7 +153,7 @@ void Ultramegabit::downloadCaptcha() {
 }
 
 void Ultramegabit::submitCaptchaResponse(const QString &challenge, const QString &response) {
-    QUrl url("http://ultramegabit.com/file/download");
+    QUrl url("https://ultramegabit.com/file/download");
     QString data = QString("csrf_token=%1&recaptcha_challenge_field=%2&recaptcha_response_field=%3&encode=%4").arg(m_token).arg(challenge).arg(response).arg(m_fileId);
     QNetworkRequest request(url);
     request.setRawHeader("Accept-Language", "en-GB,en-US;q=0.8,en;q=0.6");
@@ -167,15 +171,19 @@ void Ultramegabit::onCaptchaSubmitted() {
         return;
     }
 
-    QRegExp re("http://\\w+.ultramegabit.com/files/[^'\"]+");
+    QRegExp re("http://storage\\d+.ultramegabit.com/[^'\"]+");
     QString redirect = reply->attribute(QNetworkRequest::RedirectionTargetAttribute).toString();
+
+    if (redirect.isEmpty()) {
+        redirect = reply->header(QNetworkRequest::LocationHeader).toString();
+    }
     
     if (re.indexIn(redirect) == 0) {
         QNetworkRequest request;
         request.setUrl(QUrl(re.cap()));
         emit downloadRequestReady(request);
     }
-    else if (redirect.contains("alert/delay")) {
+    else if (redirect.contains("delay")) {
         this->startWait(600000);
         this->connect(this, SIGNAL(waitFinished()), this, SLOT(onWaitFinished()));
     }
@@ -228,6 +236,7 @@ void Ultramegabit::onWaitFinished() {
 
 bool Ultramegabit::cancelCurrentOperation() {
     m_waitTimer->stop();
+    this->disconnect(this, SIGNAL(waitFinished()), this, 0);
     emit currentOperationCancelled();
 
     return true;

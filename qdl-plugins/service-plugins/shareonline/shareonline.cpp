@@ -283,6 +283,7 @@ void ShareOnline::onWaitFinished() {
 bool ShareOnline::cancelCurrentOperation() {
     m_waitTimer->stop();
     m_downloadUrl.clear();
+    this->disconnect(this, SIGNAL(waitFinished()), this, 0);
     emit currentOperationCancelled();
 
     return true;

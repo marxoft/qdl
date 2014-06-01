@@ -1,3 +1,10 @@
+qdl-plugins-ultramegabit (0.1.1) unstable; urgency=low
+
+  * Fixed download URL retrieval.
+  * Disconnect from timer signal when current operation is canceled.
+
+ -- Stuart Howarth <showarth@marxoft.co.uk>  Thu, 29 May 2014 14:43:12 +0000
+
 qdl-plugins-ultramegabit (0.1.0) unstable; urgency=low
 
   * Fixes and changes to base plugin class.

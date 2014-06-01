@@ -320,6 +320,7 @@ void Netload::onWaitFinished() {
 
 bool Netload::cancelCurrentOperation() {
     m_waitTimer->stop();
+    this->disconnect(this, SIGNAL(waitFinished()), this, 0);
     emit currentOperationCancelled();
 
     return true;

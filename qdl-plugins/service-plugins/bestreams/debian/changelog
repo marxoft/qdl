@@ -1,3 +1,9 @@
+qdl-plugins-bestreams (0.0.2) unstable; urgency=low
+
+  * Disconnect from timer signal when current operation is canceled.
+
+ -- Stuart Howarth <showarth@marxoft.co.uk>  Sun, 01 Jun 2014 16:46:43 +0000
+
 qdl-plugins-bestreams (0.0.1) unstable; urgency=low
 
   * Inital release.

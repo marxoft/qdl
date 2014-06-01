@@ -272,7 +272,7 @@ void MediaFire::onCaptchaSubmitted() {
         QNetworkRequest request;
         request.setUrl(QUrl(redirect));
         QNetworkReply *redirectReply = this->networkAccessManager()->get(request);
-	this->connect(redirectReply, SIGNAL(finished()), this, SLOT(onCaptchaSubmitted()));
+	    this->connect(redirectReply, SIGNAL(finished()), this, SLOT(onCaptchaSubmitted()));
         this->connect(this, SIGNAL(currentOperationCancelled()), redirectReply, SLOT(deleteLater()));
     }
     else {

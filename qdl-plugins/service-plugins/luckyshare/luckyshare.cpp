@@ -288,6 +288,7 @@ void LuckyShare::onWaitFinished() {
 
 bool LuckyShare::cancelCurrentOperation() {
     m_waitTimer->stop();
+    this->disconnect(this, SIGNAL(waitFinished()), this, 0);
     emit currentOperationCancelled();
 
     return true;
