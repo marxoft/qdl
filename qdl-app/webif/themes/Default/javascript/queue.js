@@ -155,6 +155,21 @@ function showCaptchaDialog() {
     document.getElementById("captchaDialog").style.display = "block";
     document.getElementById("captchaImage").src = captchaFileName;
     document.getElementById("captchaTimeOut").innerHTML = formatSecs(captchaTimeOut);
+    window.setTimeout(updateCaptchaDialog, 1000);
+}
+
+function updateCaptchaDialog() {
+    /* Update the captcha timeout value in the captcha dialog */
+
+    captchaTimeOut--;
+
+    if (captchaTimeOut > 0) {
+        document.getElementById("captchaTimeOut").innerHTML = formatSecs(captchaTimeOut);
+        window.setTimeout(updateCaptchaDialog, 1000);
+    }
+    else {
+        hideCaptchaDialog();
+    }
 }
 
 function hideCaptchaDialog() {
