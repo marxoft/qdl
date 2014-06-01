@@ -896,7 +896,7 @@ function setMaximumConcurrentTransfers() {
         }
     }
 
-    request.open("GET", "preferences/setProperty?property=maximumConcurrentTransfers&value=" + maximum);
+    request.open("GET", "preferences/setProperties?maximumConcurrentTransfers=" + maximum);
     request.send(null);
 }
 
@@ -916,7 +916,7 @@ function setMaximumConnectionsPerTransfer() {
         }
     }
 
-    request.open("GET", "preferences/setProperty?property=maximumConnectionsPerTransfer&value=" + maximum);
+    request.open("GET", "preferences/setProperties?maximumConnectionsPerTransfer=" + maximum);
     request.send(null);
 }
 
@@ -936,6 +936,6 @@ function setDownloadRateLimit() {
         }
     }
 
-    request.open("GET", "preferences/setProperty?property=downloadRateLimit&value=" + limit);
+    request.open("GET", "preferences/setProperties?downloadRateLimit=" + limit);
     request.send(null);
 }
