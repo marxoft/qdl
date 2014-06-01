@@ -55,7 +55,6 @@ SUBDIRS += \
     sharevnn \
     sockshare \
     soundcloud \
-    superupl \
     terafile \
     titworld \
 #    turbobit \
