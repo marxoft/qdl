@@ -311,7 +311,8 @@ StatusFilterModel::StatusFilterModel(QObject *parent) :
     this->addItem(tr("All"), Transfers::Unknown);
     this->addItem(tr("Downloading"), Transfers::Downloading);
     this->addItem(tr("Queued"), Transfers::Queued);
-    this->addItem(tr("Waiting"), Transfers::LongWait);
+    this->addItem(tr("Waiting (short)"), Transfers::ShortWait);
+    this->addItem(tr("Waiting (long)"), Transfers::LongWait);
     this->addItem(tr("Captcha required"), Transfers::CaptchaRequired);
     this->addItem(tr("Paused"), Transfers::Paused);
     this->addItem(tr("Failed"), Transfers::Failed);

@@ -89,7 +89,8 @@
                     <option value="" selected="true">All</option>
                     <option value="Downloading">Downloading</option>
                     <option value="Queued">Queued</option>
-                    <option value="LongWait">Waiting</option>
+                    <option value="ShortWait">Waiting (short)</option>
+                    <option value="LongWait">Waiting (long)</option>
                     <option value="CaptchaRequired">Captcha required</option>
                     <option value="Paused">Paused</option>
                     <option value="Failed">Failed</option>
