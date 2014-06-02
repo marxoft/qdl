@@ -1,6 +1,7 @@
 qdl (1.1.2) unstable; urgency=low
 
   * Captchas can now be completed via DBus / web interface.
+  * Additional transfer status filters.
   * Minor bug fixes and code re-factoring.
 
  -- Stuart Howarth <showarth@marxoft.co.uk>  Sat, 31 May 2014 22:31:54 +0000
