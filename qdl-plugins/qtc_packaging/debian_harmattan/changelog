@@ -1,3 +1,21 @@
+qdl-plugins (0.4.1) unstable; urgency=low
+  * Removed SuperUpl plugin.
+  * Plugin fixes.
+
+ -- Stuart Howarth <showarth@marxoft.co.uk>  Sun, 01 Jun 2014 18:07:14 +0100
+
+qdl-plugins (0.4.0) unstable; urgency=low
+  * Plugins added for SockShare and Share-Online
+
+ -- Stuart Howarth <showarth@marxoft.co.uk>  Mon, 19 May 2014 15:03:50 +0100
+
+qdl-plugins (0.3.0) unstable; urgency=low
+  * Plugin added for Uploadable.
+  * Hotfile plugin removed.
+  * Fixes to existing plugins.
+
+ -- Stuart Howarth <showarth@marxoft.co.uk>  Sun, 18 May 2014 17:11:54 +0000
+
 qdl-plugins (0.2.1) unstable; urgency=low
   * Fixes to YouTube plugin and others.
 
