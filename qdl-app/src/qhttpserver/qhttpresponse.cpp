@@ -116,7 +116,7 @@ void QHttpResponse::writeHeaders()
     // day.
     if (!m_sentDate)
         writeHeader("Date",
-                    QLocale::c().toString(QDateTime::currentDateTimeUtc(),
+                    QLocale::c().toString(QDateTime::currentDateTime().toUTC(),
                                           "ddd, dd MMM yyyy hh:mm:ss") + " GMT");
 }
 

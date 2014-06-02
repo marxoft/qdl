@@ -80,8 +80,13 @@ quint16 QHttpRequest::remotePort() const
 
 void QHttpRequest::storeBody()
 {
+#if QT_VERSION >= 0x040600
     connect(this, SIGNAL(data(const QByteArray &)), this, SLOT(appendBody(const QByteArray &)),
             Qt::UniqueConnection);
+#else
+    disconnect(this, SIGNAL(data(const QByteArray &)), this, SLOT(appendBody(const QByteArray &)));
+    connect(this, SIGNAL(data(const QByteArray &)), this, SLOT(appendBody(const QByteArray &)));
+#endif
 }
 
 QString QHttpRequest::MethodToString(HttpMethod method)
