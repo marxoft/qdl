@@ -154,6 +154,7 @@ function showCaptchaDialog() {
     document.getElementById("dialogBackground").style.display = "block";
     document.getElementById("captchaDialog").style.display = "block";
     document.getElementById("captchaImage").src = captchaFileName;
+    document.getElementById("captchaResponseEdit").select();
     document.getElementById("captchaTimeOut").innerHTML = formatSecs(captchaTimeOut);
     window.setTimeout(updateCaptchaDialog, 1000);
 }
