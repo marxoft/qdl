@@ -41,6 +41,7 @@ maemo5 {
     target.path = /opt/qdl/bin
 
 } else:contains(DEFINES,MAEMO4_OS) {
+    DEFINES += WEB_INTERFACE
     QT += dbus
 
     HEADERS += $$files(src/maemo4/*.h) \
