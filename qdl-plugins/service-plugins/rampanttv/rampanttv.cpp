@@ -42,7 +42,7 @@ void RampantTV::checkUrlIsValid() {
         QString paramsUrl = response.section("flashvars\",\"settings=", 1, 1).section('"', 0, 0);
 
         if (paramsUrl.startsWith("http")) {
-            QString fileName = response.section("<h2>", 1, 1).section('<', 0, 0) + ".mp4";
+            QString fileName = response.section("header playerspace\"><h2>", 1, 1).section('<', 0, 0) + ".mp4";
             emit urlChecked(true, reply->request().url(), this->serviceName(), fileName);
         }
         else {

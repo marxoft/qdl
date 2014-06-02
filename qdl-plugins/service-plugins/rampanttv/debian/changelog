@@ -1,3 +1,9 @@
+qdl-plugins-rampanttv (0.1.1) unstable; urgency=low
+
+  * Fix filename retrieval.
+
+ -- Stuart Howarth <showarth@marxoft.co.uk>  Mon, 01 Jun 2014 14:42:12 +0000
+
 qdl-plugins-rampanttv (0.1.0) unstable; urgency=low
 
   * Fixes and changes to base plugin class.
