@@ -252,19 +252,17 @@ void UrlChecker::onUrlChecked(bool ok, const QUrl &url, const QString &service, 
 UrlCheckModel::UrlCheckModel(QObject *parent) :
     QAbstractTableModel(parent)
 {
-#if QT_VERSION >= 0x040600
     m_roleNames[UrlRole] = "url";
     m_roleNames[CheckedRole] = "checked";
     m_roleNames[OkRole] = "ok";
-#if QT_VERSION < 0x050000
+#if (QT_VERSION >= 0x040600) && (QT_VERSION < 0x050000)
     this->setRoleNames(m_roleNames);
-#endif
 #endif
 }
 
 UrlCheckModel::~UrlCheckModel() {}
 
-#if QT_VERSION >= 0x050000
+#if (QT_VERSION >= 0x050000) || (QT_VERSION < 0x040600)
 QHash<int, QByteArray> UrlCheckModel::roleNames() const {
     return m_roleNames;
 }
@@ -337,11 +335,9 @@ QVariant UrlCheckModel::data(const QModelIndex &index, int role) const {
     }
 }
 
-#if QT_VERSION >= 0x040600
 QVariant UrlCheckModel::data(int row, const QByteArray &role) const {
     return this->data(this->index(row, 0), this->roleNames().key(role));
 }
-#endif
 
 bool UrlCheckModel::setData(const QModelIndex &index, const QVariant &value, int role) {
     if (!index.isValid()) {

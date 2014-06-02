@@ -102,16 +102,14 @@ public:
         OkRole
     };
 
-#if QT_VERSION >= 0x050000
+#if (QT_VERSION >= 0x050000) || (QT_VERSION < 0x040600)
     QHash<int, QByteArray> roleNames() const;
 #endif
     int rowCount(const QModelIndex &parent = QModelIndex()) const;
     int columnCount(const QModelIndex &parent = QModelIndex()) const;
     QVariant headerData(int section, Qt::Orientation orientation, int role) const;
     QVariant data(const QModelIndex &index, int role) const;
-#if QT_VERSION >= 0x040600
     Q_INVOKABLE QVariant data(int row, const QByteArray &role) const;
-#endif
     QMap<int, QVariant> itemData(const QModelIndex &index) const;
     QVariantMap itemData(int row) const;
     Q_INVOKABLE QVariantList allItemData() const;
@@ -134,9 +132,7 @@ signals:
 
 private:
     QList<UrlCheck> m_list;
-#if QT_VERSION >= 0x040600
     QHash<int, QByteArray> m_roleNames;
-#endif
 };
 
 #endif // URLCHECKER_H
