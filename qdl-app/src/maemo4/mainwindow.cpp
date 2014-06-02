@@ -33,7 +33,6 @@
 #include "../shared/settings.h"
 #include "../shared/clipboardmonitor.h"
 #include "../shared/definitions.h"
-#include "../shared/selectionmodels.h"
 #include <QMenu>
 #include <QTreeView>
 #include <QToolBar>
@@ -93,7 +92,9 @@ MainWindow::MainWindow(QWidget *parent) :
     m_allFilterAction(m_transferStatusFilterMenu->addAction(tr("All"), this, SLOT(setTransferStatusFilter()))),
     m_downloadingFilterAction(m_transferStatusFilterMenu->addAction(tr("Downloading"), this, SLOT(setTransferStatusFilter()))),
     m_queuedFilterAction(m_transferStatusFilterMenu->addAction(tr("Queued"), this, SLOT(setTransferStatusFilter()))),
-    m_waitingFilterAction(m_transferStatusFilterMenu->addAction(tr("Waiting"), this, SLOT(setTransferStatusFilter()))),
+    m_shortWaitFilterAction(m_transferStatusFilterMenu->addAction(tr("Waiting (short)"), this, SLOT(setTransferStatusFilter()))),
+    m_longWaitFilterAction(m_transferStatusFilterMenu->addAction(tr("Waiting (long)"), this, SLOT(setTransferStatusFilter()))),
+    m_captchaRequiredFilterAction(m_transferStatusFilterMenu->addAction(tr("Captcha required"), this, SLOT(setTransferStatusFilter()))),
     m_pausedFilterAction(m_transferStatusFilterMenu->addAction(tr("Paused"), this, SLOT(setTransferStatusFilter()))),
     m_failedFilterAction(m_transferStatusFilterMenu->addAction(tr("Failed"), this, SLOT(setTransferStatusFilter()))),
     m_transferStatusFilterGroup(new QActionGroup(this)),
@@ -203,9 +204,15 @@ MainWindow::MainWindow(QWidget *parent) :
     m_queuedFilterAction->setData(Transfers::Queued);
     m_queuedFilterAction->setCheckable(true);
     m_queuedFilterAction->setActionGroup(m_transferStatusFilterGroup);
-    m_waitingFilterAction->setData(Transfers::LongWait);
-    m_waitingFilterAction->setCheckable(true);
-    m_waitingFilterAction->setActionGroup(m_transferStatusFilterGroup);
+    m_shortWaitFilterAction->setData(Transfers::ShortWait);
+    m_shortWaitFilterAction->setCheckable(true);
+    m_shortWaitFilterAction->setActionGroup(m_transferStatusFilterGroup);
+    m_longWaitFilterAction->setData(Transfers::LongWait);
+    m_longWaitFilterAction->setCheckable(true);
+    m_longWaitFilterAction->setActionGroup(m_transferStatusFilterGroup);
+    m_captchaRequiredFilterAction->setData(Transfers::CaptchaRequired);
+    m_captchaRequiredFilterAction->setCheckable(true);
+    m_captchaRequiredFilterAction->setActionGroup(m_transferStatusFilterGroup);
     m_pausedFilterAction->setData(Transfers::Paused);
     m_pausedFilterAction->setCheckable(true);
     m_pausedFilterAction->setActionGroup(m_transferStatusFilterGroup);

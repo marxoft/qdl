@@ -129,7 +129,9 @@ private:
     QAction *m_allFilterAction;
     QAction *m_downloadingFilterAction;
     QAction *m_queuedFilterAction;
-    QAction *m_waitingFilterAction;
+    QAction *m_shortWaitFilterAction;
+    QAction *m_longWaitFilterAction;
+    QAction *m_captchaRequiredFilterAction;
     QAction *m_pausedFilterAction;
     QAction *m_failedFilterAction;
     QActionGroup *m_transferStatusFilterGroup;
