@@ -808,7 +808,12 @@ void TransferModel::onMaximumConcurrentTransfersChanged(int oldMaximum, int newM
 }
 
 void TransferModel::storeTransfers() {
-    Storage::storeTransfers(m_rootItem->childTransfers(), false);
+    if (m_rootItem->count()) {
+        Storage::storeTransfers(m_rootItem->childTransfers(), false);
+    }
+    else {
+        Storage::clearStoredTransfers();
+    }
 }
 
 void TransferModel::storeAndDeleteTransfers() {
