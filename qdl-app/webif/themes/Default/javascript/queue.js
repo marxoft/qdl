@@ -128,6 +128,32 @@ function init() {
                                         if (captchaId) {
                                             showCaptchaDialog();
                                         }
+                                        else if (filter != "CaptchaRequired") {
+                                            request.onreadystatechange = function() {
+                                                if (request.readyState == 4) {
+                                                    if (request.status == 200) {
+                                                        var captchaTransfers = JSON.parse(request.responseText).transfers;
+                                                        
+                                                        for (var i = 0; i < captchaTransfers.length; i++) {
+                                                            var transfer = captchaTransfers[i];
+
+                                                            if ((transfer.status == 8) && (!captchaId)) {
+                                                                captchaId = transfer.id;
+                                                                captchaFileName = transfer.captchaFileName;
+                                                                captchaTimeOut = transfer.captchaTimeOut;
+                                                            }
+                                                        }
+
+                                                        if (captchaId) {
+                                                            showCaptchaDialog();
+                                                        }
+                                                    }
+                                                }
+                                            }
+                            
+                                            request.open("GET", "transfers?filter=CaptchaRequired&start=0&limit=1");
+                                            request.send(null);
+                                        }   
                                     }
                                 }
                             }
