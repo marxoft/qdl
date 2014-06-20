@@ -1260,6 +1260,7 @@ void Transfer::onCaptchaIncorrect() {
 }
 
 void Transfer::onCaptchaRejectedByUser() {
+    this->removeCaptchaFile();
     this->setStatusInfo(tr("No captcha response"));
     this->setStatus(Transfers::Failed);
 }
@@ -1311,6 +1312,8 @@ bool Transfer::submitCaptchaResponse(const QString &response) {
 }
 
 void Transfer::onCaptchaResponseReady(const QString &response) {
+    this->removeCaptchaFile();
+
     m_captchaResponse = response;
 
     if ((!m_servicePlugin) || (!m_recaptchaPlugin)) {
