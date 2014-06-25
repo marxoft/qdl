@@ -1,6 +1,7 @@
 qdl-plugins-keeptoshare (0.1.2) unstable; urgency=low
 
   * Disconnect from timer signal when current operation is canceled.
+  * Handle keep2s.com host.
 
  -- Stuart Howarth <showarth@marxoft.co.uk>  Sun, 01 Jun 2014 16:46:43 +0000
 

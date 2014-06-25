@@ -19,7 +19,7 @@ KeepToShare::KeepToShare(QObject *parent) :
 }
 
 QRegExp KeepToShare::urlPattern() const {
-    return QRegExp("http(s|)://(www.|)(keep2share|k2s).cc/file/\\w+", Qt::CaseInsensitive);
+    return QRegExp("http(s|)://(www.|)(keep2s(hare|)|k2s).cc/file/\\w+", Qt::CaseInsensitive);
 }
 
 bool KeepToShare::urlSupported(const QUrl &url) const {
