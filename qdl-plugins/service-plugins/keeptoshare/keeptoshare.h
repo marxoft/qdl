@@ -32,13 +32,15 @@ public slots:
     void submitCaptchaResponse(const QString &challenge, const QString &response);
 
 private:
-    void loginK2C(const QString &username, const QString &password);
+    void loginK2S(const QString &username, const QString &password);
+    void loginKeep2s(const QString &username, const QString &password);
     void getCaptchaKey();
     void startWait(int msecs);
 
 private slots:
     void checkKeep2ShareLogin();
-    void checkK2CLogin();
+    void checkK2SLogin();
+    void checkKeep2sLogin();
     void checkUrlIsValid();
     void onWebPageDownloaded();
     void checkCaptchaKey();

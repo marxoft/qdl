@@ -52,7 +52,7 @@ void KeepToShare::checkKeep2ShareLogin() {
     switch (statusCode) {
     case 200:
     case 201:
-        this->loginK2C(m_user, m_pass);
+        this->loginK2S(m_user, m_pass);
         break;
     default:
         m_connections = 1;
@@ -60,24 +60,56 @@ void KeepToShare::checkKeep2ShareLogin() {
         break;
     }
 
-    m_user = "";
-    m_pass = "";
-
     reply->deleteLater();
 }
 
-void KeepToShare::loginK2C(const QString &username, const QString &password) {
+void KeepToShare::loginK2S(const QString &username, const QString &password) {
     QString data = QString("LoginForm[username]=%1&LoginForm[password]=%2&LoginForm[rememberMe]=1").arg(username).arg(password);
     QUrl url("http://k2s.cc/login.html");
     QNetworkRequest request(url);
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
     request.setRawHeader("X-Requested-With", "XMLHttpRequest");
     QNetworkReply *reply = this->networkAccessManager()->post(request, data.toUtf8());
-    this->connect(reply, SIGNAL(finished()), this, SLOT(checkK2CLogin()));
+    this->connect(reply, SIGNAL(finished()), this, SLOT(checkK2SLogin()));
     this->connect(this, SIGNAL(currentOperationCancelled()), reply, SLOT(deleteLater()));
 }
 
-void KeepToShare::checkK2CLogin() {
+void KeepToShare::checkK2SLogin() {
+    QNetworkReply *reply = qobject_cast<QNetworkReply*>(this->sender());
+
+    if (!reply) {
+        emit error(NetworkError);
+        return;
+    }
+
+    int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+
+    switch (statusCode) {
+    case 200:
+    case 201:
+        this->loginKeep2s(m_user, m_pass);
+        break;
+    default:
+        m_connections = 1;
+        emit loggedIn(false);
+        break;
+    }
+
+    reply->deleteLater();
+}
+
+void KeepToShare::loginKeep2s(const QString &username, const QString &password) {
+    QString data = QString("LoginForm[username]=%1&LoginForm[password]=%2&LoginForm[rememberMe]=1").arg(username).arg(password);
+    QUrl url("http://keep2s.cc/login.html");
+    QNetworkRequest request(url);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
+    request.setRawHeader("X-Requested-With", "XMLHttpRequest");
+    QNetworkReply *reply = this->networkAccessManager()->post(request, data.toUtf8());
+    this->connect(reply, SIGNAL(finished()), this, SLOT(checkKeep2sLogin()));
+    this->connect(this, SIGNAL(currentOperationCancelled()), reply, SLOT(deleteLater()));
+}
+
+void KeepToShare::checkKeep2sLogin() {
     QNetworkReply *reply = qobject_cast<QNetworkReply*>(this->sender());
 
     if (!reply) {
@@ -98,6 +130,9 @@ void KeepToShare::checkK2CLogin() {
         emit loggedIn(false);
         break;
     }
+
+    m_user = "";
+    m_pass = "";
 
     reply->deleteLater();
 }
