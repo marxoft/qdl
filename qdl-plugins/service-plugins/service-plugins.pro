@@ -45,6 +45,7 @@ SUBDIRS += \
     oneeightyupload \
     onefichier \
     pinktube \
+    porntube \
     putlocker \
     rampanttv \
     rapidgator \

@@ -1,0 +1,9 @@
+<settings title="PornTube" icon="porntube.jpg">
+    <list key="videoFormat" default="360" title="Video format">
+        <element name="1080P" value="1080"></element>
+        <element name="720P" value="720"></element>
+        <element name="480P" value="480"></element>
+        <element name="360P" value="360"></element>
+        <element name="240P" value="240"></element>
+    </list>
+</settings>
