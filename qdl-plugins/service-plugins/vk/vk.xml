@@ -1,0 +1,9 @@
+<settings title="VK" icon="vk.jpg">
+    <list key="videoFormat" default="url360" title="Video format">
+        <element name="1080P" value="url1080"></element>
+        <element name="720P" value="url720"></element>
+        <element name="480P" value="url480"></element>
+        <element name="360P" value="url360"></element>
+        <element name="240P" value="url240"></element>
+    </list>
+</settings>
