@@ -175,7 +175,7 @@ void FileBoom::getWaitTime() {
     QNetworkRequest request(m_url);
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
     request.setRawHeader("Referer", m_url.toString().toUtf8());
-    request.setRawHeader("Requested-With", "XMLHttpRequest");
+    request.setRawHeader("X-Requested-With", "XMLHttpRequest");
     QNetworkReply *reply = this->networkAccessManager()->post(request, "slow_id=" + m_fileId.toUtf8());
     this->connect(reply, SIGNAL(finished()), this, SLOT(checkWaitTime()));
     this->connect(this, SIGNAL(currentOperationCancelled()), reply, SLOT(deleteLater()));
@@ -248,7 +248,7 @@ void FileBoom::submitCaptchaResponse(const QString &challenge, const QString &re
     QNetworkRequest request(m_url);
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
     request.setRawHeader("Referer", m_url.toString().toUtf8());
-    request.setRawHeader("Requested-With", "XMLHttpRequest");
+    request.setRawHeader("X-Requested-With", "XMLHttpRequest");
     QNetworkReply *reply = this->networkAccessManager()->post(request, data.toUtf8());
     this->connect(reply, SIGNAL(finished()), this, SLOT(onCaptchaSubmitted()));
     this->connect(this, SIGNAL(currentOperationCancelled()), reply, SLOT(deleteLater()));
@@ -315,7 +315,7 @@ void FileBoom::getDownloadLink() {
     QNetworkRequest request(m_url);
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
     request.setRawHeader("Referer", m_url.toString().toUtf8());
-    request.setRawHeader("Requested-With", "XMLHttpRequest");
+    request.setRawHeader("X-Requested-With", "XMLHttpRequest");
     QNetworkReply *reply = this->networkAccessManager()->post(request, "free=1&uniqueId=" + m_fileId.toUtf8());
     this->connect(reply, SIGNAL(finished()), this, SLOT(checkDownloadLink()));
     this->connect(this, SIGNAL(currentOperationCancelled()), reply, SLOT(deleteLater()));
