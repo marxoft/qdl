@@ -14,8 +14,10 @@ SUBDIRS += \
     dailymotion \
     datafile \
     depositfiles \
+    dizzcloud \
     drtuber \
     extabit \
+    fileboom \
     filedefend \
     filefactory \
     filemates \
@@ -28,6 +30,7 @@ SUBDIRS += \
     fourshared \
     freakshare \
     fshare \
+    gigapeta \
     googledrive \
     hugefiles \
     interfile \
@@ -70,6 +73,7 @@ SUBDIRS += \
     usefile \
     videobam \
     vimeo \
+    vk \
     vube \
     winporn \
     xhamster \
