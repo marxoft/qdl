@@ -31,6 +31,7 @@ SUBDIRS += \
     freakshare \
     fshare \
     gigapeta \
+    gofourup \
     googledrive \
     hugefiles \
     interfile \
