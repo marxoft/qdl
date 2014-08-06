@@ -70,26 +70,33 @@ void XHamster::parseVideoPage() {
     }
 
     QString response(reply->readAll());
-    QString varString = response.section("flashvars\" value=\"", 1, 1).section('"', 0, 0);
+    QUrl url(response.section("file=\"", 1, 1).section('"', 0, 0));
 
-    if (!varString.isEmpty()) {
-	QUrl url = QUrl::fromEncoded("http://xhamster.com?" + varString.toUtf8());
-	QString srv = url.queryItemValue("srv");
-	QString file = url.queryItemValue("file");
+    if (url.isEmpty()) {
+        QString varString = response.section("flashvars\" value=\"", 1, 1).section('"', 0, 0);
 
-        if (file.startsWith("http")) {
-            QNetworkRequest request;
-            request.setUrl(QUrl(file));
-            emit downloadRequestReady(request);
+        if (!varString.isEmpty()) {
+	        url = QUrl::fromEncoded("http://xhamster.com?" + varString.toUtf8());
+	        QString srv = url.queryItemValue("srv");
+	        QString file = url.queryItemValue("file");
+
+            if (file.startsWith("http")) {
+                QNetworkRequest request;
+                request.setUrl(QUrl(file));
+                emit downloadRequestReady(request);
+            }
+            else {
+                QNetworkRequest request;
+                request.setUrl(QUrl::fromEncoded(QString("%1/key=%2").arg(srv, file).toUtf8()));
+                emit downloadRequestReady(request);
+            }
         }
         else {
-            QNetworkRequest request;
-            request.setUrl(QUrl::fromEncoded(QString("%1/key=%2").arg(srv, file).toUtf8()));
-            emit downloadRequestReady(request);
+            emit error(UrlError);
         }
     }
     else {
-        emit error(UrlError);
+        emit downloadRequestReady(QNetworkRequest(url));
     }
 
     reply->deleteLater();
