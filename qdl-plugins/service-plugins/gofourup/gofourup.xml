@@ -1,0 +1,11 @@
+<settings title="Go4Up" icon="gofourup.jpg">
+    <list key="filehost" default="1fichier" title="File host">
+        <element name="180Upload" value="180Upload"></element>
+        <element name="1fichier" value="1fichier"></element>
+        <element name="BillionUploads" value="BillionUploads"></element>
+        <element name="HugeFiles" value="HugeFiles"></element>
+        <element name="MegaShares" value="MegaShares"></element>
+        <element name="SockShare" value="SockShare"></element>
+        <element name="Zippyshare" value="Zippyshare"></element>
+    </list>
+</settings>
