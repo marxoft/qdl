@@ -138,7 +138,7 @@ void YouTube::getDownloadRequest(const QUrl &webUrl) {
 }
 
 void YouTube::getYouTubeVideoInfoPage(const QString &id) {
-    QUrl url("http://www.youtube.com/get_video_info");
+    QUrl url("https://www.youtube.com/get_video_info");
 #if QT_VERSION >= 0x050000
     QUrlQuery query;
     query.addQueryItem("video_id", id);
@@ -318,8 +318,10 @@ void YouTube::addYouTubeDecryptionFunctionToCache() {
 
     QString response(reply->readAll());
     QString funcName = response.section("signature=", 1, 1).section('(', 0, 0);
-    response = QString("function %1%2").arg(funcName).arg(response.section("function " + funcName, 1, 1).section(";function", 0, 0));
-    decryptionEngine->evaluate(response);
+    QString var = response.section("function " + funcName, 0, 0).section(";var", -1);
+    QString funcBody = QString("function %2%3").arg(funcName).arg(response.section("function " + funcName, 1, 1).section(";function", 0, 0));
+    QString js = QString("var%1 %2").arg(var).arg(funcBody);
+    decryptionEngine->evaluate(js);
 
     QScriptValue global = decryptionEngine->globalObject();
     QScriptValue decryptionFunction = global.property(funcName);
