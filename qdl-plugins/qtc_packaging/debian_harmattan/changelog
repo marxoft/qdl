@@ -1,3 +1,15 @@
+qdl-plugins (0.6.0) unstable; urgency=low
+  * Plugins added for GigaPeta, Go4Up and Lafiles.
+  * Plugin fixes.
+
+ -- Stuart Howarth <showarth@marxoft.co.uk>  Wed, 20 Aug 2014 22:08:15 +0100
+
+qdl-plugins (0.5.0) unstable; urgency=low
+  * Plugins added for Dizzcloud, FileBoom and VK.
+  * Plugin fixes.
+
+ -- Stuart Howarth <showarth@marxoft.co.uk>  Mon, 07 Jul 2014 20:29:41 +0100
+
 qdl-plugins (0.4.1) unstable; urgency=low
   * Removed SuperUpl plugin.
   * Plugin fixes.
