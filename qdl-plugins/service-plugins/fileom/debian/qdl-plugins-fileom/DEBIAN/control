@@ -1,0 +1,10 @@
+Package: qdl-plugins-fileom
+Version: 0.1.2
+Section: user/network
+Priority: optional
+Architecture: armel
+Depends: qdl (>= 1.0.2), qdl-plugins-solvemediarecaptcha (>= 0.1.0)
+Installed-Size: 100
+Maintainer: Stuart Howarth <showarth@marxoft.co.uk>
+Description: FileOM plugin for the QDL download manager.
+ This plugin provides access to file downloads via FileOM.

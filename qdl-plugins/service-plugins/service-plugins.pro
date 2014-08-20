@@ -39,6 +39,7 @@ SUBDIRS += \
     jumbofiles \
     keeptoshare \
     kingfiles \
+    lafiles \
     luckyshare \
     lumfile \
     mediafire \
