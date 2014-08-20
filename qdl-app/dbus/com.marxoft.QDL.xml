@@ -1,50 +1,51 @@
 <node>
     <interface name="com.marxoft.QDL">
-    <method name="addUrls">
-        <arg name="urls" type="as" direction="in" />
-    </method>
-    <method name="importUrls">
-        <arg name="urls" type="as" direction="in" />
-    </method>
-    <method name="retrieveUrls">
-        <arg name="urls" type="as" direction="in" />
-    </method>
-    <method name="getTransfers">
-	<annotation name="org.qtproject.QtDBus.QtTypeName.Out0" value="QVariantList" />
-	<arg name="downloads" type="a{sv}" direction="out" />
-    </method>
-    <method name="getTransfer">
-	<annotation name="org.qtproject.QtDBus.QtTypeName.Out0" value="QVariantMap" />
-	<arg name="id" type="s" direction="in" />
-	<arg name="downloads" type="a{sv}" direction="out" />
-    </method>
-    <method name="getTransferProperty">
-	<arg name="id" type="s" direction="in" />
-	<arg name="property" type="s" direction="in" />
-	<arg name="value" type="v" direction="out" />
-    </method>
-    <method name="setTransferProperty">
-	<arg name="id" type="s" direction="in" />
-	<arg name="property" type="s" direction="in" />
-	<arg name="value" type="v" direction="in" />
-	<arg name="success" type="b" direction="out" />
-    </method>
-    <method name="start">
-	<arg name="success" type="b" direction="out" />
-    </method>
-    <method name="pause">
-	<arg name="success" type="b" direction="out" />
-    </method>
-    <method name="start">
-	<arg name="id" type="s" direction="in" />
-	<arg name="success" type="b" direction="out" />
-    </method>
-    <method name="pause">
-	<arg name="id" type="s" direction="in" />
-	<arg name="success" type="b" direction="out" />
-    </method>
-    <method name="remove">
-	<arg name="id" type="s" direction="in" />
-	<arg name="success" type="b" direction="out" />
-    </method>
+        <method name="addUrls">
+            <arg name="urls" type="as" direction="in" />
+        </method>
+        <method name="importUrls">
+            <arg name="urls" type="as" direction="in" />
+        </method>
+        <method name="retrieveUrls">
+            <arg name="urls" type="as" direction="in" />
+        </method>
+        <method name="getTransfers">
+	        <annotation name="org.qtproject.QtDBus.QtTypeName.Out0" value="QVariantList" />
+	        <arg name="downloads" type="a{sv}" direction="out" />
+        </method>
+        <method name="getTransfer">
+	        <annotation name="org.qtproject.QtDBus.QtTypeName.Out0" value="QVariantMap" />
+	        <arg name="id" type="s" direction="in" />
+	        <arg name="downloads" type="a{sv}" direction="out" />
+        </method>
+        <method name="getTransferProperty">
+	        <arg name="id" type="s" direction="in" />
+	        <arg name="property" type="s" direction="in" />
+	        <arg name="value" type="v" direction="out" />
+        </method>
+        <method name="setTransferProperty">
+	        <arg name="id" type="s" direction="in" />
+	        <arg name="property" type="s" direction="in" />
+	        <arg name="value" type="v" direction="in" />
+	        <arg name="success" type="b" direction="out" />
+        </method>
+        <method name="start">
+	        <arg name="success" type="b" direction="out" />
+        </method>
+        <method name="pause">
+	        <arg name="success" type="b" direction="out" />
+        </method>
+        <method name="start">
+	        <arg name="id" type="s" direction="in" />
+	        <arg name="success" type="b" direction="out" />
+        </method>
+        <method name="pause">
+	        <arg name="id" type="s" direction="in" />
+	        <arg name="success" type="b" direction="out" />
+        </method>
+        <method name="remove">
+	        <arg name="id" type="s" direction="in" />
+	        <arg name="success" type="b" direction="out" />
+        </method>
+    </interface>
 </node>
