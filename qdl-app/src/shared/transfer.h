@@ -138,7 +138,8 @@ class Transfer : public QObject
 
 public:
     enum Roles {
-        NameRole = Qt::UserRole + 1,
+        UrlRole = Qt::UserRole + 1,
+        NameRole,
         ServiceNameRole,
         IconRole,
         CategoryRole,

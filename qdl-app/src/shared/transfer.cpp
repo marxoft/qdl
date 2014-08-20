@@ -28,7 +28,7 @@
 #ifndef QML_USER_INTERFACE
 #include "../captchadialog/captchadialog.h"
 #endif
-#include <QPixmap>
+#include <QImage>
 #include <QDateTime>
 #include <QNetworkReply>
 #include <QDir>
@@ -81,6 +81,8 @@ Transfer::~Transfer() {}
 
 QVariant Transfer::data(int role) const {
     switch (role) {
+    case UrlRole:
+        return this->url();
     case NameRole:
         return this->fileName();
     case ServiceNameRole:
@@ -142,6 +144,7 @@ QVariant Transfer::data(int role) const {
 
 QMap<int, QVariant> Transfer::itemData() const {
     QMap<int, QVariant> map;
+    map[UrlRole] = this->url();
     map[NameRole] = this->fileName();
     map[ServiceNameRole] = this->serviceName();
     map[IconRole] = this->iconFileName();
@@ -168,6 +171,7 @@ QMap<int, QVariant> Transfer::itemData() const {
 
 QVariantMap Transfer::itemDataWithRoleNames() const {
     QVariantMap map;
+    map["url"] = this->url();
     map["name"] = this->fileName();
     map["serviceName"] = this->serviceName();
     map["icon"] = this->iconFileName();
@@ -1207,16 +1211,13 @@ void Transfer::onCaptchaReady(const QByteArray &imageData) {
         m_decaptchaPlugin->getCaptchaResponse(imageData);
     }
     else {
-        QFile file(this->captchaFileName());
+        QImage image = QImage::fromData(imageData);
 
-        if ((!QDir().mkpath(this->downloadPath())) || !file.open(QIODevice::WriteOnly) || (file.write(imageData) < 0)) {
-            file.remove();
+        if ((image.isNull()) || (!image.save(this->captchaFileName()))) {
             this->setStatusInfo(tr("Cannot write captcha image"));
             this->setStatus(Transfers::Failed);
             return;
         }
-
-        file.close();
 
         this->setStatusInfo(tr("Awaiting captcha response"));
         this->setStatus(Transfers::CaptchaRequired);
