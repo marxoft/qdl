@@ -59,10 +59,10 @@ function init() {
                         if (request.status == 200) {
                             var preferences = JSON.parse(request.responseText);
                             document.getElementById("proxyCheckbox").checked = preferences.networkProxyHostName != "";
-                            document.getElementById("hostEdit").checked = preferences.networkProxyHostName;
-                            document.getElementById("portEdit").checked = preferences.nextworkProxyPort;
-                            document.getElementById("usernameEdit").checked = preferences.nextworkProxyUsername;
-                            document.getElementById("passwordEdit").checked = preferences.nextworkProxyPassword;
+                            document.getElementById("hostEdit").value = preferences.networkProxyHostName;
+                            document.getElementById("portEdit").value = preferences.nextworkProxyPort;
+                            document.getElementById("usernameEdit").value = preferences.nextworkProxyUser;
+                            document.getElementById("passwordEdit").value = preferences.nextworkProxyPassword;
                             var selector = document.getElementById("proxyTypeSelector");
                             
                             for (var i = 0; i < selector.options.length; i++) {

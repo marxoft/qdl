@@ -24,7 +24,7 @@ function quitQDL() {
         request.onreadystatechange = function() {
             if (request.readyState == 4) {
                 if (request.status == 200) {
-                    document.getElementsByTagName("body")[0].innerHTML = '<img src="images/logo.png" width="48" height="48" /><span style="font-size: 64px">QDL</span>1.0.5<br><br><h1>You have quit QDL</h1>';
+                    document.getElementsByTagName("body")[0].innerHTML = '<img src="images/logo.png" width="48" height="48" /><span style="font-size: 64px">QDL</span>' + versionNumber + '<br><br><h1>You have quit QDL</h1>';
                 }
                 else {
                     var errorString = JSON.parse(request.responseText).error;
