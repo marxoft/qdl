@@ -1213,7 +1213,7 @@ void Transfer::onCaptchaReady(const QByteArray &imageData) {
     else {
         QImage image = QImage::fromData(imageData);
 
-        if ((image.isNull()) || (!image.save(this->captchaFileName()))) {
+        if ((image.isNull()) || (!QDir().mkpath(this->downloadPath())) || (!image.save(this->captchaFileName()))) {
             this->setStatusInfo(tr("Cannot write captcha image"));
             this->setStatus(Transfers::Failed);
             return;
