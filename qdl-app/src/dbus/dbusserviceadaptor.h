@@ -33,8 +33,16 @@ class DBusServiceAdaptor: public QDBusAbstractAdaptor
 "    <method name=\"addUrls\">\n"
 "      <arg direction=\"in\" type=\"as\" name=\"urls\"/>\n"
 "    </method>\n"
+"    <method name=\"addUrls\">\n"
+"      <arg direction=\"in\" type=\"as\" name=\"urls\"/>\n"
+"      <arg direction=\"in\" type=\"s\" name=\"service\"/>\n"
+"    </method>\n"
 "    <method name=\"importUrls\">\n"
 "      <arg direction=\"in\" type=\"as\" name=\"urls\"/>\n"
+"    </method>\n"
+"    <method name=\"importUrls\">\n"
+"      <arg direction=\"in\" type=\"as\" name=\"urls\"/>\n"
+"      <arg direction=\"in\" type=\"s\" name=\"service\"/>\n"
 "    </method>\n"
 "    <method name=\"retrieveUrls\">\n"
 "      <arg direction=\"in\" type=\"as\" name=\"urls\"/>\n"
@@ -86,10 +94,12 @@ public:
 public: // PROPERTIES
 public Q_SLOTS: // METHODS
     void addUrls(const QStringList &urls);
+    void addUrls(const QStringList &urls, const QString &service);
     QVariantMap getTransfer(const QString &id);
     QDBusVariant getTransferProperty(const QString &id, const QString &property);
     QVariantList getTransfers();
     void importUrls(const QStringList &urls);
+    void importUrls(const QStringList &urls, const QString &service);
     bool pause(const QString &id);
     bool pause();
     bool remove(const QString &id);

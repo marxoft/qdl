@@ -25,6 +25,7 @@ var maximumConnectionsPerTransfer = 1;
 var downloadRateLimit = 0;
 var nextAction = 0;
 var transfers = [];
+var services = [];
 var categories = [];
 var priorities = [ "High", "Normal", "Low" ];
 
@@ -93,78 +94,102 @@ function init() {
                 request.onreadystatechange = function() {
                     if (request.readyState == 4) {
                         if (request.status == 200) {
-                            categories = JSON.parse(request.responseText);
-                            
-                            var selector = document.getElementById("urlsCategorySelector");
-    
-                            for (var i = 0; i < categories.length; i++) {
-                                var option = document.createElement("option");
-                                option.value = categories[i];
-                                option.appendChild(document.createTextNode(categories[i]));
-                                
-                                if (categories[i] == "Default") {
-                                    option.selected = true;        
-                                }
-                                
+                            services = JSON.parse(request.responseText);
+                        
+                            var selector = document.getElementById("urlsServiceSelector");
+                            var option = document.createElement("option");
+                            option.value = "";
+                            option.appendChild(document.createTextNode("Detect from URL"));
+                            selector.appendChild(option);
+
+                            for (var i = 0; i < services.length; i++) {
+                                option = document.createElement("option");
+                                option.value = services[i];
+                                option.appendChild(document.createTextNode(services[i]));
                                 selector.appendChild(option);
                             }
-                            
+
                             request.onreadystatechange = function() {
                                 if (request.readyState == 4) {
                                     if (request.status == 200) {
-                                        transfers = JSON.parse(request.responseText).transfers;
+                                        categories = JSON.parse(request.responseText);
                                         
-                                        for (var i = 0; i < transfers.length; i++) {
-                                            var transfer = transfers[i];
-                                            appendRow(transfer);
-
-                                            if ((transfer.status == 8) && (!captchaId)) {
-                                                captchaId = transfer.id;
-                                                captchaFileName = transfer.captchaFileName;
-                                                captchaTimeOut = transfer.captchaTimeOut;
+                                        var selector = document.getElementById("urlsCategorySelector");
+                
+                                        for (var i = 0; i < categories.length; i++) {
+                                            var option = document.createElement("option");
+                                            option.value = categories[i];
+                                            option.appendChild(document.createTextNode(categories[i]));
+                                            
+                                            if (categories[i] == "Default") {
+                                                option.selected = true;        
                                             }
+                                            
+                                            selector.appendChild(option);
                                         }
+                                        
+                                        request.onreadystatechange = function() {
+                                            if (request.readyState == 4) {
+                                                if (request.status == 200) {
+                                                    transfers = JSON.parse(request.responseText).transfers;
+                                                    
+                                                    for (var i = 0; i < transfers.length; i++) {
+                                                        var transfer = transfers[i];
+                                                        appendRow(transfer);
 
-                                        if (captchaId) {
-                                            showCaptchaDialog();
-                                        }
-                                        else if (filter != "CaptchaRequired") {
-                                            request.onreadystatechange = function() {
-                                                if (request.readyState == 4) {
-                                                    if (request.status == 200) {
-                                                        var captchaTransfers = JSON.parse(request.responseText).transfers;
-                                                        
-                                                        for (var i = 0; i < captchaTransfers.length; i++) {
-                                                            var transfer = captchaTransfers[i];
-
-                                                            if ((transfer.status == 8) && (!captchaId)) {
-                                                                captchaId = transfer.id;
-                                                                captchaFileName = transfer.captchaFileName;
-                                                                captchaTimeOut = transfer.captchaTimeOut;
-                                                            }
-                                                        }
-
-                                                        if (captchaId) {
-                                                            showCaptchaDialog();
+                                                        if ((transfer.status == 8) && (!captchaId)) {
+                                                            captchaId = transfer.id;
+                                                            captchaFileName = transfer.captchaFileName;
+                                                            captchaTimeOut = transfer.captchaTimeOut;
                                                         }
                                                     }
+
+                                                    if (captchaId) {
+                                                        showCaptchaDialog();
+                                                    }
+                                                    else if (filter != "CaptchaRequired") {
+                                                        request.onreadystatechange = function() {
+                                                            if (request.readyState == 4) {
+                                                                if (request.status == 200) {
+                                                                    var captchaTransfers = JSON.parse(request.responseText).transfers;
+                                                                    
+                                                                    for (var i = 0; i < captchaTransfers.length; i++) {
+                                                                        var transfer = captchaTransfers[i];
+
+                                                                        if ((transfer.status == 8) && (!captchaId)) {
+                                                                            captchaId = transfer.id;
+                                                                            captchaFileName = transfer.captchaFileName;
+                                                                            captchaTimeOut = transfer.captchaTimeOut;
+                                                                        }
+                                                                    }
+
+                                                                    if (captchaId) {
+                                                                        showCaptchaDialog();
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                        
+                                                        request.open("GET", "transfers?filter=CaptchaRequired&start=0&limit=1");
+                                                        request.send(null);
+                                                    }   
                                                 }
                                             }
-                            
-                                            request.open("GET", "transfers?filter=CaptchaRequired&start=0&limit=1");
-                                            request.send(null);
-                                        }   
+                                        }
+                                        
+                                        request.open("GET", "transfers?filter=" + filter + "&query=" + query + "&start=" + currentIndex + "&limit=" + limitPerPage);
+                                        request.send(null);
                                     }
                                 }
                             }
                             
-                            request.open("GET", "transfers?filter=" + filter + "&query=" + query + "&start=" + currentIndex + "&limit=" + limitPerPage);
+                            request.open("GET", "categoryNames");
                             request.send(null);
                         }
                     }
                 }
-                
-                request.open("GET", "categoryNames");
+
+                request.open("GET", "serviceNames");
                 request.send(null);
             }
         }
@@ -377,8 +402,10 @@ function addUrls() {
     /* Add URLs to the queue */
     
     var urls = document.getElementById("addUrlsEdit").value;
-    var selector = document.getElementById("urlsCategorySelector");
-    var category = selector.options[selector.selectedIndex].value;
+    var serviceSelector = document.getElementById("urlsServiceSelector");
+    var service = serviceSelector.selectedIndex == 0 ? "" : serviceSelector.options[serviceSelector.selectedIndex].value
+    var categorySelector = document.getElementById("urlsCategorySelector");
+    var category = categorySelector.options[categorySelector.selectedIndex].value;
     var request = new XMLHttpRequest();
 
     request.onreadystatechange = function() {
@@ -394,7 +421,7 @@ function addUrls() {
         }
     }
 
-    request.open("GET", "urls/addUrls?urls=" + encodeURIComponent(urls.replace(/\s+/g, ",")) + "&category=" + category);
+    request.open("GET", "urls/addUrls?urls=" + encodeURIComponent(urls.replace(/\s+/g, ",")) + "&service=" + service + "&category=" + category);
     request.send(null);
 }
 

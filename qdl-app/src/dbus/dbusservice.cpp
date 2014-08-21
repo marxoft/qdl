@@ -40,9 +40,19 @@ void DBusService::addUrls(const QStringList &urls) {
     UrlChecker::instance()->addUrlsToQueue(urls);
 }
 
+void DBusService::addUrls(const QStringList &urls, const QString &service) {
+    UrlChecker::instance()->addUrlsToQueue(urls, service);
+}
+
 void DBusService::importUrls(const QStringList &urls) {
     foreach (QString url, urls) {
         UrlChecker::instance()->importUrlsFromTextFile(url);
+    }
+}
+
+void DBusService::importUrls(const QStringList &urls, const QString &service) {
+    foreach (QString url, urls) {
+        UrlChecker::instance()->importUrlsFromTextFile(url, service);
     }
 }
 

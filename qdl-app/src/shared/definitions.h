@@ -22,7 +22,7 @@
 #include <QList>
 #include <QSize>
 
-static const QString VERSION_NUMBER("1.1.3");
+static const QString VERSION_NUMBER("1.2.0");
 static const QString ICON_PATH("/opt/qdl/icons/");
 #if (defined Q_WS_MAEMO_5) || (defined MAEMO4_OS)
 static const QSize ICON_SIZE(36, 36);

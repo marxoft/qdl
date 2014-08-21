@@ -777,12 +777,12 @@ void MainWindow::showAddUrlsDialog(const QString &text, const QString &fileName)
     }
 
     dialog->open();
-    this->connect(dialog, SIGNAL(urlsAvailable(QString)), this, SLOT(addUrlsFromText(QString)));
+    this->connect(dialog, SIGNAL(urlsAvailable(QString,QString)), this, SLOT(addUrlsFromText(QString,QString)));
 }
 
-void MainWindow::addUrlsFromText(const QString &text) {
+void MainWindow::addUrlsFromText(const QString &text, const QString &service) {
     m_checkDialog->open();
-    UrlChecker::instance()->parseUrlsFromText(text);
+    UrlChecker::instance()->parseUrlsFromText(text, service);
 }
 
 void MainWindow::showRetrieveUrlsDialog(const QString &text, const QString &fileName) {

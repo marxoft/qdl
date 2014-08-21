@@ -43,6 +43,13 @@ public Q_SLOTS: // METHODS
         return asyncCallWithArgumentList(QLatin1String("addUrls"), argumentList);
     }
 
+    inline QDBusPendingReply<> addUrls(const QStringList &urls, const QString &service)
+    {
+        QList<QVariant> argumentList;
+        argumentList << QVariant::fromValue(urls) << QVariant::fromValue(service);
+        return asyncCallWithArgumentList(QLatin1String("addUrls"), argumentList);
+    }
+
     inline QDBusPendingReply<QVariantMap> getTransfer(const QString &id)
     {
         QList<QVariant> argumentList;
@@ -67,6 +74,13 @@ public Q_SLOTS: // METHODS
     {
         QList<QVariant> argumentList;
         argumentList << QVariant::fromValue(urls);
+        return asyncCallWithArgumentList(QLatin1String("importUrls"), argumentList);
+    }
+
+    inline QDBusPendingReply<> importUrls(const QStringList &urls, const QString &service)
+    {
+        QList<QVariant> argumentList;
+        argumentList << QVariant::fromValue(urls) << QVariant::fromValue(service);
         return asyncCallWithArgumentList(QLatin1String("importUrls"), argumentList);
     }
 

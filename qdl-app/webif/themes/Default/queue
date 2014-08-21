@@ -133,6 +133,12 @@
                 <tr>
                 <tr>
                     <td>
+                        Service:
+                        <select id="urlsServiceSelector"></select>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
                         Category:
                         <select id="urlsCategorySelector"></select>
                         <span style="float: right">

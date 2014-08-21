@@ -38,24 +38,24 @@ class PluginManager : public QObject
 public:
     inline int progress() const { return m_progress; }
 
-    bool servicePluginExists(const QString &serviceName) const;
-    bool servicePluginExists(const QUrl &url) const;
+    Q_INVOKABLE bool servicePluginExists(const QString &serviceName) const;
+    Q_INVOKABLE bool servicePluginExists(const QUrl &url) const;
     ServicePlugin* getServicePlugin(const QString &serviceName) const;
     ServicePlugin* getServicePlugin(const QUrl &url) const;
     ServicePlugin* createServicePlugin(const QString &serviceName);
     ServicePlugin* createServicePlugin(const QUrl &url);
     inline QList<ServicePlugin*> servicePlugins() const { return m_services; }
-    inline QStringList servicePluginNames() const { return m_serviceNames; }
+    Q_INVOKABLE inline QStringList servicePluginNames() const { return m_serviceNames; }
 
     DecaptchaPlugin* getDecaptchaPlugin(const QString &serviceName) const;
     DecaptchaPlugin* createDecaptchaPlugin(const QString &serviceName);
     inline QList<DecaptchaPlugin*> decaptchaPlugins() const { return m_decaptchaServices; }
-    inline QStringList decaptchaPluginNames() const { return m_decaptchaNames; }
+    Q_INVOKABLE inline QStringList decaptchaPluginNames() const { return m_decaptchaNames; }
 
     RecaptchaPlugin* getRecaptchaPlugin(const QString &serviceName) const;
     RecaptchaPlugin* createRecaptchaPlugin(const QString &serviceName);
     inline QList<RecaptchaPlugin*> recaptchaPlugins() const { return m_recaptchaServices; }
-    inline QStringList recaptchaPluginNames() const { return m_recaptchaNames; }
+    Q_INVOKABLE inline QStringList recaptchaPluginNames() const { return m_recaptchaNames; }
 
     static PluginManager* instance();
 

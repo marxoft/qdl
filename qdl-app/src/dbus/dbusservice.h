@@ -33,7 +33,9 @@ public:
 
 public slots:
     void addUrls(const QStringList &urls);
+    void addUrls(const QStringList &urls, const QString &service);
     void importUrls(const QStringList &urls);
+    void importUrls(const QStringList &urls, const QString &service);
     void retrieveUrls(const QStringList &urls);
 
     QVariantList getTransfers() const;

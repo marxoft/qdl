@@ -48,11 +48,12 @@ private slots:
     void onTextChanged();
 
 signals:
-    void urlsAvailable(const QString &urls);
+    void urlsAvailable(const QString &urls, const QString &service);
     
 private:
     QTextEdit *m_urlsEdit;
-    QComboBox *m_comboBox;
+    QComboBox *m_serviceComboBox;
+    QComboBox *m_categoryComboBox;
     QDialogButtonBox *m_buttonBox;
     QGridLayout *m_grid;
 };

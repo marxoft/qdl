@@ -72,7 +72,7 @@ private slots:
     void setCurrentTransferCategory(const QVariant &category);
     void setCurrentTransferPriority(const QVariant &priority);
     void showAddUrlsDialog(const QString &text = QString(), const QString &fileName = QString());
-    void addUrlsFromText(const QString &text);
+    void addUrlsFromText(const QString &text, const QString &service);
     void showRetrieveUrlsDialog(const QString &text = QString(), const QString &fileName = QString());
     void retrieveUrlsFromText(const QString &text);
     void onUrlRetrieverFinished();

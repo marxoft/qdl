@@ -84,7 +84,7 @@ private slots:
     void setCurrentPackageCategory();
     void setCurrentPackagePriority();
     void showAddUrlsDialog(const QString &text = QString(), const QString &fileName = QString());
-    void addUrlsFromText(const QString &text);
+    void addUrlsFromText(const QString &text, const QString &service);
     void showRetrieveUrlsDialog(const QString &text = QString(), const QString &fileName = QString());
     void retrieveUrlsFromText(const QString &text);
     void onUrlRetrieverFinished();

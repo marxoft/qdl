@@ -26,6 +26,13 @@
 
 class UrlCheckModel;
 
+typedef struct {
+    QUrl url;
+    QString service;
+    bool checked;
+    bool ok;
+} UrlCheck;
+
 class UrlChecker : public QObject
 {
     Q_OBJECT
@@ -43,11 +50,17 @@ public:
 
 public slots:
     void addUrlToQueue(const QUrl &url);
+    void addUrlToQueue(const QUrl &url, const QString &service);
     void addUrlToQueue(const QString &url);
+    void addUrlToQueue(const QString &url, const QString &service);
     void addUrlsToQueue(QList<QUrl> urls);
+    void addUrlsToQueue(QList<QUrl> urls, const QString &service);
     void addUrlsToQueue(QStringList urls);
+    void addUrlsToQueue(QStringList urls, const QString &service);
     void parseUrlsFromText(const QString &text);
+    void parseUrlsFromText(const QString &text, const QString &service);
     void importUrlsFromTextFile(const QString &filePath);
+    void importUrlsFromTextFile(const QString &filePath, const QString &service);
 
     void cancel();
 
@@ -59,7 +72,7 @@ private:
 
 private slots:
     void connectToPluginSignals();
-    void checkUrl(const QUrl &url);
+    void checkUrl(const UrlCheck &check);
     void checkFileDownload();
     void onUrlChecked(bool ok, const QUrl &url, const QString &service, const QString &fileName, bool done);
 
@@ -71,19 +84,13 @@ signals:
 private:
     static UrlChecker *self;
 
-    UrlCheckModel* m_model;
+    UrlCheckModel *m_model;
 
-    QQueue<QUrl> m_urlQueue;
+    QQueue<UrlCheck> m_urlQueue;
 
     int m_index;
     bool m_cancelled;
 };
-
-typedef struct {
-    QString url;
-    bool checked;
-    bool ok;
-} UrlCheck;
 
 class UrlCheckModel : public QAbstractTableModel
 {
@@ -98,6 +105,7 @@ class UrlCheckModel : public QAbstractTableModel
 public:
     enum Roles {
         UrlRole = Qt::UserRole + 1,
+        ServiceRole,
         CheckedRole,
         OkRole
     };
@@ -122,9 +130,9 @@ private:
     ~UrlCheckModel();
 
     bool setData(const QModelIndex &index, const QVariant &value, int role);
-    void addUrlCheck(const QString &url, bool checked = false, bool ok = false);
+    void addUrlCheck(const UrlCheck &check);
     void urlChecked(int row, bool ok);
-    void urlChecked(const QString &url, bool ok);
+    void urlChecked(const QUrl &url, bool ok);
     void removeUrlCheck(int row);
 
 signals:

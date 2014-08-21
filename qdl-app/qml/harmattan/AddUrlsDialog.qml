@@ -8,7 +8,7 @@ MySheet {
 
     property alias text: urlsEdit.text
 
-    signal urlsAvailable(string urls)
+    signal urlsAvailable(string urls, string service)
 
     rejectButtonText: qsTr("Cancel")
     acceptButtonText: urlsEdit.text == "" ? "" : qsTr("Done")
@@ -45,6 +45,27 @@ MySheet {
                 }
 
                 ValueSelector {
+                    id: serviceSelector
+
+                    width: parent.width
+                    title: qsTr("Service")
+                    subTitle: qsTr("Detect from URL")
+                    model: SelectionModel {}
+                    Component.onCompleted: {
+                        model.addItem(qsTr("Detect from URL"), "");
+                        var services = PluginManager.servicePluginNames();
+
+                        for (var i = 0; i < services.length; i++) {
+                            model.addItem(services[i], services[i]);
+                        }
+
+                        value = "";
+                    }
+                }
+
+                ValueSelector {
+                    id: categorySelector
+
                     width: parent.width
                     title: qsTr("Category")
                     subTitle: Settings.defaultCategory
@@ -69,7 +90,7 @@ MySheet {
     }
 
     onAccepted: {
-        root.urlsAvailable(urlsEdit.text);
+        root.urlsAvailable(urlsEdit.text, serviceSelector.value);
         urlsEdit.text = "";
     }
     onRejected: urlsEdit.text = ""

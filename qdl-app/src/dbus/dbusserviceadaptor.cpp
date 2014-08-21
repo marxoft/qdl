@@ -39,6 +39,12 @@ void DBusServiceAdaptor::addUrls(const QStringList &urls)
     QMetaObject::invokeMethod(parent(), "addUrls", Q_ARG(QStringList, urls));
 }
 
+void DBusServiceAdaptor::addUrls(const QStringList &urls, const QString &service)
+{
+    // handle method call com.marxoft.QDL.addUrls
+    QMetaObject::invokeMethod(parent(), "addUrls", Q_ARG(QStringList, urls), Q_ARG(QString, service));
+}
+
 QVariantMap DBusServiceAdaptor::getTransfer(const QString &id)
 {
     // handle method call com.marxoft.QDL.getTransfer
@@ -67,6 +73,12 @@ void DBusServiceAdaptor::importUrls(const QStringList &urls)
 {
     // handle method call com.marxoft.QDL.importUrls
     QMetaObject::invokeMethod(parent(), "importUrls", Q_ARG(QStringList, urls));
+}
+
+void DBusServiceAdaptor::importUrls(const QStringList &urls, const QString &service)
+{
+    // handle method call com.marxoft.QDL.importUrls
+    QMetaObject::invokeMethod(parent(), "importUrls", Q_ARG(QStringList, urls), Q_ARG(QString, service));
 }
 
 bool DBusServiceAdaptor::pause(const QString &id)

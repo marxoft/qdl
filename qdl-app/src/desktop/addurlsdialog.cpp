@@ -18,6 +18,7 @@
 #include "addurlsdialog.h"
 #include "../shared/settings.h"
 #include "../shared/database.h"
+#include "../shared/pluginmanager.h"
 #include <QTextEdit>
 #include <QComboBox>
 #include <QLabel>
@@ -31,7 +32,8 @@
 AddUrlsDialog::AddUrlsDialog(QWidget *parent) :
     QDialog(parent),
     m_urlsEdit(new QTextEdit(this)),
-    m_comboBox(new QComboBox(this)),
+    m_serviceComboBox(new QComboBox(this)),
+    m_categoryComboBox(new QComboBox(this)),
     m_buttonBox(new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, Qt::Horizontal, this)),
     m_grid(new QGridLayout(this))
 {
@@ -40,21 +42,25 @@ AddUrlsDialog::AddUrlsDialog(QWidget *parent) :
     this->setMinimumSize(500, 300);
     this->setAcceptDrops(true);
 
-    m_comboBox->addItems(Database::instance()->getCategoryNames());
-    m_comboBox->setCurrentIndex(m_comboBox->findText(Settings::instance()->defaultCategory()));
-    m_comboBox->setEnabled(m_comboBox->count() > 0);
+    m_serviceComboBox->addItems(QStringList(tr("Detect from URL")) << PluginManager::instance()->servicePluginNames());
+
+    m_categoryComboBox->addItems(Database::instance()->getCategoryNames());
+    m_categoryComboBox->setCurrentIndex(m_categoryComboBox->findText(Settings::instance()->defaultCategory()));
+    m_categoryComboBox->setEnabled(m_categoryComboBox->count() > 0);
 
     m_buttonBox->button(QDialogButtonBox::Ok)->setIcon(QIcon::fromTheme("dialog-ok"));
     m_buttonBox->button(QDialogButtonBox::Cancel)->setIcon(QIcon::fromTheme("dialog-cancel"));
 
     m_grid->addWidget(m_urlsEdit, 0, 0, 1, 3);
-    m_grid->addWidget(new QLabel(tr("Category") + ":", this), 1, 0);
-    m_grid->addWidget(m_comboBox, 1, 1);
-    m_grid->addWidget(m_buttonBox, 1, 2);
-    m_grid->setColumnStretch(1, 2);
+    m_grid->addWidget(new QLabel(tr("Service") + ":", this), 1, 0);
+    m_grid->addWidget(m_serviceComboBox, 1, 1);
+    m_grid->addWidget(new QLabel(tr("Category") + ":", this), 2, 0);
+    m_grid->addWidget(m_categoryComboBox, 2, 1);
+    m_grid->addWidget(m_buttonBox, 2, 2);
+    m_grid->setColumnStretch(2, 2);
 
     this->connect(m_urlsEdit, SIGNAL(textChanged()), this, SLOT(onTextChanged()));
-    this->connect(m_comboBox, SIGNAL(currentIndexChanged(QString)), Settings::instance(), SLOT(setDefaultCategory(QString)));
+    this->connect(m_categoryComboBox, SIGNAL(currentIndexChanged(QString)), Settings::instance(), SLOT(setDefaultCategory(QString)));
     this->connect(m_buttonBox, SIGNAL(accepted()), this, SLOT(accept()));
     this->connect(m_buttonBox, SIGNAL(rejected()), this, SLOT(reject()));
 }
@@ -102,7 +108,8 @@ void AddUrlsDialog::parseUrlsFromTextFile(const QString &fileName) {
 }
 
 void AddUrlsDialog::accept() {
-    emit urlsAvailable(this->text());
+    emit urlsAvailable(this->text(), m_serviceComboBox->currentIndex() == 0 ? QString() 
+                                                                            : m_serviceComboBox->currentText());
     QDialog::accept();
 }
 

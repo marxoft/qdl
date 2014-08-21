@@ -33,6 +33,6 @@ Item {
             verticalCenter: parent.verticalCenter
         }
         source: !checked ? "" : ok ? "image://theme/icon-m-toolbar-done" + (theme.inverted ? "-white" : "")
-                                   : "image://theme/icon-m-toolbar-cancel" + (theme.inverted ? "-white" : "")
+                                   : "image://theme/icon-m-toolbar-cancle" + (theme.inverted ? "-white" : "")
     }
 }

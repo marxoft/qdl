@@ -325,7 +325,7 @@ Page {
         AddUrlsDialog {
             onUrlsAvailable: {
                 urlCheckInfo.visible = true;
-                UrlChecker.parseUrlsFromText(urls);
+                UrlChecker.parseUrlsFromText(urls, service);
             }
         }
     }

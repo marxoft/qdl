@@ -57,12 +57,21 @@ void UrlChecker::connectToPluginSignals() {
     }
 }
 
-void UrlChecker::checkUrl(const QUrl &url) {
-    if (ServicePlugin *plugin = PluginManager::instance()->getServicePlugin(url)) {
-        plugin->checkUrl(url);
+void UrlChecker::checkUrl(const UrlCheck &check) {
+    ServicePlugin *plugin = 0;
+
+    if (check.service.isEmpty()) {
+        plugin = PluginManager::instance()->getServicePlugin(check.url);
     }
     else {
-        this->testFileDownload(url);
+        plugin = PluginManager::instance()->getServicePlugin(check.service);
+    }
+
+    if (plugin) {
+        plugin->checkUrl(check.url);
+    }
+    else {
+        this->testFileDownload(check.url);
     }
 }
 
@@ -126,6 +135,10 @@ void UrlChecker::checkFileDownload() {
 }
 
 void UrlChecker::addUrlToQueue(const QUrl &url) {
+    this->addUrlToQueue(url, QString());
+}
+
+void UrlChecker::addUrlToQueue(const QUrl &url, const QString &service) {
     m_cancelled = false;
     bool start = m_urlQueue.isEmpty();
 
@@ -133,8 +146,13 @@ void UrlChecker::addUrlToQueue(const QUrl &url) {
         m_index = 0;
     }
 
-    m_urlQueue.enqueue(url);
-    m_model->addUrlCheck(url.toString());
+    UrlCheck check;
+    check.url = url;
+    check.service = service;
+    check.checked = false;
+    check.ok = false;
+    m_urlQueue.enqueue(check);
+    m_model->addUrlCheck(check);
 
     if (start) {
         emit progressChanged(this->progress());
@@ -143,6 +161,10 @@ void UrlChecker::addUrlToQueue(const QUrl &url) {
 }
 
 void UrlChecker::addUrlToQueue(const QString &url) {
+    this->addUrlToQueue(url, QString());
+}
+
+void UrlChecker::addUrlToQueue(const QString &url, const QString &service) {
     m_cancelled = false;
     bool start = m_urlQueue.isEmpty();
 
@@ -150,12 +172,18 @@ void UrlChecker::addUrlToQueue(const QString &url) {
         m_index = 0;
     }
 
+    UrlCheck check;
+    check.service = service;
+    check.checked = false;
+    check.ok = false;
+
 #if QT_VERSION >= 0x040600
-    m_urlQueue.enqueue(QUrl::fromUserInput(url));
+    check.url = QUrl::fromUserInput(url);
 #else
-    m_urlQueue.enqueue(url.startsWith("http") ? url : "http://" + url);
+    check.url = (url.startsWith("http") ? url : "http://" + url);
 #endif
-    m_model->addUrlCheck(url);
+    m_urlQueue.enqueue(check);
+    m_model->addUrlCheck(check);
 
     if (start) {
         emit progressChanged(this->progress());
@@ -164,6 +192,10 @@ void UrlChecker::addUrlToQueue(const QString &url) {
 }
 
 void UrlChecker::addUrlsToQueue(QList<QUrl> urls) {
+    this->addUrlsToQueue(urls, QString());
+}
+
+void UrlChecker::addUrlsToQueue(QList<QUrl> urls, const QString &service) {
     m_cancelled = false;
     bool start = m_urlQueue.isEmpty();
 
@@ -172,8 +204,13 @@ void UrlChecker::addUrlsToQueue(QList<QUrl> urls) {
     }
 
     foreach (QUrl url, urls) {
-        m_urlQueue.enqueue(url);
-        m_model->addUrlCheck(url.toString());
+        UrlCheck check;
+        check.url = url;
+        check.service = service;
+        check.checked = false;
+        check.ok = false;
+        m_urlQueue.enqueue(check);
+        m_model->addUrlCheck(check);
     }
 
     if (start) {
@@ -183,6 +220,10 @@ void UrlChecker::addUrlsToQueue(QList<QUrl> urls) {
 }
 
 void UrlChecker::addUrlsToQueue(QStringList urls) {
+    this->addUrlsToQueue(urls, QString());
+}
+
+void UrlChecker::addUrlsToQueue(QStringList urls, const QString &service) {
     m_cancelled = false;
     bool start = m_urlQueue.isEmpty();
 
@@ -191,12 +232,18 @@ void UrlChecker::addUrlsToQueue(QStringList urls) {
     }
 
     foreach (QString url, urls) {
+        UrlCheck check;
+        check.service = service;
+        check.checked = false;
+        check.ok = false;
+
 #if QT_VERSION >= 0x040600
-        m_urlQueue.enqueue(QUrl::fromUserInput(url));
+        check.url = QUrl::fromUserInput(url);
 #else
-        m_urlQueue.enqueue(url.startsWith("http") ? url : "http://" + url);
+        check.url = (url.startsWith("http") ? url : "http://" + url);
 #endif
-        m_model->addUrlCheck(url);
+        m_urlQueue.enqueue(check);
+        m_model->addUrlCheck(check);
     }
 
     if (start) {
@@ -206,17 +253,25 @@ void UrlChecker::addUrlsToQueue(QStringList urls) {
 }
 
 void UrlChecker::parseUrlsFromText(const QString &text) {
+    this->parseUrlsFromText(text, QString());
+}
+
+void UrlChecker::parseUrlsFromText(const QString &text, const QString &service) {
     QStringList urlStrings = text.split(QRegExp("\\s"), QString::SkipEmptyParts);
-    this->addUrlsToQueue(urlStrings);
+    this->addUrlsToQueue(urlStrings, service);
 }
 
 void UrlChecker::importUrlsFromTextFile(const QString &filePath) {
+    this->importUrlsFromTextFile(filePath, QString());
+}
+
+void UrlChecker::importUrlsFromTextFile(const QString &filePath, const QString &service) {
     QFile textFile(filePath);
 
     if (textFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
         QString urlString = textFile.readAll();
         textFile.close();
-        this->parseUrlsFromText(urlString);
+        this->parseUrlsFromText(urlString, service);
     }
 }
 
@@ -224,11 +279,25 @@ void UrlChecker::cancel() {
     if (!m_cancelled) {
         m_cancelled = true;
 
-        if (ServicePlugin *plugin = PluginManager::instance()->getServicePlugin(m_model->data(m_model->index(m_index, 0), UrlCheckModel::UrlRole).toUrl())) {
-            plugin->cancelCurrentOperation();
-            m_urlQueue.clear();
+        const QModelIndex index = m_model->index(m_index, 0);
+
+        if (index.isValid()) {
+            QString service = index.data(UrlCheckModel::ServiceRole).toString();
+            ServicePlugin *plugin = 0;
+
+            if (service.isEmpty()) {
+                plugin = PluginManager::instance()->getServicePlugin(index.data(UrlCheckModel::UrlRole).toUrl());
+            }
+            else {
+                plugin = PluginManager::instance()->getServicePlugin(service);
+            }
+
+            if (plugin) {
+                plugin->cancelCurrentOperation();
+            }
         }
 
+        m_urlQueue.clear();
         emit cancelled();
     }
 }
@@ -253,6 +322,7 @@ UrlCheckModel::UrlCheckModel(QObject *parent) :
     QAbstractTableModel(parent)
 {
     m_roleNames[UrlRole] = "url";
+    m_roleNames[ServiceRole] = "service";
     m_roleNames[CheckedRole] = "checked";
     m_roleNames[OkRole] = "ok";
 #if (QT_VERSION >= 0x040600) && (QT_VERSION < 0x050000)
@@ -303,6 +373,8 @@ QVariant UrlCheckModel::data(const QModelIndex &index, int role) const {
     switch (role) {
     case UrlRole:
         return m_list.at(index.row()).url;
+    case ServiceRole:
+        return m_list.at(index.row()).service;
     case CheckedRole:
         return m_list.at(index.row()).checked;
     case OkRole:
@@ -346,7 +418,10 @@ bool UrlCheckModel::setData(const QModelIndex &index, const QVariant &value, int
 
     switch (role) {
     case UrlRole:
-        m_list[index.row()].url = value.toString();
+        m_list[index.row()].url = value.toUrl();
+        break;
+    case ServiceRole:
+        m_list[index.row()].service = value.toString();
         break;
     case CheckedRole:
         m_list[index.row()].checked = value.toBool();
@@ -393,12 +468,7 @@ QVariantList UrlCheckModel::allItemData() const {
     return list;
 }
 
-void UrlCheckModel::addUrlCheck(const QString &url, bool checked, bool ok) {
-    UrlCheck check;
-    check.url = url;
-    check.checked = checked;
-    check.ok = ok;
-
+void UrlCheckModel::addUrlCheck(const UrlCheck &check) {
     this->beginInsertRows(QModelIndex(), this->rowCount(), this->rowCount());
     m_list.append(check);
     this->endInsertRows();
@@ -406,7 +476,7 @@ void UrlCheckModel::addUrlCheck(const QString &url, bool checked, bool ok) {
     emit countChanged(this->rowCount());
 }
 
-void UrlCheckModel::urlChecked(const QString &url, bool ok) {
+void UrlCheckModel::urlChecked(const QUrl &url, bool ok) {
     for (int i = 0; i < m_list.size(); i++) {
         if (m_list.at(i).url == url) {
             this->urlChecked(i, ok);

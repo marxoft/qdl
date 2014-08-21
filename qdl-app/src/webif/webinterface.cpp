@@ -177,6 +177,10 @@ static QByteArray categories() {
     return result;
 }
 
+static QByteArray serviceNames() {
+    return Json::serialize(PluginManager::instance()->servicePluginNames());
+}
+
 static QByteArray serviceAccounts() {
     QByteArray result = "[ ";
 
@@ -260,6 +264,10 @@ void WebInterface::onNewRequest(QHttpRequest *request, QHttpResponse *response) 
         response->writeHead(200);
         data = categories();
     }
+    else if (path == "/serviceNames") {
+        response->writeHead(200);
+        data = serviceNames();
+    }
     else if (path == "/serviceAccounts") {
         response->writeHead(200);
         data = serviceAccounts();
@@ -279,7 +287,7 @@ void WebInterface::onNewRequest(QHttpRequest *request, QHttpResponse *response) 
                     Settings::instance()->setDefaultCategory(url.queryItemValue("category"));
                 }
 
-                UrlChecker::instance()->addUrlsToQueue(urls);
+                UrlChecker::instance()->addUrlsToQueue(urls, url.queryItemValue("service"));
                 response->writeHead(200);
                 data = urlCheckProgress();
             }

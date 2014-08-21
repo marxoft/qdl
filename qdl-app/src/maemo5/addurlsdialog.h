@@ -20,6 +20,7 @@
 
 #include <QDialog>
 
+class ValueSelector;
 class QTextEdit;
 class QDialogButtonBox;
 
@@ -43,10 +44,12 @@ private slots:
     void setCategory(const QVariant &value);
 
 signals:
-    void urlsAvailable(const QString &urls);
+    void urlsAvailable(const QString &urls, const QString &service);
     
 private:
     QTextEdit *m_urlsEdit;
+    ValueSelector *m_serviceSelector;
+    ValueSelector *m_categorySelector;
     QDialogButtonBox *m_buttonBox;
 };
 

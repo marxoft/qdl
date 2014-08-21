@@ -19,6 +19,7 @@
 #include "valueselector.h"
 #include "../shared/settings.h"
 #include "../shared/database.h"
+#include "../shared/pluginmanager.h"
 #include "../shared/selectionmodels.h"
 #include <QTextEdit>
 #include <QDialogButtonBox>
@@ -29,30 +30,42 @@
 AddUrlsDialog::AddUrlsDialog(QWidget *parent) :
     QDialog(parent),
     m_urlsEdit(new QTextEdit(this)),
+    m_serviceSelector(new ValueSelector(tr("Service"), this)),
+    m_categorySelector(new ValueSelector(tr("Category"), this)),
     m_buttonBox(new QDialogButtonBox(QDialogButtonBox::Ok, Qt::Vertical, this))
 {
     this->setWindowTitle(tr("Add URLs"));
     this->setAttribute(Qt::WA_DeleteOnClose, true);
 
-    ValueSelector *categorySelector = new ValueSelector(tr("Category"), this);
-    SelectionModel *model = new SelectionModel(this);
+    SelectionModel *serviceModel = new SelectionModel(this);
+    serviceModel->addItem(tr("Detect from URL"), QString());
 
-    foreach (QString category, Database::instance()->getCategoryNames()) {
-        model->addItem(category, category);
+    foreach (QString service, PluginManager::instance()->servicePluginNames()) {
+        serviceModel->addItem(service, service);
     }
 
-    categorySelector->setModel(model);
-    categorySelector->setValue(Settings::instance()->defaultCategory());
-    categorySelector->setEnabled(model->rowCount() > 0);
+    m_serviceSelector->setModel(serviceModel);
+    m_serviceSelector->setValue(QString());
+
+    SelectionModel *categoryModel = new SelectionModel(this);
+
+    foreach (QString category, Database::instance()->getCategoryNames()) {
+        categoryModel->addItem(category, category);
+    }
+
+    m_categorySelector->setModel(categoryModel);
+    m_categorySelector->setValue(Settings::instance()->defaultCategory());
+    m_categorySelector->setEnabled(categoryModel->rowCount() > 0);
 
     QGridLayout *grid = new QGridLayout(this);
     grid->addWidget(m_urlsEdit, 0, 0);
-    grid->addWidget(categorySelector, 1, 0);
-    grid->addWidget(m_buttonBox, 1, 1);
+    grid->addWidget(m_serviceSelector, 1, 0);
+    grid->addWidget(m_categorySelector, 2, 0);
+    grid->addWidget(m_buttonBox, 2, 1);
 
     this->connect(m_buttonBox, SIGNAL(accepted()), this, SLOT(accept()));
     this->connect(m_urlsEdit, SIGNAL(textChanged()), this, SLOT(onTextChanged()));
-    this->connect(categorySelector, SIGNAL(valueChanged(QVariant)), this, SLOT(setCategory(QVariant)));
+    this->connect(m_categorySelector, SIGNAL(valueChanged(QVariant)), this, SLOT(setCategory(QVariant)));
 }
 
 AddUrlsDialog::~AddUrlsDialog() {}
@@ -82,7 +95,7 @@ void AddUrlsDialog::parseUrlsFromTextFile(const QString &fileName) {
 }
 
 void AddUrlsDialog::accept() {
-    emit urlsAvailable(this->text());
+    emit urlsAvailable(this->text(), m_serviceSelector->currentValue().toString());
     QDialog::accept();
 }
 
