@@ -74,6 +74,7 @@ SUBDIRS += \
     upstore \
     usefile \
     videobam \
+    videograbber \
     vimeo \
     vk \
     vube \
