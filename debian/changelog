@@ -1,3 +1,10 @@
+qdl (1.2.0) unstable; urgency=low
+
+  * Added option to force the service when adding URLs.
+  * Bug fix: Directory not created before attempting to save captcha image.
+
+ -- Stuart Howarth <showarth@marxoft.co.uk>  Thu, 21 Aug 2014 17:09:32 +0000
+
 qdl (1.1.3) unstable; urgency=low
 
   * Bug fix: Stored transfers not cleared when the queue becomes empty.
