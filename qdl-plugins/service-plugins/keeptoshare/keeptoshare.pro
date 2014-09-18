@@ -6,12 +6,10 @@ TEMPLATE = lib
 HEADERS += \
     keeptoshare.h \
     serviceinterface.h \
-    serviceplugin.h \
-    json.h
+    serviceplugin.h
 
 SOURCES += \
-    keeptoshare.cpp \
-    json.cpp
+    keeptoshare.cpp
 
 icon.files = "$$TARGET".jpg
 

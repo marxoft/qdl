@@ -8,6 +8,6 @@ Homepage: http://www.marxoft.co.uk/qdl
 
 Package: qdl-plugins-keeptoshare
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, qdl (>= 1.0.2), qdl-plugins-googlerecaptcha (>= 0.1.0)
+Depends: ${shlibs:Depends}, ${misc:Depends}, qdl (>= 1.0.2), qdl-plugins-keeptosharerecaptcha
 Description: Keep2Share plugin for the QDL download manager.
  This plugin provides access to file downloads via Keep2Share.

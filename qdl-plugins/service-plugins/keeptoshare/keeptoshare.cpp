@@ -1,13 +1,27 @@
+/*
+ * Copyright (C) 2014 Stuart Howarth <showarth@marxoft.co.uk>
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms and conditions of the GNU Lesser General Public License,
+ * version 3, as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for
+ * more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St - Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #include "keeptoshare.h"
-#include "json.h"
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QNetworkRequest>
 #include <QTimer>
 #include <QTime>
 #include <QRegExp>
-
-using namespace QtJson;
 
 KeepToShare::KeepToShare(QObject *parent) :
     ServicePlugin(parent),
@@ -137,9 +151,8 @@ void KeepToShare::checkKeep2sLogin() {
     reply->deleteLater();
 }
 
-void KeepToShare::checkUrl(const QUrl &webUrl) {
-    QNetworkRequest request(webUrl);
-    request.setRawHeader("Accept-Language", "en-GB,en-US;q=0.8,en;q=0.6");
+void KeepToShare::checkUrl(const QUrl &url) {
+    QNetworkRequest request(url);
     QNetworkReply *reply = this->networkAccessManager()->get(request);
     this->connect(reply, SIGNAL(finished()), this, SLOT(checkUrlIsValid()));
     this->connect(this, SIGNAL(currentOperationCancelled()), reply, SLOT(deleteLater()));
@@ -154,7 +167,7 @@ void KeepToShare::checkUrlIsValid() {
     }
 
     QString redirect = reply->attribute(QNetworkRequest::RedirectionTargetAttribute).toString();
-    QRegExp re("http(s|)://keep2share.cc/file/url.html[^'\"]+");
+    QRegExp re("(http://(keep2s(hare|)|k2s).cc|)/file/url.html[^'\"]+");
 
     if ((!redirect.isEmpty()) && (re.indexIn(redirect) == -1)) {
         this->checkUrl(QUrl(redirect));
@@ -181,10 +194,9 @@ void KeepToShare::checkUrlIsValid() {
     reply->deleteLater();
 }
 
-void KeepToShare::getDownloadRequest(const QUrl &webUrl) {
+void KeepToShare::getDownloadRequest(const QUrl &url) {
     emit statusChanged(Connecting);
-    QNetworkRequest request(webUrl);
-    request.setRawHeader("Accept-Language", "en-GB,en-US;q=0.8,en;q=0.6");
+    QNetworkRequest request(url);
     QNetworkReply *reply = this->networkAccessManager()->get(request);
     this->connect(reply, SIGNAL(finished()), this, SLOT(onWebPageDownloaded()));
     this->connect(this, SIGNAL(currentOperationCancelled()), reply, SLOT(deleteLater()));
@@ -198,36 +210,56 @@ void KeepToShare::onWebPageDownloaded() {
         return;
     }
 
-    QRegExp re("http(s|)://keep2share.cc/file/url.html[^'\"]+");
+    QRegExp re("(http://(keep2s(hare|)|k2s).cc|)/file/url.html[^'\"]+");
     QString redirect = reply->attribute(QNetworkRequest::RedirectionTargetAttribute).toString();
 
     if (re.indexIn(redirect) == 0) {
-        QNetworkRequest request;
-        request.setUrl(QUrl(re.cap()));
-        emit downloadRequestReady(request);
+        QUrl url(re.cap());
+
+        if (url.host().isEmpty()) {
+            url.setScheme("http");
+            url.setHost("k2s.cc");
+        }
+
+        emit downloadRequestReady(QNetworkRequest(url));
     }
     else if (!redirect.isEmpty()) {
-        this->getDownloadRequest(QUrl(redirect));
+        QUrl url(redirect);
+
+        if (url.host().isEmpty()) {
+            url.setScheme("http");
+            url.setHost("k2s.cc");
+        }
+
+        this->getDownloadRequest(url);
     }
     else {
         QString response(reply->readAll());
 
-        if (response.contains("/file/url.html?file=")) {
-	    QUrl url("http://keep2share.cc/file/url.html");
-            url.addQueryItem("file", response.section("/file/url.html?file=", 1, 1).section('\'', 0, 0));
+        if (re.indexIn(response) >= 0) {
+            QUrl url(re.cap());
+
+            if (url.host().isEmpty()) {
+                url.setScheme("http");
+                url.setHost("k2s.cc");
+            }
+
             emit downloadRequestReady(QNetworkRequest(url));
         }
         else {
-            m_url = reply->request().url();
+            m_url = reply->url();
             m_fileId = response.section("slow_id\" value=\"", 1, 1).section('"', 0, 0);
 
             if (m_fileId.isEmpty()) {
-		if (response.contains("This file is available<br>only for premium members")) {
-		    emit error(Unauthorised);
-		}
-		else {
+                if (response.contains("only for premium members")) {
+                    emit error(Unauthorised);
+                }
+                else if (response.contains("not found or deleted")) {
+                    emit error(NotFound);
+                }
+                else {
                     emit error(UnknownError);
-		}
+                }
             }
             else {
                 this->getCaptchaKey();
@@ -241,7 +273,6 @@ void KeepToShare::onWebPageDownloaded() {
 void KeepToShare::getCaptchaKey() {
     QNetworkRequest request(m_url);
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
-    request.setRawHeader("Accept-Language", "en-GB,en-US;q=0.8,en;q=0.6");
     request.setRawHeader("Referer", m_url.toString().toUtf8());
     QNetworkReply *reply = this->networkAccessManager()->post(request, "yt0=&slow_id=" + m_fileId.toUtf8());
     this->connect(reply, SIGNAL(finished()), this, SLOT(checkCaptchaKey()));
@@ -257,14 +288,21 @@ void KeepToShare::checkCaptchaKey() {
     }
     
     QString response(reply->readAll());
-    QRegExp re("/file/url.html[^'\"]+");
+    QRegExp re("(http://(keep2s(hare|)|k2s).cc|)/file/url.html[^'\"]+");
 
     if (re.indexIn(response) >= 0) {
-        QUrl url("http://keep2share.cc" + re.cap());
+        QUrl url(re.cap());
+
+        if (url.host().isEmpty()) {
+            url.setScheme("http");
+            url.setHost("k2s.cc");
+        }
+
         emit downloadRequestReady(QNetworkRequest(url));
     }
     else {
-        m_captchaKey = response.section("http://www.google.com/recaptcha/api/challenge?k=", 1, 1).section('"', 0, 0);
+        m_url = reply->url();
+        m_captchaKey = response.section("/file/captcha.html?v=", 1, 1).section('"', 0, 0);
         
         if (m_captchaKey.isEmpty()) {
             QString waitString = response.section("Please wait", 1, 1).section("to download this file", 0, 0).trimmed();
@@ -293,11 +331,11 @@ void KeepToShare::checkCaptchaKey() {
 }
 
 void KeepToShare::submitCaptchaResponse(const QString &challenge, const QString &response) {
-    QString data = QString("CaptchaForm[code]=&recaptcha_challenge_field=%1&recaptcha_response_field=%2&free=1&freeDownloadRequest=1&uniqueId=%3&yt0=").arg(challenge).arg(response).arg(m_fileId);
+    Q_UNUSED(challenge);
 
+    QString data = QString("CaptchaForm[code]=%1&free=1&freeDownloadRequest=1&uniqueId=%2&yt0=").arg(response).arg(m_fileId);
     QNetworkRequest request(m_url);
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
-    request.setRawHeader("Accept-Language", "en-GB,en-US;q=0.8,en;q=0.6");
     request.setRawHeader("Referer", m_url.toString().toUtf8());
     QNetworkReply *reply = this->networkAccessManager()->post(request, data.toUtf8());
     this->connect(reply, SIGNAL(finished()), this, SLOT(onCaptchaSubmitted()));
@@ -319,8 +357,15 @@ void KeepToShare::onCaptchaSubmitted() {
         this->startWait(downloadWaitTime * 1000);
         this->connect(this, SIGNAL(waitFinished()), this, SLOT(getDownloadRequest()));
     }
-    else if (response.contains("The verification code is incorrect")) {
-        emit error(CaptchaError);
+    else if (response.contains("verification code is incorrect")) {
+        m_captchaKey = response.section("/file/captcha.html?v=", 1, 1).section('"', 0, 0);
+
+        if (m_captchaKey.isEmpty()) {
+            emit error(UnknownError);
+        }
+        else {
+            emit error(CaptchaError);
+        }
     }
     else {
         emit error(UnknownError);
@@ -330,13 +375,11 @@ void KeepToShare::onCaptchaSubmitted() {
 }
 
 void KeepToShare::getDownloadRequest() {
-    QString data = QString("uniqueId=%1&free=1").arg(m_fileId);
     QNetworkRequest request(m_url);
-    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded; charset=UTF-8");
-    request.setRawHeader("Accept-Language", "en-GB,en-US;q=0.8,en;q=0.6");
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
     request.setRawHeader("Referer", m_url.toString().toUtf8());
     request.setRawHeader("X-Requested-With", "XMLHttpRequest");
-    QNetworkReply *reply = this->networkAccessManager()->post(request, data.toUtf8());
+    QNetworkReply *reply = this->networkAccessManager()->post(request, "free=1&uniqueId=" + m_fileId.toUtf8());
     this->connect(reply, SIGNAL(finished()), this, SLOT(checkDownloadRequest()));
     this->connect(this, SIGNAL(currentOperationCancelled()), reply, SLOT(deleteLater()));
     this->disconnect(this, SIGNAL(waitFinished()), this, SLOT(getDownloadRequest()));
@@ -350,21 +393,35 @@ void KeepToShare::checkDownloadRequest() {
         return;
     }
 
-    QString response(reply->readAll());
+    QRegExp re("(http://(keep2s(hare|)|k2s).cc|)/file/url.html[^'\"]+");
+    QString redirect = reply->attribute(QNetworkRequest::RedirectionTargetAttribute).toString();
 
-    QVariantMap result = Json::parse(response).toMap();
-    QUrl url = result.value("url").toUrl();
+    if (re.indexIn(redirect) == 0) {
+        QUrl url(re.cap());
 
-    if (!url.isEmpty()) {
-	emit downloadRequestReady(QNetworkRequest(url));
-    }
-    else if (response.contains("/file/url.html?file=")) {
-        QUrl url("http://keep2share.cc/file/url.html");
-        url.addQueryItem("file", m_fileId);
+        if (url.host().isEmpty()) {
+            url.setScheme("http");
+            url.setHost("k2s.cc");
+        }
+
         emit downloadRequestReady(QNetworkRequest(url));
     }
     else {
-        emit error(UnknownError);
+        QString response(reply->readAll());
+
+        if (re.indexIn(response) >= 0) {
+            QUrl url(re.cap());
+
+            if (url.host().isEmpty()) {
+                url.setScheme("http");
+                url.setHost("k2s.cc");
+            }
+
+            emit downloadRequestReady(QNetworkRequest(url));
+        }
+        else {
+            emit error(UnknownError);
+        }
     }
     
     reply->deleteLater();
