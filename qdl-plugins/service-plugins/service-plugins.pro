@@ -8,6 +8,7 @@ SUBDIRS += \
     billionuploads \
     bitshare \
 #    bliptv \
+    blst \
     cloudstores \
     cramit \
     crocko \
@@ -56,6 +57,7 @@ SUBDIRS += \
     rapidgator \
     rapidshare \
     ryushare \
+    secureupload \
     sendspace \
     shareonline \
     sharevnn \
@@ -71,6 +73,7 @@ SUBDIRS += \
     uploadable \
     uploaded \
     uploading \
+    uploadtous \
     upstore \
     usefile \
     videobam \
@@ -79,6 +82,7 @@ SUBDIRS += \
     vk \
     vube \
     winporn \
+    xerver \
     xhamster \
     xvideos \
     youjizz \
