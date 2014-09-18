@@ -30,7 +30,7 @@ KeepToShare::KeepToShare(QObject *parent) :
 
 void KeepToShare::getCaptcha(const QString &key) {
     this->setChallenge(key);
-    QUrl url("http://k2s.cc/auth/captcha.html");
+    QUrl url("http://k2s.cc/file/captcha.html");
 #if QT_VERSION >= 0x050000
     QUrlQuery query(url);
     query.addQueryItem("v", key);
