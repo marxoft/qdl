@@ -217,7 +217,8 @@ void Lafiles::checkWaitTime() {
             emit error(UnknownError);
         }
         else {
-            this->startWait(secs * 1000);
+            m_waitTime = secs * 1000;
+            this->startWait(m_waitTime);
             this->connect(this, SIGNAL(waitFinished()), this, SLOT(downloadCaptcha()));
         }
     }
@@ -275,7 +276,7 @@ void Lafiles::onCaptchaSubmitted() {
 }
 
 void Lafiles::startWait(int msecs) {
-    if (msecs > 60000) {
+    if (msecs > m_waitTime) {
         emit statusChanged(LongWait);
     }
     else {
