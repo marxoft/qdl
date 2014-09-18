@@ -1,3 +1,9 @@
+qdl-plugins-lafiles (0.0.2) unstable; urgency=low
+
+  * Fix wait time.
+
+ -- Stuart Howarth <showarth@marxoft.co.uk>  Thu, 18 Sep 2014 17:40:12 +0000
+
 qdl-plugins-lafiles (0.0.1) unstable; urgency=low
 
   * Inital release.
