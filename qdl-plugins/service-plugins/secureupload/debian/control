@@ -1,0 +1,13 @@
+Source: qdl-plugins-secureupload
+Section: user/network
+Priority: optional
+Maintainer: Stuart Howarth <showarth@marxoft.co.uk>
+Build-Depends: debhelper (>= 5), libqt4-dev
+Standards-Version: 3.7.3
+Homepage: http://marxoft.co.uk/qdl
+
+Package: qdl-plugins-secureupload
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, qdl (>= 1.0.4), qdl-plugins-secureuploadrecaptcha
+Description: SecureUpload plugin for the QDL download manager.
+ This plugin provides access to file downloads via SecureUpload.
