@@ -185,7 +185,7 @@ void Connection::onMetaDataChanged() {
         qDebug() << "Reported size:" << size;
         this->setContentRangeEnd(size);
 
-        QString fileName = QString(m_reply->rawHeader("Content-Disposition")).section("filename=", -1).section(';', 0, 0).remove(QRegExp("\'|\""));
+        QString fileName = QString(m_reply->rawHeader("Content-Disposition")).section("=", -1).section(QRegExp("[\"']"), 1, 1).remove(QRegExp("[\"';]"));
 
         MetaInfo info;
         info.size = size;
