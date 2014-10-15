@@ -177,7 +177,7 @@ void KeepToShare::checkUrlIsValid() {
         QString fileName = response.section("File: <span>", 1, 1).section('<', 0, 0);
         
         if (fileName.isEmpty()) {
-            fileName = response.section("font-size: 18px\">", 1, 1).section('<', 0, 0);
+            fileName = response.section("font-size: 18px; \">", 1, 1).section('<', 0, 0);
 
             if (fileName.isEmpty()) {
                 emit urlChecked(false);
