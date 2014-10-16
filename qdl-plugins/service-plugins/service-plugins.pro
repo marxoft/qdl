@@ -27,6 +27,7 @@ SUBDIRS += \
     filerio \
     filesmonster \
     filestay \
+    filestoshare \
     filevice \
     fourshared \
     freakshare \
@@ -69,7 +70,7 @@ SUBDIRS += \
     tvgirlsplaza \
     twoshared \
     uloz \
-    ultramegabit \
+#    ultramegabit \
     uploadable \
     uploaded \
     uploading \
