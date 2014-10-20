@@ -195,10 +195,18 @@ void OneFichier::checkDownloadLink() {
     }
     else {
         QString response(reply->readAll());
-
-        if (response.contains("you must wait up to 15 minutes between each download")) {
-            this->startWait(300000);
-            this->connect(this, SIGNAL(waitFinished()), this, SLOT(onWaitFinished()));
+        QRegExp re("must wait \\d+ minutes to download again");
+        
+        if (re.indexIn(response) >= 0) {
+            int mins = re.cap().section("must wait ", 1, 1).section(' ', 0, 0).toInt();
+            
+            if (mins > 0) {
+                this->startWait(mins * 61000);
+                this->connect(this, SIGNAL(waitFinished()), this, SLOT(onWaitFinished()));
+            }
+            else {
+                emit error(UnknownError);
+            }
         }
         else {
             emit error(UnknownError);
