@@ -35,7 +35,7 @@ FileFactory::FileFactory(QObject *parent) :
 }
 
 QRegExp FileFactory::urlPattern() const {
-    return QRegExp("http(s|)://(www\\.|)filefactory.com/file/\\w+", Qt::CaseInsensitive);
+    return QRegExp("http(s|)://(www\\.|)filefactory.com/(file|stream)/\\w+", Qt::CaseInsensitive);
 }
 
 bool FileFactory::urlSupported(const QUrl &url) const {
@@ -98,12 +98,11 @@ void FileFactory::checkUrlIsValid() {
     QRegExp re("http://\\w\\d+\\.filefactory.com/get/\\w/[^'\"]+");
 
     if ((!redirect.isEmpty()) && (re.indexIn(redirect) == -1)) {
-        if (!redirect.startsWith("http://")) {
-            this->checkUrl(QUrl("http://www.filefactory.com" + redirect));
+        if (redirect.startsWith("/")) {
+            redirect.prepend("http://www.filefactory.com");
         }
-        else {
-            this->checkUrl(QUrl(redirect));
-        }
+        
+        this->checkUrl(QUrl(redirect));
     }
     else {
         QString response(reply->readAll());
@@ -158,6 +157,10 @@ void FileFactory::onWebPageDownloaded() {
         emit downloadRequestReady(request);
     }
     else if (!redirect.isEmpty()) {
+        if (redirect.startsWith("/")) {
+            redirect.prepend("http://www.filefactory.com");
+        }
+        
         this->getDownloadRequest(QUrl(redirect));
     }
     else {
