@@ -1,3 +1,9 @@
+qdl-plugins-youtube (0.1.5) unstable; urgency=low
+
+  * Fix URL retrieval for VEVO videos.
+
+ -- Stuart Howarth <showarth@marxoft.co.uk>  Tue, 18 Nov 2014 20:46:42 +0000
+
 qdl-plugins-youtube (0.1.4) unstable; urgency=low
 
   * Fix video URL retrieval.

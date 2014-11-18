@@ -217,7 +217,7 @@ void YouTube::checkYouTubeVideoInfoPage() {
 }
 
 void YouTube::getYouTubeVideoWebPage(const QString &id) {
-    QUrl url("https://www.youtube.com/watch");
+    QUrl url("http://www.youtube.com/watch");
 #if QT_VERSION >= 0x050000
     QUrlQuery query;
     query.addQueryItem("v", id);
@@ -232,6 +232,7 @@ void YouTube::getYouTubeVideoWebPage(const QString &id) {
     url.addQueryItem("has_verified", "1");
 #endif
     QNetworkRequest request(url);
+    request.setRawHeader("User-Agent", "Mozilla/5.0 (X11; Linux x86_64; rv:28.0) Gecko/20100101  Firefox/28.0");
     QNetworkReply *reply = this->networkAccessManager()->get(request);
     this->connect(reply, SIGNAL(finished()), this, SLOT(checkYouTubeWebPage()));
     this->connect(this, SIGNAL(currentOperationCancelled()), reply, SLOT(deleteLater()));
@@ -334,18 +335,26 @@ void YouTube::addYouTubeDecryptionFunctionToCache() {
     }
 
     QString response(reply->readAll());
-    QString funcName = response.section("signature=", 1, 1).section('(', 0, 0);
-    QString var = response.section("function " + funcName, 0, 0).section(";var", -1);
-    QString funcBody = QString("function %2%3").arg(funcName).arg(response.section("function " + funcName, 1, 1).section(";function", 0, 0));
-    QString js = QString("var%1 %2").arg(var).arg(funcBody);
-    decryptionEngine->evaluate(js);
+    QRegExp re("\\.sig\\|\\|\\w+(?=\\()");
+    
+    if (re.indexIn(response) != -1) {
+        QString funcName = re.cap().section("||", -1);
+        QString var = response.section("function " + funcName, 0, 0).section(";var", -1);
+        QString funcBody = QString("function %2%3").arg(funcName).arg(response.section("function " + funcName, 1, 1).section(";function", 0, 0));
+        QString js = QString("var%1 %2").arg(var).arg(funcBody);
+        decryptionEngine->evaluate(js);
 
-    QScriptValue global = decryptionEngine->globalObject();
-    QScriptValue decryptionFunction = global.property(funcName);
+        QScriptValue global = decryptionEngine->globalObject();
+        QScriptValue decryptionFunction = global.property(funcName);
 
-    if (decryptionFunction.isFunction()) {
-        decryptionCache[reply->request().url()] = decryptionFunction;
-        emit youtubeDecryptionFunctionReady(decryptionFunction);
+        if (decryptionFunction.isFunction()) {
+            decryptionCache[reply->request().url()] = decryptionFunction;
+            emit youtubeDecryptionFunctionReady(decryptionFunction);
+        }
+        else {
+            emit error(UnknownError);
+            this->disconnect(this, SIGNAL(youtubeDecryptionFunctionReady(QScriptValue)), 0, 0);
+        }
     }
     else {
         emit error(UnknownError);
