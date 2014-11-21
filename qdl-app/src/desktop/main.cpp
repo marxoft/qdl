@@ -22,6 +22,8 @@
 #include "../dbus/dbusservice.h"
 #include "../dbus/dbusserviceadaptor.h"
 #include <QApplication>
+#include <QSsl>
+#include <QSslConfiguration>
 
 int main(int argc, char *argv[])
 {
@@ -30,6 +32,10 @@ int main(int argc, char *argv[])
     app.setApplicationVersion(VERSION_NUMBER);
     app.setWindowIcon(QIcon::fromTheme("qdl"));
     app.setQuitOnLastWindowClosed(false);
+    
+    QSslConfiguration config = QSslConfiguration::defaultConfiguration();
+    config.setProtocol(QSsl::TlsV1);
+    QSslConfiguration::setDefaultConfiguration(config);
 
     qRegisterMetaType< QList<Transfer*> >("QList<Transfer*>");
     qRegisterMetaType< QList<QUrl> >("QList<QUrl>");

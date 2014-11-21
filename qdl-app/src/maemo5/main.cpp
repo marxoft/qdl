@@ -22,12 +22,18 @@
 #include "../dbus/dbusservice.h"
 #include "../dbus/dbusserviceadaptor.h"
 #include <QApplication>
+#include <QSsl>
+#include <QSslConfiguration>
 
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
     app.setApplicationName("QDL");
     app.setApplicationVersion(VERSION_NUMBER);
+    
+    QSslConfiguration config = QSslConfiguration::defaultConfiguration();
+    config.setProtocol(QSsl::TlsV1);
+    QSslConfiguration::setDefaultConfiguration(config);
 
     qRegisterMetaType< QList<Transfer*> >("QList<Transfer*>");
     qRegisterMetaType< QList<QUrl> >("QList<QUrl>");
