@@ -794,11 +794,15 @@ void TransferModel::onMaximumConcurrentTransfersChanged(int oldMaximum, int newM
             int priority = Transfers::LowPriority;
 
             while (priority >= Transfers::HighPriority) {
-                foreach (Transfer *transfer, m_activeTransfers) {
-                    if (transfer->priority() == priority) {
-                        transfer->pause();
+                int i = m_activeTransfers.size() - 1;
+                
+                while (i >= 0) {
+                    if (m_activeTransfers.at(i)->priority() == priority) {
+                        m_activeTransfers.at(i)->pause();
                         return;
                     }
+                    
+                    i--;
                 }
 
                 priority--;
