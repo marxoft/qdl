@@ -962,7 +962,6 @@ void Transfer::start() {
     case Transfers::Paused:
     case Transfers::Failed:
     case Transfers::Queued:
-    case Transfers::ShortWait:
 	    break;
     default:
 	    return;
