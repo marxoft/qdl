@@ -217,7 +217,7 @@ void YouTube::checkYouTubeVideoInfoPage() {
 }
 
 void YouTube::getYouTubeVideoWebPage(const QString &id) {
-    QUrl url("http://www.youtube.com/watch");
+    QUrl url("https://www.youtube.com/watch");
 #if QT_VERSION >= 0x050000
     QUrlQuery query;
     query.addQueryItem("v", id);
@@ -232,7 +232,7 @@ void YouTube::getYouTubeVideoWebPage(const QString &id) {
     url.addQueryItem("has_verified", "1");
 #endif
     QNetworkRequest request(url);
-    request.setRawHeader("User-Agent", "Mozilla/5.0 (X11; Linux x86_64; rv:28.0) Gecko/20100101  Firefox/28.0");
+    request.setRawHeader("User-Agent", "Wget/1.13.4 (linux-gnu)");
     QNetworkReply *reply = this->networkAccessManager()->get(request);
     this->connect(reply, SIGNAL(finished()), this, SLOT(checkYouTubeWebPage()));
     this->connect(this, SIGNAL(currentOperationCancelled()), reply, SLOT(deleteLater()));
