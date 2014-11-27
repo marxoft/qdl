@@ -19,9 +19,6 @@
 #include <QNetworkAccessManager>
 #include <QNetworkRequest>
 #include <QNetworkReply>
-#if QT_VERSION >= 0x050000
-#include <QUrlQuery>
-#endif
 
 KeepToShare::KeepToShare(QObject *parent) :
     RecaptchaPlugin(parent)
@@ -30,15 +27,7 @@ KeepToShare::KeepToShare(QObject *parent) :
 
 void KeepToShare::getCaptcha(const QString &key) {
     this->setChallenge(key);
-    QUrl url("http://k2s.cc/file/captcha.html");
-#if QT_VERSION >= 0x050000
-    QUrlQuery query(url);
-    query.addQueryItem("v", key);
-    url.setQuery(query);
-#else
-    url.addQueryItem("v", key);
-#endif
-    QNetworkRequest request(url);
+    QNetworkRequest request(key);
     QNetworkReply *reply = this->networkAccessManager()->get(request);
     this->connect(reply, SIGNAL(finished()), this, SLOT(onCaptchaDownloaded()));
     this->connect(this, SIGNAL(currentOperationCancelled()), reply, SLOT(deleteLater()));

@@ -323,6 +323,7 @@ void KeepToShare::checkCaptchaKey() {
             }
         }
         else {
+            m_captchaKey = QString("http://%1/file/captcha.html?v=%2").arg(reply->url().host()).arg(m_captchaKey);
             emit statusChanged(CaptchaRequired);
         }
     }
@@ -364,6 +365,7 @@ void KeepToShare::onCaptchaSubmitted() {
             emit error(UnknownError);
         }
         else {
+            m_captchaKey = QString("http://%1/file/captcha.html?v=%2").arg(reply->url().host()).arg(m_captchaKey);
             emit error(CaptchaError);
         }
     }

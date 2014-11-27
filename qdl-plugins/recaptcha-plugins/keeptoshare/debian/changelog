@@ -1,3 +1,9 @@
+qdl-plugins-keeptosharerecaptcha (0.0.2) unstable; urgency=low
+
+  * Use captcha URL as the key.
+
+ -- Stuart Howarth <showarth@marxoft.co.uk>  Fri, 21 Nov 2014 12:26:12 +0000
+
 qdl-plugins-keeptosharerecaptcha (0.0.1) unstable; urgency=low
 
   * Inital release.
