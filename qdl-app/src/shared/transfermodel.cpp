@@ -335,7 +335,8 @@ bool TransferModel::setData(const QModelIndex &index, const QVariant &value, int
 }
 
 bool TransferModel::setData(int row, int parentRow, const QVariant &value, const QByteArray &role) {
-    return this->setData(this->index(row, 0, parentRow >= 0 ? this->index(parentRow, 0) : QModelIndex()), value, this->roleNames().key(role));
+    return this->setData(this->index(row, 0, parentRow >= 0 ? this->index(parentRow, 0)
+                                                            : QModelIndex()), value, this->roleNames().key(role));
 }
 
 bool TransferModel::setData(const QString &id, const QVariant &value, const QByteArray &role) {
@@ -370,7 +371,9 @@ Transfer* TransferModel::get(const QString &id) const {
     return 0;
 }
 
-QModelIndexList TransferModel::match(const QModelIndex &start, int role, const QVariant &value, int hits, Qt::MatchFlags flags) const {
+QModelIndexList TransferModel::match(const QModelIndex &start, int role, const QVariant &value,
+                                     int hits, Qt::MatchFlags flags) const {
+                                     
     Q_UNUSED(flags)
 
     QModelIndexList matches;
@@ -427,6 +430,12 @@ void TransferModel::setNextAction(Transfers::Action action) {
     if (action != this->nextAction()) {
         m_nextAction = action;
         emit nextActionChanged(action);
+        
+        if ((action == Transfers::Continue)
+            && (m_activeTransfers.size() < Settings::instance()->maximumConcurrentTransfers())) {
+            
+            this->getNextTransfers();
+        }
     }
 }
 
@@ -434,7 +443,9 @@ void TransferModel::filter() {
     int pos = m_filteredTransfers.size() - 1;
 
     for (int i = m_rootItem->count() - 1; i >= 0; i--) {
-        if ((!m_rootItem->childTransfer(i)->match(Transfer::StatusRole, this->statusFilter())) || (!m_rootItem->childTransfer(i)->match(Transfer::NameRole, this->searchQuery()))) {
+        if ((!m_rootItem->childTransfer(i)->match(Transfer::StatusRole, this->statusFilter()))
+            || (!m_rootItem->childTransfer(i)->match(Transfer::NameRole, this->searchQuery()))) {
+            
             this->beginRemoveRows(QModelIndex(), i, i);
             m_filteredTransfers.append(m_rootItem->removeChildTransfer(i));
             this->endRemoveRows();
@@ -443,7 +454,9 @@ void TransferModel::filter() {
 
     for (int i = pos; i >= 0; i--) {
         if (Transfer *transfer = m_filteredTransfers.at(i)) {
-            if ((transfer->match(Transfer::StatusRole, this->statusFilter())) && (transfer->match(Transfer::NameRole, this->searchQuery()))) {
+            if ((transfer->match(Transfer::StatusRole, this->statusFilter())) 
+                && (transfer->match(Transfer::NameRole, this->searchQuery()))) {
+                
                 this->beginInsertRows(QModelIndex(), transfer->rowNumber(), transfer->rowNumber());
                 m_filteredTransfers.removeAt(i);
                 m_rootItem->insertChildTransfer(transfer->rowNumber(), transfer);
