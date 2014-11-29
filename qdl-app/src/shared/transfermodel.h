@@ -31,14 +31,6 @@ class TransferModel : public QAbstractItemModel
     Q_PROPERTY(int count
                READ rowCount
                NOTIFY countChanged)
-    Q_PROPERTY(QString searchQuery
-               READ searchQuery
-               WRITE setSearchQuery
-               NOTIFY searchQueryChanged)
-    Q_PROPERTY(Transfers::Status statusFilter
-               READ statusFilter
-               WRITE setStatusFilter
-               NOTIFY statusFilterChanged)
     Q_PROPERTY(Transfers::Action nextAction
                READ nextAction
                WRITE setNextAction
@@ -70,7 +62,8 @@ public:
     QMap<int, QVariant> itemData(const QModelIndex &index) const;
     Q_INVOKABLE QVariantMap itemData(int row, int parentRow) const;
     Q_INVOKABLE QVariantMap itemData(const QString &id) const;
-    Q_INVOKABLE QVariantList allItemData(Transfers::Status filter = Transfers::Unknown, const QString &query = QString(), int start = 0, int count = -1) const;
+    Q_INVOKABLE QVariantList allItemData(Transfers::Status filter = Transfers::Unknown,
+                                         const QString &query = QString(), int start = 0, int count = -1) const;
 
     bool setData(const QModelIndex &index, const QVariant &value, int role);
     Q_INVOKABLE bool setData(int row, int parentRow, const QVariant &value, const QByteArray &role);
@@ -80,10 +73,8 @@ public:
     Q_INVOKABLE Transfer* get(int row, int parentRow) const;
     Q_INVOKABLE Transfer* get(const QString &id) const;
 
-    QModelIndexList match(const QModelIndex &start, int role, const QVariant &value, int hits = -1, Qt::MatchFlags flags = Qt::MatchExactly) const;
-
-    QString searchQuery() const;
-    Transfers::Status statusFilter() const;
+    QModelIndexList match(const QModelIndex &start, int role, const QVariant &value,
+                          int hits = -1, Qt::MatchFlags flags = Qt::MatchExactly) const;
 
     Transfers::Action nextAction() const;
 
@@ -94,10 +85,6 @@ public:
     static TransferModel* instance();
 
 public slots:
-    void setSearchQuery(const QString &query);
-    void setStatusFilter(Transfers::Status status);
-    void resetFilters();
-
     void setNextAction(Transfers::Action action);
 
     void addTransfer(const QUrl &url, const QString &service, const QString &fileName);
@@ -114,8 +101,6 @@ public slots:
 private:
     TransferModel();
     ~TransferModel();
-
-    void filter();
 
     void getNextTransfers();
 
@@ -136,8 +121,6 @@ private slots:
 
 signals:
     void countChanged(int count);
-    void searchQueryChanged(const QString &query);
-    void statusFilterChanged(Transfers::Status status);
     void nextActionChanged(Transfers::Action action);
     void totalDownloadSpeedChanged(int speed);
     void activeTransfersChanged(int active);
@@ -145,12 +128,9 @@ signals:
 private:
     static TransferModel *self;
 
-    Transfer* m_rootItem;
+    Transfer *m_rootItem;
     QTimer *m_queueTimer;
     QList<Transfer*> m_activeTransfers;
-    QList<Transfer*> m_filteredTransfers;
-    QString m_searchQuery;
-    Transfers::Status m_statusFilter;
     Transfers::Action m_nextAction;
     QHash<int, QByteArray> m_roleNames;
 };

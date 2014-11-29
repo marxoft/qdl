@@ -31,7 +31,6 @@ TransferModel::TransferModel() :
     QAbstractItemModel(),
     m_rootItem(new Transfer(this)),
     m_queueTimer(new QTimer(this)),
-    m_statusFilter(Transfers::Unknown),
     m_nextAction(Transfers::Continue)
 {
     if (!self) {
@@ -73,9 +72,12 @@ TransferModel::TransferModel() :
     m_queueTimer->setInterval(1000);
 
     this->connect(m_queueTimer, SIGNAL(timeout()), this, SLOT(startNextTransfers()));
-    this->connect(UrlChecker::instance(), SIGNAL(urlReady(QUrl,QString,QString)), this, SLOT(addTransfer(QUrl,QString,QString)));
-    this->connect(Settings::instance(), SIGNAL(maximumConcurrentTransfersChanged(int,int)), this, SLOT(onMaximumConcurrentTransfersChanged(int,int)));
-    this->connect(QCoreApplication::instance(), SIGNAL(aboutToQuit()), this, SLOT(storeAndDeleteTransfers()));
+    this->connect(UrlChecker::instance(), SIGNAL(urlReady(QUrl,QString,QString)),
+                  this, SLOT(addTransfer(QUrl,QString,QString)));
+    this->connect(Settings::instance(), SIGNAL(maximumConcurrentTransfersChanged(int,int)),
+                  this, SLOT(onMaximumConcurrentTransfersChanged(int,int)));
+    this->connect(QCoreApplication::instance(), SIGNAL(aboutToQuit()),
+                  this, SLOT(storeAndDeleteTransfers()));
 }
 
 TransferModel::~TransferModel() {}
@@ -166,7 +168,7 @@ QModelIndex TransferModel::parent(const QModelIndex &child) const {
 
     Transfer *parentTransfer = transfer->parentTransfer();
 
-    if (parentTransfer == m_rootItem) {
+    if ((!parentTransfer) || (parentTransfer == m_rootItem)) {
         return QModelIndex();
     }
 
@@ -184,7 +186,8 @@ QVariant TransferModel::data(const QModelIndex &index, int role) const {
 }
 
 QVariant TransferModel::data(int row, int parentRow, const QByteArray &role) const {
-    return this->data(this->index(row, 0, parentRow >= 0 ? this->index(parentRow, 0) : QModelIndex()), this->roleNames().key(role));
+    return this->data(this->index(row, 0, parentRow >= 0 ? this->index(parentRow, 0)
+                                                         : QModelIndex()), this->roleNames().key(role));
 }
 
 QVariant TransferModel::data(const QString &id, const QByteArray &role) const {
@@ -393,35 +396,6 @@ QModelIndexList TransferModel::match(const QModelIndex &start, int role, const Q
     return matches;
 }
 
-QString TransferModel::searchQuery() const {
-    return m_searchQuery;
-}
-
-void TransferModel::setSearchQuery(const QString &query) {
-    if (query != this->searchQuery()) {
-        m_searchQuery = query;
-        this->filter();
-        emit searchQueryChanged(query);
-    }
-}
-
-Transfers::Status TransferModel::statusFilter() const {
-    return m_statusFilter;
-}
-
-void TransferModel::setStatusFilter(Transfers::Status status) {
-    if (status != this->statusFilter()) {
-        m_statusFilter = status;
-        this->filter();
-        emit statusFilterChanged(status);
-    }
-}
-
-void TransferModel::resetFilters() {
-    this->setSearchQuery(QString());
-    this->setStatusFilter(Transfers::Unknown);
-}
-
 Transfers::Action TransferModel::nextAction() const {
     return m_nextAction;
 }
@@ -435,36 +409,6 @@ void TransferModel::setNextAction(Transfers::Action action) {
             && (m_activeTransfers.size() < Settings::instance()->maximumConcurrentTransfers())) {
             
             this->getNextTransfers();
-        }
-    }
-}
-
-void TransferModel::filter() {
-    int pos = m_filteredTransfers.size() - 1;
-
-    for (int i = m_rootItem->count() - 1; i >= 0; i--) {
-        if ((!m_rootItem->childTransfer(i)->match(Transfer::StatusRole, this->statusFilter()))
-            || (!m_rootItem->childTransfer(i)->match(Transfer::NameRole, this->searchQuery()))) {
-            
-            this->beginRemoveRows(QModelIndex(), i, i);
-            m_filteredTransfers.append(m_rootItem->removeChildTransfer(i));
-            this->endRemoveRows();
-        }
-    }
-
-    for (int i = pos; i >= 0; i--) {
-        if (Transfer *transfer = m_filteredTransfers.at(i)) {
-            if ((transfer->match(Transfer::StatusRole, this->statusFilter())) 
-                && (transfer->match(Transfer::NameRole, this->searchQuery()))) {
-                
-                this->beginInsertRows(QModelIndex(), transfer->rowNumber(), transfer->rowNumber());
-                m_filteredTransfers.removeAt(i);
-                m_rootItem->insertChildTransfer(transfer->rowNumber(), transfer);
-                this->endInsertRows();
-            }
-        }
-        else {
-            m_filteredTransfers.removeAt(i);
         }
     }
 }
@@ -538,32 +482,6 @@ void TransferModel::getNextTransfers() {
 
     while (priority <= Transfers::LowPriority) {
         foreach (Transfer *parentTransfer, m_rootItem->childTransfers()) {
-            if ((parentTransfer->priority() == priority) && (parentTransfer->status() == Transfers::Queued)) {
-                if (m_activeTransfers.size() < Settings::instance()->maximumConcurrentTransfers()) {
-                    if (this->canAddActiveTransfer(parentTransfer)) {
-                        this->addActiveTransfer(parentTransfer);
-                    }
-                }
-                else {
-                    return;
-                }
-            }
-
-            foreach (Transfer *transfer, parentTransfer->childTransfers()) {
-                if ((transfer->priority() == priority) && (transfer->status() == Transfers::Queued)) {
-                    if (m_activeTransfers.size() < Settings::instance()->maximumConcurrentTransfers()) {
-                        if (this->canAddActiveTransfer(transfer)) {
-                            this->addActiveTransfer(transfer);
-                        }
-                    }
-                    else {
-                        return;
-                    }
-                }
-            }
-        }
-
-        foreach (Transfer *parentTransfer, m_filteredTransfers) {
             if ((parentTransfer->priority() == priority) && (parentTransfer->status() == Transfers::Queued)) {
                 if (m_activeTransfers.size() < Settings::instance()->maximumConcurrentTransfers()) {
                     if (this->canAddActiveTransfer(parentTransfer)) {
@@ -763,11 +681,11 @@ void TransferModel::onTransferStatusChanged(Transfers::Status status) {
                     this->beginRemoveRows(QModelIndex(), transfer->rowNumber(), transfer->rowNumber());
                 }
                 else {
-                    this->beginRemoveRows(this->index(transfer->parentTransfer()->rowNumber(), 0), transfer->rowNumber(), transfer->rowNumber());
+                    this->beginRemoveRows(this->index(transfer->parentTransfer()->rowNumber(), 0),
+                                          transfer->rowNumber(), transfer->rowNumber());
                 }
 
-                transfer->parentTransfer()->removeChildTransfer(transfer);
-
+                transfer->parentTransfer()->removeChildTransfer(transfer->rowNumber());
                 this->endRemoveRows();
             }
 
@@ -782,7 +700,8 @@ void TransferModel::onTransferStatusChanged(Transfers::Status status) {
                             this->beginInsertRows(QModelIndex(), transfer->rowNumber(), transfer->rowNumber());
                         }
                         else {
-                            this->beginInsertRows(this->index(transfer->parentTransfer()->rowNumber(), 0), transfer->rowNumber(), transfer->rowNumber());
+                            this->beginInsertRows(this->index(transfer->parentTransfer()->rowNumber(), 0),
+                                                  transfer->rowNumber(), transfer->rowNumber());
                         }
 
                         transfer->parentTransfer()->insertChildTransfer(transfer->rowNumber(), firstChild);
@@ -793,7 +712,6 @@ void TransferModel::onTransferStatusChanged(Transfers::Status status) {
             }
 
             transfer->deleteLater();
-
             emit countChanged(this->rowCount());
 
             if (status == Transfers::Completed) {
@@ -821,10 +739,6 @@ void TransferModel::onTransferStatusChanged(Transfers::Status status) {
     }
 
     emit totalDownloadSpeedChanged(this->totalDownloadSpeed());
-
-    if ((!this->searchQuery().isEmpty()) && (this->statusFilter() != Transfers::Unknown)) {
-        this->filter();
-    }
 }
 
 void TransferModel::onMaximumConcurrentTransfersChanged(int oldMaximum, int newMaximum) {
@@ -835,21 +749,21 @@ void TransferModel::onMaximumConcurrentTransfersChanged(int oldMaximum, int newM
     }
     else if (newMaximum < oldMaximum) {
         if (newMaximum < m_activeTransfers.size()) {
-            int priority = Transfers::LowPriority;
-
-            while (priority >= Transfers::HighPriority) {
-                int i = m_activeTransfers.size() - 1;
-                
-                while (i >= 0) {
-                    if (m_activeTransfers.at(i)->priority() == priority) {
-                        m_activeTransfers.at(i)->pause();
-                        return;
+            const int diff = qMin(m_activeTransfers.size(), oldMaximum) - newMaximum;
+            QSet<Transfer*> paused;
+            
+            for (int i = 0; i < diff; i++) {
+                for (int p = Transfers::LowPriority; p >= Transfers::HighPriority; p--) {
+                    for (int i = m_activeTransfers.size() - 1; i >= 0; i--) {
+                        Transfer *transfer = m_activeTransfers.at(i);
+                        
+                        if ((transfer->priority() == p) && (!paused.contains(transfer))) {
+                            transfer->pause();
+                            paused.insert(transfer);
+                            break;
+                        }
                     }
-                    
-                    i--;
                 }
-
-                priority--;
             }
         }
     }
@@ -865,7 +779,6 @@ void TransferModel::storeTransfers() {
 }
 
 void TransferModel::storeAndDeleteTransfers() {
-    this->resetFilters(); // Ugly fix
     Storage::storeTransfers(m_rootItem->childTransfers(), true);
 }
 
@@ -886,7 +799,8 @@ void TransferModel::restoreStoredTransfers() {
 #else
         this->connect(transfer, SIGNAL(dataChanged(int)), this, SLOT(onTransferDataChanged(int)));
 #endif
-        this->connect(transfer, SIGNAL(statusChanged(Transfers::Status)), this, SLOT(onTransferStatusChanged(Transfers::Status)));
+        this->connect(transfer, SIGNAL(statusChanged(Transfers::Status)),
+                      this, SLOT(onTransferStatusChanged(Transfers::Status)));
 
         foreach (Transfer *childTransfer, transfer->childTransfers()) {
 #ifdef QML_USER_INTERFACE
@@ -894,7 +808,8 @@ void TransferModel::restoreStoredTransfers() {
 #else
             this->connect(childTransfer, SIGNAL(dataChanged(int)), this, SLOT(onTransferDataChanged(int)));
 #endif
-            this->connect(childTransfer, SIGNAL(statusChanged(Transfers::Status)), this, SLOT(onTransferStatusChanged(Transfers::Status)));
+            this->connect(childTransfer, SIGNAL(statusChanged(Transfers::Status)),
+                          this, SLOT(onTransferStatusChanged(Transfers::Status)));
         }
     }
 
