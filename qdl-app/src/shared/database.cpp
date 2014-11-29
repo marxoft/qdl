@@ -16,7 +16,6 @@
  */
 
 #include "database.h"
-#include "transfer.h"
 #include <QSqlQuery>
 #include <QSqlRecord>
 #include <QSqlError>

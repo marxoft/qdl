@@ -24,8 +24,6 @@
 #include <QVariantMap>
 #include <QStringList>
 
-class Transfer;
-
 class Database : public QObject
 {
     Q_OBJECT
