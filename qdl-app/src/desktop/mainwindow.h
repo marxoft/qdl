@@ -33,6 +33,7 @@ class QLabel;
 class QProgressDialog;
 class QMessageBox;
 class TransferModel;
+class TransferFilterModel;
 
 class MainWindow : public QMainWindow
 {
@@ -117,6 +118,7 @@ private:
     QLabel *m_activeTransfersLabel;
     QLabel *m_speedLabel;
     TransferModel *m_model;
+    TransferFilterModel *m_filterModel;
     QTreeView *m_view;
     QMenu *m_urlMenu;
     QAction *m_addUrlsAction;
