@@ -66,7 +66,8 @@ private:
     void setErrorString(const QString &errorString);
 
 private slots:
-    void performDownload(const QUrl &url = QUrl());
+    void performDownload();
+    void followRedirect(const QUrl &url);
     void onMetaDataChanged();
     void onReadyRead();
     void onFinished();
@@ -89,6 +90,7 @@ private:
     QByteArray m_data;
     Transfers::Status m_status;
     QString m_errorString;
+    int m_redirects;
 };
 
 #endif // CONNECTION_H

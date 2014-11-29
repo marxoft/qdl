@@ -22,6 +22,7 @@
 #include <QDir>
 
 static const qint64 BUFFER_SIZE = 1024 * 100;
+static const int MAX_REDIRECTS = 8;
 
 Connection::Connection(NetworkAccessManager *manager, QObject *parent) :
     QObject(parent),
@@ -30,7 +31,8 @@ Connection::Connection(NetworkAccessManager *manager, QObject *parent) :
     m_start(0),
     m_end(0),
     m_downloadedBytes(0),
-    m_status(Transfers::Queued)
+    m_status(Transfers::Queued),
+    m_redirects(0)
 {
     this->connect(Settings::instance(), SIGNAL(downloadRateLimitChanged(int)), this, SLOT(onDownloadRateLimitChanged(int)));
 }
@@ -117,17 +119,28 @@ void Connection::start() {
     this->performDownload();
 }
 
-void Connection::performDownload(const QUrl &url) {
+void Connection::performDownload() {
     this->setStatus(Transfers::Downloading);
-    QNetworkRequest request = this->request();
 
-    if (!url.isEmpty()) {
-        request.setUrl(url);
+    qDebug() << "Downloading:" << this->request().url();
+
+    m_redirects = 0;
+    m_reply = this->data().isEmpty() ? m_nam->get(this->request()) : m_nam->post(this->request(), this->data());
+    this->connect(m_reply, SIGNAL(finished()), this, SLOT(onFinished()));
+
+    if (this->contentRangeEnd() <= 0) {
+        this->connect(m_reply, SIGNAL(metaDataChanged()), this, SLOT(onMetaDataChanged()));
     }
+    else {
+        this->connect(m_reply, SIGNAL(readyRead()), this, SLOT(onReadyRead()));
+    }
+}
 
-    qDebug() << "Downloading:" << request.url();
+void Connection::followRedirect(const QUrl &url) {
+    qDebug() << "Following redirect:" << url;
 
-    m_reply = this->data().isEmpty() ? m_nam->get(request) : m_nam->post(request, this->data());
+    m_redirects++;
+    m_reply = m_nam->get(QNetworkRequest(url));
     this->connect(m_reply, SIGNAL(finished()), this, SLOT(onFinished()));
 
     if (this->contentRangeEnd() <= 0) {
@@ -185,7 +198,9 @@ void Connection::onMetaDataChanged() {
         qDebug() << "Reported size:" << size;
         this->setContentRangeEnd(size);
 
-        QString fileName = QString(m_reply->rawHeader("Content-Disposition")).section("=", -1).section(QRegExp("[\"']"), 1, 1).remove(QRegExp("[\"';]"));
+        QString fileName = QString(m_reply->rawHeader("Content-Disposition")).section("=", -1)
+                                                                             .section(QRegExp("[\"']"), 1, 1)
+                                                                             .remove(QRegExp("[\"';]"));
 
         MetaInfo info;
         info.size = size;
@@ -199,7 +214,8 @@ void Connection::onMetaDataChanged() {
 void Connection::onReadyRead() {
     if (m_reply) {
         if (this->contentRangeEnd() > 0) {
-            qint64 maxBytes = qMin<qint64>(this->contentRangeEnd() - (this->position() + m_buffer.size()), m_reply->bytesAvailable());
+            qint64 maxBytes = qMin<qint64>(this->contentRangeEnd() - (this->position() + m_buffer.size()),
+                                           m_reply->bytesAvailable());
 
             m_buffer += m_reply->read(maxBytes);
             qint64 bufferSize = qint64(m_buffer.size());
@@ -249,7 +265,15 @@ void Connection::onFinished() {
     if (!redirect.isEmpty()) {
         m_reply->deleteLater();
         m_reply = 0;
-        this->performDownload(redirect);
+        
+        if (m_redirects < MAX_REDIRECTS) {
+            this->followRedirect(redirect);
+        }
+        else {
+            this->setErrorString(tr("Maximum redirects reached"));
+            this->setStatus(Transfers::Failed);
+        }
+        
         return;
     }
 
@@ -274,7 +298,7 @@ void Connection::onFinished() {
 
         break;
     default:
-        qDebug() << m_reply->errorString();
+        qDebug() << "Connection error:" << m_reply->error() << m_reply->errorString();
         this->setErrorString(m_reply->errorString());
         this->setStatus(Transfers::Failed);
         break;
