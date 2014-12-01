@@ -73,6 +73,7 @@ void Dailymotion::checkUrl(const QUrl &webUrl) {
     url.addQueryItem("fields", "title,url");
 #endif
     QNetworkRequest request(url);
+    request.setRawHeader("Cookie", "family_filter=false");
     QNetworkReply *reply = this->networkAccessManager()->get(request);
     this->connect(reply, SIGNAL(finished()), this, SLOT(checkUrlIsValid()));
     this->connect(this, SIGNAL(currentOperationCancelled()), reply, SLOT(deleteLater()));
@@ -80,6 +81,7 @@ void Dailymotion::checkUrl(const QUrl &webUrl) {
 
 void Dailymotion::checkPlaylistVideoUrls(const QUrl &url) {
     QNetworkRequest request(url);
+    request.setRawHeader("Cookie", "family_filter=false");
     QNetworkReply *reply = this->networkAccessManager()->get(request);
     this->connect(reply, SIGNAL(finished()), this, SLOT(checkUrlIsValid()));
     this->connect(this, SIGNAL(currentOperationCancelled()), reply, SLOT(deleteLater()));
@@ -144,6 +146,7 @@ void Dailymotion::getDownloadRequest(const QUrl &webUrl) {
     QString id = webUrl.toString().section('/', -1).section('_', 0, 0);
     QUrl url("http://www.dailymotion.com/embed/video/" + id);
     QNetworkRequest request(url);
+    request.setRawHeader("Cookie", "family_filter=false");
     QNetworkReply *reply = this->networkAccessManager()->get(request);
     this->connect(reply, SIGNAL(finished()), this, SLOT(parseVideoPage()));
     this->connect(this, SIGNAL(currentOperationCancelled()), reply, SLOT(deleteLater()));
@@ -180,6 +183,7 @@ void Dailymotion::parseVideoPage() {
 
 void Dailymotion::getVideoUrl(const QUrl &url) {
     QNetworkRequest request(url);
+    request.setRawHeader("Cookie", "family_filter=false");
     QNetworkReply *reply = this->networkAccessManager()->get(request);
     this->connect(reply, SIGNAL(finished()), this, SLOT(checkVideoUrl()));
     this->connect(this, SIGNAL(currentOperationCancelled()), reply, SLOT(deleteLater()));

@@ -1,3 +1,9 @@
+qdl-plugins-dailymotion (0.1.2) unstable; urgency=low
+
+  * Set family_filter cookie for each network request instead of using a custom application-wide QNetworkCookieJar.
+
+ -- Stuart Howarth <showarth@marxoft.co.uk>  Mon, 01 Dec 2014 11:25:52 +0000
+
 qdl-plugins-dailymotion (0.1.1) unstable; urgency=low
 
   * Added 240P video format.
