@@ -1,6 +1,6 @@
 qdl-plugins-keeptoshare (0.1.5) unstable; urgency=low
 
-  * Use captcha URL as the key.
+  * Use captcha URL as the captcha key.
 
  -- Stuart Howarth <showarth@marxoft.co.uk>  Fri, 21 Nov 2014 12:26:12 +0000
 
