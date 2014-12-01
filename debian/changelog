@@ -1,3 +1,12 @@
+qdl (1.2.1) unstable; urgency=low
+
+  * Use multiple columns for the transfer view.
+  * Improved transfer filtering.
+  * SSLv3 fix.
+  * Other minor bug fixes.
+
+ -- Stuart Howarth <showarth@marxoft.co.uk>  Mon, 01 Dec 2014 12:08:21 +0000
+
 qdl (1.2.0) unstable; urgency=low
 
   * Added option to force the service when adding URLs.
