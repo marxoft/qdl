@@ -46,14 +46,25 @@ public:
 #if (QT_VERSION >= 0x050000) || (QT_VERSION < 0x040600)
     QHash<int, QByteArray> roleNames() const;
 #endif
+
     Qt::DropActions supportedDropActions() const;
+    
     Qt::ItemFlags flags(const QModelIndex &index) const;
+    
+    QStringList mimeTypes() const;
+    QMimeData* mimeData(const QModelIndexList &indexes) const;
+    bool dropMimeData(const QMimeData *data, Qt::DropAction action,
+                      int row, int column, const QModelIndex &parent);
 
     int rowCount(const QModelIndex &parent = QModelIndex()) const;
     int columnCount(const QModelIndex &parent = QModelIndex()) const;
 
     QModelIndex index(int row, int column, const QModelIndex &parent = QModelIndex()) const;
     QModelIndex parent(const QModelIndex &child) const;
+    
+#ifdef TABLE_TRANSFER_VIEW
+    QVariant headerData(int section, Qt::Orientation orientation = Qt::Horizontal, int role = Qt::DisplayRole) const;
+#endif
 
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
     Q_INVOKABLE QVariant data(int row, int parentRow, const QByteArray &role) const;
@@ -72,6 +83,9 @@ public:
     Transfer* get(const QModelIndex &index) const;
     Q_INVOKABLE Transfer* get(int row, int parentRow) const;
     Q_INVOKABLE Transfer* get(const QString &id) const;
+    
+    void move(const QModelIndex &sourceParent, int sourceRow, const QModelIndex &destinationParent, int destinationRow);
+    Q_INVOKABLE void move(int sourceParentRow, int sourceRow, int destinationParentRow, int destinationRow);
 
     QModelIndexList match(const QModelIndex &start, int role, const QVariant &value,
                           int hits = -1, Qt::MatchFlags flags = Qt::MatchExactly) const;

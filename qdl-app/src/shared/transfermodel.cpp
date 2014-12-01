@@ -24,6 +24,10 @@
 #include "utils.h"
 #include <QTimer>
 #include <QCoreApplication>
+#include <QMimeData>
+#ifdef TABLE_TRANSFER_VIEW
+#include <QIcon>
+#endif
 
 TransferModel* TransferModel::self = 0;
 
@@ -98,14 +102,77 @@ Qt::DropActions TransferModel::supportedDropActions() const {
 
 Qt::ItemFlags TransferModel::flags(const QModelIndex &index) const {
     if (!index.isValid()) {
-        return 0;
+        return Qt::ItemIsDropEnabled;
     }
 
     if (!index.parent().isValid()) {
-        return Qt::ItemIsSelectable | Qt::ItemIsDragEnabled | Qt::ItemIsEnabled;
+        return Qt::ItemIsSelectable | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled | Qt::ItemIsEnabled;
     }
 
-    return Qt::ItemIsSelectable | Qt::ItemIsEnabled;
+    return Qt::ItemIsSelectable | Qt::ItemIsDragEnabled | Qt::ItemIsEnabled;
+}
+
+QStringList TransferModel::mimeTypes() const {
+    return QStringList() << "application/x-qdltransfermodeldatalist";
+}
+
+QMimeData* TransferModel::mimeData(const QModelIndexList &indexes) const {
+    if ((indexes.count() <= 0) || (this->mimeTypes().isEmpty())) {
+        return 0;
+    }
+    
+    QMimeData *data = new QMimeData();
+    QByteArray encoded;
+    QDataStream stream(&encoded, QIODevice::WriteOnly);
+    QModelIndexList::ConstIterator it = indexes.begin();
+    
+    for (; it != indexes.end(); it++) {
+        if ((*it).column() == 0) {
+            stream << (*it).row() << ((*it).parent().isValid() ? (*it).parent().row() : -1);
+        }
+    }
+    
+    data->setData(this->mimeTypes().at(0), encoded);
+    return data;
+}
+
+bool TransferModel::dropMimeData(const QMimeData *data, Qt::DropAction action,
+                                 int row, int column, const QModelIndex &parent) {
+    
+    Q_UNUSED(column)                             
+                                 
+    if ((!data) || (action != Qt::MoveAction) || (this->mimeTypes().isEmpty())) {
+        return false;
+    }
+    
+    QString format = this->mimeTypes().at(0);
+    
+    if (!data->hasFormat(format)) {
+        return false;
+    }
+    
+    if ((row < 0) || (row > this->rowCount(parent))) {
+        row = this->rowCount(parent);
+    }
+    
+    QByteArray encoded = data->data(format);
+    QDataStream stream(&encoded, QIODevice::ReadOnly);
+    QList< QPair<int, int> > rows;
+    
+    while (!stream.atEnd()) {
+        int r;
+        int pr;
+        stream >> r >> pr;
+        rows.append(QPair<int, int>(r, pr));
+    }
+    
+    for (int i = 0; i < rows.size(); i++) {
+        const int r = rows.at(i).first;
+        const int pr = rows.at(i).second;
+        this->move(pr == -1 ? QModelIndex() : this->index(pr, 0), r, parent, row);
+    }
+    
+    return true;
 }
 
 int TransferModel::rowCount(const QModelIndex &parent) const {
@@ -124,8 +191,11 @@ int TransferModel::rowCount(const QModelIndex &parent) const {
 
 int TransferModel::columnCount(const QModelIndex &parent) const {
     Q_UNUSED(parent)
-
+#ifdef TABLE_TRANSFER_VIEW
+    return 6;
+#else
     return 1;
+#endif
 }
 
 QModelIndex TransferModel::index(int row, int column, const QModelIndex &parent) const {
@@ -175,9 +245,68 @@ QModelIndex TransferModel::parent(const QModelIndex &child) const {
     return this->createIndex(parentTransfer->rowNumber(), 0, parentTransfer);
 }
 
+#ifdef TABLE_TRANSFER_VIEW
+QVariant TransferModel::headerData(int section, Qt::Orientation orientation, int role) const {
+    if ((orientation != Qt::Horizontal) || (role != Qt::DisplayRole)) {
+        return QVariant();
+    }
+    
+    switch (section) {
+    case 0:
+        return tr("Name");
+    case 1:
+        return tr("Category");
+    case 2:
+        return tr("Connections");
+    case 3:
+        return tr("Priority");
+    case 4:
+        return tr("Progress");
+    case 5:
+        return tr("Status");
+    default:
+        return QVariant();
+    }
+}
+#endif
+
 QVariant TransferModel::data(const QModelIndex &index, int role) const {
     if (index.isValid()) {
         if (Transfer *transfer = this->get(index)) {
+#ifdef TABLE_TRANSFER_VIEW
+            switch (role) {
+            case Qt::DisplayRole:
+                switch (index.column()) {
+                case 0:
+                    return transfer->data(Transfer::NameRole);
+                case 1:
+                    return transfer->data(Transfer::CategoryRole);
+                case 2:
+                    return transfer->data(Transfer::PreferredConnectionsRole);
+                case 3:
+                    return transfer->data(Transfer::PriorityStringRole);
+                case 4:
+                    return transfer->data(Transfer::ProgressRole);
+                case 5:
+                    return transfer->data(Transfer::StatusStringRole);
+                default:
+                    return QVariant();
+                }
+                
+                break;
+            case Qt::DecorationRole:
+                switch (index.column()) {
+                case 0:
+                    return QIcon(transfer->data(Transfer::IconRole).toString());
+                default:
+                    return QVariant();
+                }
+                
+                break;
+            default:
+                break;
+            }
+#endif
             return transfer->data(role);
         }
     }
@@ -374,6 +503,36 @@ Transfer* TransferModel::get(const QString &id) const {
     return 0;
 }
 
+void TransferModel::move(const QModelIndex &sourceParent, int sourceRow,
+                         const QModelIndex &destinationParent, int destinationRow) {
+             
+    Transfer *parentTransfer = this->get(sourceParent);
+    
+    if (parentTransfer) {
+        this->beginMoveRows(sourceParent, sourceRow, sourceRow, destinationParent, destinationRow);
+        Transfer *transfer = parentTransfer->removeChildTransfer(sourceRow);
+        
+        if (transfer) {
+            parentTransfer = this->get(destinationParent);
+            
+            if (parentTransfer) {
+                parentTransfer->insertChildTransfer(destinationRow, transfer);
+            }
+        }
+        
+        this->endMoveRows();
+    }
+}
+
+void TransferModel::move(int sourceParentRow, int sourceRow, int destinationParentRow, int destinationRow) {
+    const QModelIndex sourceParent = (sourceParentRow == -1 ? QModelIndex()
+                                                            : this->index(sourceParentRow, 0, QModelIndex()));
+    const QModelIndex destinationParent = (destinationParentRow == -1 ? QModelIndex()
+                                                                      : this->index(destinationParentRow, 0, QModelIndex()));
+    
+    this->move(sourceParent, sourceRow, destinationParent, destinationRow);
+}
+
 QModelIndexList TransferModel::match(const QModelIndex &start, int role, const QVariant &value,
                                      int hits, Qt::MatchFlags flags) const {
                                      
@@ -444,7 +603,7 @@ void TransferModel::addTransfer(const QUrl &url, const QString &service, const Q
             packageFound = parentTransfer->transferBelongsToPackage(transfer);
 
             if (packageFound) {
-                int count = parentTransfer->count();
+                const int count = parentTransfer->count();
                 this->beginInsertRows(this->index(i, 0), count, count);
                 parentTransfer->addChildTransfer(transfer);
                 this->endInsertRows();
@@ -606,6 +765,46 @@ void TransferModel::onTransferSpeedChanged() {
 }
 #else
 void TransferModel::onTransferDataChanged(int role) {
+#ifdef TABLE_TRANSFER_VIEW
+    if (Transfer *transfer = qobject_cast<Transfer*>(this->sender())) {
+        if (Transfer *parentTransfer = transfer->parentTransfer()) {
+            QModelIndex index;
+            int column = 0;
+            
+            switch (role) {
+            case Transfer::ProgressRole:
+            case Transfer::PositionRole:
+            case Transfer::SizeRole:
+                column = 4;
+                break;
+            case Transfer::StatusRole:
+                column = 5;
+                break;
+            case Transfer::CategoryRole:
+                column = 1;
+                break;
+            case Transfer::PreferredConnectionsRole:
+                column = 2;
+                break;
+            case Transfer::PriorityRole:
+                column = 3;
+                break;
+            default:
+                break;
+            }
+
+            if (parentTransfer == m_rootItem) {
+                index = this->index(transfer->rowNumber(), column);
+            }
+            else {
+                index = this->index(transfer->rowNumber(), column, this->index(parentTransfer->rowNumber(), column));
+            }
+
+            emit dataChanged(index, index);
+            emit totalDownloadSpeedChanged(this->totalDownloadSpeed());
+        }
+    }
+#else
     Q_UNUSED(role)
 
     if (Transfer *transfer = qobject_cast<Transfer*>(this->sender())) {
@@ -623,6 +822,7 @@ void TransferModel::onTransferDataChanged(int role) {
             emit totalDownloadSpeedChanged(this->totalDownloadSpeed());
         }
     }
+#endif
 }
 #endif
 
