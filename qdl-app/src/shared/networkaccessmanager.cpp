@@ -16,10 +16,11 @@
  */
 
 #include "networkaccessmanager.h"
-#include "cookiejar.h"
+#include "settings.h"
+#include <QNetworkReply>
+#include <QAuthenticator>
 
 NetworkAccessManager* NetworkAccessManager::self = 0;
-CookieJar* NetworkAccessManager::m_cookieJar = 0;
 
 NetworkAccessManager::NetworkAccessManager(QObject *parent) :
     QNetworkAccessManager(parent)
@@ -28,12 +29,10 @@ NetworkAccessManager::NetworkAccessManager(QObject *parent) :
         self = this;
     }
 
-    if (!m_cookieJar) {
-        m_cookieJar = new CookieJar;
-    }
-
-    this->setCookieJar(m_cookieJar);
-    m_cookieJar->setParent(0);
+    this->connect(this, SIGNAL(sslErrors(QNetworkReply*,QList<QSslError>)),
+                  this, SLOT(onSSLErrors(QNetworkReply*,QList<QSslError>)));
+    this->connect(this, SIGNAL(proxyAuthenticationRequired(QNetworkProxy,QAuthenticator*)),
+                  this, SLOT(onProxyAuthenticationRequired(QNetworkProxy,QAuthenticator*)));
 }
 
 NetworkAccessManager::~NetworkAccessManager() {}
@@ -44,4 +43,15 @@ NetworkAccessManager* NetworkAccessManager::instance() {
 
 NetworkAccessManager* NetworkAccessManager::create(QObject *parent) {
     return new NetworkAccessManager(parent);
+}
+
+void NetworkAccessManager::onSSLErrors(QNetworkReply *reply, const QList<QSslError> &errors) {
+    reply->ignoreSslErrors(errors);
+}
+
+void NetworkAccessManager::onProxyAuthenticationRequired(const QNetworkProxy &proxy, QAuthenticator *authenticator) {
+    Q_UNUSED(proxy)
+
+    authenticator->setUser(Settings::instance()->networkProxyUser());
+    authenticator->setPassword(Settings::instance()->networkProxyPassword());
 }

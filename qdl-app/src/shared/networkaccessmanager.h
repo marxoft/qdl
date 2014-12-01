@@ -20,8 +20,6 @@
 
 #include <QNetworkAccessManager>
 
-class CookieJar;
-
 class NetworkAccessManager : public QNetworkAccessManager
 {
     Q_OBJECT
@@ -30,13 +28,15 @@ public:
     static NetworkAccessManager* instance();
     static NetworkAccessManager* create(QObject *parent = 0);
 
+private slots:
+    void onSSLErrors(QNetworkReply *reply, const QList<QSslError> &errors);
+    void onProxyAuthenticationRequired(const QNetworkProxy &proxy, QAuthenticator *authenticator);
+    
 private:
     NetworkAccessManager(QObject *parent = 0);
     ~NetworkAccessManager();
-    
-private:
+
     static NetworkAccessManager *self;
-    static CookieJar *m_cookieJar;
 };
 
 #endif // NETWORKACCESSMANAGER_H
