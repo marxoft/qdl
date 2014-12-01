@@ -27,7 +27,9 @@ class TransferItemDelegate : public QStyledItemDelegate
 public:
     explicit TransferItemDelegate(QObject *parent = 0);
     void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
+#ifndef TABLE_TRANSFER_VIEW
     QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const;
+#endif
 };
 
 #endif // TRANSFERPROGRESSDELEGATE_H

@@ -51,6 +51,9 @@
 #include <QTimer>
 #include <QCoreApplication>
 #include <QMessageBox>
+#ifdef TABLE_TRANSFER_VIEW
+#include <QHeaderView>
+#endif
 #if QT_VERSION >= 0x050000
 #include <QStandardPaths>
 #else
@@ -146,8 +149,12 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     this->setWindowTitle("QDL");
     this->setCentralWidget(m_view);
-    this->setMinimumSize(600, 600);
     this->setAcceptDrops(true);
+#ifdef TABLE_TRANSFER_VIEW
+    this->setMinimumSize(1100, 600);
+#else
+    this->setMinimumSize(600, 600);
+#endif
 
     for (int i = 1; i <= MAX_CONCURRENT_TRANSFERS; i++) {
         QAction *action = m_concurrentMenu->addAction(QString::number(i),
@@ -205,7 +212,6 @@ MainWindow::MainWindow(QWidget *parent) :
     m_filterComboBox->setModel(new StatusFilterModel(m_filterComboBox));
 
     m_nextActionComboBox->setModel(new TransferActionModel(m_nextActionComboBox));
-    m_nextActionComboBox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
 
     m_actionToolBar->setAllowedAreas(Qt::TopToolBarArea);
     m_actionToolBar->setMovable(false);
@@ -226,7 +232,9 @@ MainWindow::MainWindow(QWidget *parent) :
     m_filterToolBar->addWidget(m_searchEdit);
 
     this->addToolBar(m_actionToolBar);
+#ifndef TABLE_TRANSFER_VIEW
     this->addToolBarBreak();
+#endif
     this->addToolBar(m_filterToolBar);
 
     m_optionsButton->setIcon(QIcon::fromTheme("document-properties"));
@@ -299,14 +307,31 @@ MainWindow::MainWindow(QWidget *parent) :
 
     m_view->setModel(m_filterModel);
     m_view->setAlternatingRowColors(true);
-    m_view->setHeaderHidden(true);
     m_view->setSelectionBehavior(QTreeView::SelectRows);
     m_view->setContextMenuPolicy(Qt::CustomContextMenu);
     m_view->setEditTriggers(QTreeView::NoEditTriggers);
+    m_view->setDragEnabled(true);
+    m_view->setAcceptDrops(true);
+    m_view->setDropIndicatorShown(true);
+    m_view->setDragDropMode(QTreeView::InternalMove);
+    m_view->setDefaultDropAction(Qt::MoveAction);
     m_view->setExpandsOnDoubleClick(true);
     m_view->setItemsExpandable(true);
     m_view->setIndentation(16);
+    m_view->setUniformRowHeights(true);
+    m_view->setAllColumnsShowFocus(true);
     m_view->setItemDelegate(new TransferItemDelegate(m_view));
+#ifdef TABLE_TRANSFER_VIEW
+    QHeaderView *header = m_view->header();
+    QFontMetrics fm = header->fontMetrics();
+    header->resizeSection(0, 350);
+    header->resizeSection(1, fm.width("A long category name") + 20);
+    header->resizeSection(2, fm.width(m_model->headerData(2).toString()) + 20);
+    header->resizeSection(3, fm.width(m_model->headerData(3).toString()) + 20);
+    header->resizeSection(4, fm.width("999.99MB of 999.99MB (99.99%)") + 20);
+#else
+    m_view->setHeaderHidden(true);
+#endif
 
     m_progressDialog->setWindowTitle(tr("Please wait"));
 

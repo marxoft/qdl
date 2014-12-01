@@ -29,6 +29,7 @@ class QLineEdit;
 class QLabel;
 class QProgressDialog;
 class TransferModel;
+class TransferFilterModel;
 class QWidgetAction;
 class QPushButton;
 class ValueSelectorAction;
@@ -102,6 +103,7 @@ private:
     QLineEdit *m_searchEdit;
     QLabel *m_speedLabel;
     TransferModel *m_model;
+    TransferFilterModel *m_filterModel;
     QTreeView *m_view;
     QMenu *m_contextMenu;
     QAction *m_transferConvertToAudioAction;

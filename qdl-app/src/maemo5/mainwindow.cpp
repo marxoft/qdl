@@ -32,6 +32,7 @@
 #include "../shared/pluginmanager.h"
 #include "../shared/database.h"
 #include "../shared/transfermodel.h"
+#include "../shared/transferfiltermodel.h"
 #include "../shared/transfer.h"
 #include "../shared/selectionmodels.h"
 #include "../shared/clipboardmonitor.h"
@@ -50,6 +51,9 @@
 #include <QTimer>
 #include <QMaemo5InformationBox>
 #include <QPushButton>
+#ifdef TABLE_TRANSFER_VIEW
+#include <QHeaderView>
+#endif
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -71,6 +75,7 @@ MainWindow::MainWindow(QWidget *parent) :
     m_searchEdit(new QLineEdit(this)),
     m_speedLabel(new QLabel("0 kB/s", this)),
     m_model(TransferModel::instance()),
+    m_filterModel(new TransferFilterModel(this)),
     m_view(new QTreeView(this)),
     m_contextMenu(new QMenu(this)),
     m_transferConvertToAudioAction(m_contextMenu->addAction(tr("Convert to audio"), this, SLOT(setConvertCurrentTransferToAudio()))),
@@ -136,16 +141,26 @@ MainWindow::MainWindow(QWidget *parent) :
     m_toolBar->addWidget(m_speedLabel);
     m_toolBar->addWidget(speedIcon);
 
-    m_view->setModel(m_model);
+    m_view->setModel(m_filterModel);
     m_view->setSelectionBehavior(QTreeView::SelectRows);
     m_view->setContextMenuPolicy(Qt::CustomContextMenu);
     m_view->setEditTriggers(QTreeView::NoEditTriggers);
-    m_view->setHeaderHidden(true);
     m_view->setExpandsOnDoubleClick(true);
     m_view->setItemsExpandable(true);
     m_view->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     m_view->setItemDelegate(new TransferItemDelegate(m_view));
     m_view->setFocus(Qt::OtherFocusReason);
+#ifdef TABLE_TRANSFER_VIEW
+    QHeaderView *header = m_view->header();
+    QFontMetrics fm = header->fontMetrics();
+    header->resizeSection(0, 200);
+    header->resizeSection(1, fm.width(m_model->headerData(1).toString()) + 20);
+    header->resizeSection(2, fm.width(m_model->headerData(2).toString()) + 20);
+    header->resizeSection(3, fm.width(m_model->headerData(3).toString()) + 20);
+    header->resizeSection(4, fm.width(m_model->headerData(4).toString()) + 20);
+#else
+    m_view->setHeaderHidden(true);
+#endif
 
     m_transferConvertToAudioAction->setCheckable(true);
 
@@ -165,7 +180,7 @@ MainWindow::MainWindow(QWidget *parent) :
     this->connect(m_retrieveUrlsAction, SIGNAL(triggered()), this, SLOT(showRetrieveUrlsDialog()));
     this->connect(m_startAction, SIGNAL(triggered()), m_model, SLOT(start()));
     this->connect(m_pauseAction, SIGNAL(triggered()), m_model, SLOT(pause()));
-    this->connect(m_searchEdit, SIGNAL(textChanged(QString)), m_model, SLOT(setSearchQuery(QString)));
+    this->connect(m_searchEdit, SIGNAL(textChanged(QString)), m_filterModel, SLOT(setSearchQuery(QString)));
     this->connect(m_view, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showContextMenu(QPoint)));
     this->connect(m_model, SIGNAL(totalDownloadSpeedChanged(int)), this, SLOT(updateSpeed(int)));
     this->connect(m_model, SIGNAL(countChanged(int)), this, SLOT(onPackageCountChanged(int)));
@@ -206,7 +221,7 @@ void MainWindow::onNextActionChanged(Transfers::Action action) {
 }
 
 void MainWindow::setTransferFilter(const QVariant &value) {
-    m_model->setStatusFilter(static_cast<Transfers::Status>(value.toInt()));
+    m_filterModel->setStatusFilter(static_cast<Transfers::Status>(value.toInt()));
 }
 
 void MainWindow::setMaximumConcurrentTransfers(const QVariant &value) {
@@ -246,13 +261,27 @@ void MainWindow::updateSpeed(int speed) {
 }
 
 void MainWindow::onPackageCountChanged(int count) {
-    m_filterAction->setEnabled(count > 0);
-    m_nextAction->setEnabled(count > 0);
-    m_transferPropertiesAction->setEnabled(count > 0);
-    m_packagePropertiesAction->setEnabled(count > 0);
-    m_startAction->setEnabled(count > 0);
-    m_pauseAction->setEnabled(count > 0);
-    m_searchEdit->setEnabled(count > 0);
+    if (count > 0) {
+        m_view->setContextMenuPolicy(Qt::CustomContextMenu);
+        m_transferPropertiesAction->setEnabled(true);
+        m_packagePropertiesAction->setEnabled(true);
+        m_startAction->setEnabled(true);
+        m_pauseAction->setEnabled(true);
+        m_nextAction->setEnabled(true);
+        m_filterAction->setEnabled(true);
+        m_searchEdit->setEnabled(true);
+    }
+    else {
+        m_view->setContextMenuPolicy(Qt::NoContextMenu);
+        m_transferPropertiesAction->setEnabled(false);
+        m_packagePropertiesAction->setEnabled(false);
+        m_startAction->setEnabled(false);
+        m_pauseAction->setEnabled(false);
+        m_nextAction->setEnabled(false);
+        m_filterAction->setEnabled(false);
+        m_searchEdit->setEnabled(false);
+        m_searchEdit->clear();
+    }
 }
 
 void MainWindow::setTransferMenuActions() {
@@ -263,11 +292,10 @@ void MainWindow::setTransferMenuActions() {
     }
 
     m_transferConvertToAudioAction->setEnabled(index.data(Transfer::ConvertibleToAudioRole).toBool());
-    m_transferConvertToAudioAction->setChecked((m_transferConvertToAudioAction->isEnabled()) && (index.data(Transfer::ConvertToAudioRole).toBool()));
+    m_transferConvertToAudioAction->setChecked((m_transferConvertToAudioAction->isEnabled())
+                                               && (index.data(Transfer::ConvertToAudioRole).toBool()));
 
-    Transfers::Status status = static_cast<Transfers::Status>(index.data(Transfer::StatusRole).toInt());
-
-    switch (status) {
+    switch (index.data(Transfer::StatusRole).toInt()) {
     case Transfers::Paused:
     case Transfers::Failed:
         m_transferStartAction->setEnabled(true);
@@ -281,7 +309,8 @@ void MainWindow::setTransferMenuActions() {
 
 void MainWindow::showCurrentTransferProperties() {
     if (m_view->currentIndex().isValid()) {
-        TransferPropertiesDialog *dialog = new TransferPropertiesDialog(m_model->get(m_view->currentIndex()), this);
+        TransferPropertiesDialog *dialog = 
+        new TransferPropertiesDialog(m_model->get(m_filterModel->mapToSource(m_view->currentIndex())), this);
         dialog->open();
     }
 }
@@ -297,7 +326,7 @@ void MainWindow::showCurrentPackageProperties() {
             index = m_view->currentIndex();
         }
 
-        if (Transfer *package = m_model->get(index)) {
+        if (Transfer *package = m_model->get(m_filterModel->mapToSource(index))) {
             PackagePropertiesDialog *dialog = new PackagePropertiesDialog(package, this);
             dialog->open();
         }
@@ -310,30 +339,31 @@ void MainWindow::showContextMenu(const QPoint &pos) {
 
 void MainWindow::setConvertCurrentTransferToAudio() {
     if (m_view->currentIndex().isValid()) {
-        m_model->setData(m_view->currentIndex(), m_transferConvertToAudioAction->isChecked(), Transfer::ConvertToAudioRole);
+        m_model->setData(m_filterModel->mapToSource(m_view->currentIndex()),
+                         m_transferConvertToAudioAction->isChecked(), Transfer::ConvertToAudioRole);
     }
 }
 
 void MainWindow::startCurrentTransfer() {
     if (m_view->currentIndex().isValid()) {
-        m_model->setData(m_view->currentIndex(), Transfers::Queued, Transfer::StatusRole);
+        m_model->setData(m_filterModel->mapToSource(m_view->currentIndex()), Transfers::Queued, Transfer::StatusRole);
     }
 }
 
 void MainWindow::pauseCurrentTransfer() {
     if (m_view->currentIndex().isValid()) {
-        m_model->setData(m_view->currentIndex(), Transfers::Paused, Transfer::StatusRole);
+        m_model->setData(m_filterModel->mapToSource(m_view->currentIndex()), Transfers::Paused, Transfer::StatusRole);
     }
 }
 
 void MainWindow::removeCurrentTransfer() {
     if (m_view->currentIndex().isValid()) {
-        m_model->setData(m_view->currentIndex(), Transfers::Cancelled, Transfer::StatusRole);
+        m_model->setData(m_filterModel->mapToSource(m_view->currentIndex()), Transfers::Cancelled, Transfer::StatusRole);
     }
 }
 
 void MainWindow::showTransferConnectionsDialog() {
-    if (Transfer *transfer = m_model->get(m_view->currentIndex())) {
+    if (Transfer *transfer = m_model->get(m_filterModel->mapToSource(m_view->currentIndex()))) {
         ValueDialog *dialog = new ValueDialog(this);
         dialog->setWindowTitle(tr("Connections"));
 
@@ -351,7 +381,7 @@ void MainWindow::showTransferConnectionsDialog() {
 }
 
 void MainWindow::setCurrentTransferConnections(const QVariant &connections) {
-    m_model->setData(m_view->currentIndex(), connections, Transfer::PreferredConnectionsRole);
+    m_model->setData(m_filterModel->mapToSource(m_view->currentIndex()), connections, Transfer::PreferredConnectionsRole);
 }
 
 void MainWindow::showTransferCategoryDialog() {
@@ -384,7 +414,7 @@ void MainWindow::showTransferPriorityDialog() {
 }
 
 void MainWindow::setCurrentTransferPriority(const QVariant &priority) {
-    m_model->setData(m_view->currentIndex(), priority, Transfer::PriorityRole);
+    m_model->setData(m_filterModel->mapToSource(m_view->currentIndex()), priority, Transfer::PriorityRole);
 }
 
 void MainWindow::showAddUrlsDialog(const QString &text, const QString &fileName) {
@@ -445,7 +475,10 @@ void MainWindow::onUrlRetrieverFinished() {
 }
 
 void MainWindow::showTextFileDialog() {
-    QString filePath = QFileDialog::getOpenFileName(this, tr("Import URLs"), QDesktopServices::storageLocation(QDesktopServices::HomeLocation), "*.txt");
+    QString filePath = QFileDialog::getOpenFileName(this,
+                                                    tr("Import URLs"),
+                                                    QDesktopServices::storageLocation(QDesktopServices::HomeLocation),
+                                                    "*.txt");
 
     if (!filePath.isEmpty()) {
         this->showAddUrlsDialog(QString(), filePath);

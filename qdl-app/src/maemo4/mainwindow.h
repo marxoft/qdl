@@ -31,6 +31,7 @@ class QToolButton;
 class QLabel;
 class QProgressDialog;
 class TransferModel;
+class TransferFilterModel;
 
 class MainWindow : public QMainWindow
 {
@@ -153,6 +154,7 @@ private:
     QAction *m_quitAction;
     QLabel *m_speedLabel;
     TransferModel *m_model;
+    TransferFilterModel *m_filterModel;
     QTreeView *m_view;
     CheckUrlsDialog *m_checkDialog;
     QProgressDialog *m_progressDialog;

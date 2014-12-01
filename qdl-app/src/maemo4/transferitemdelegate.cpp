@@ -29,6 +29,21 @@ TransferItemDelegate::TransferItemDelegate(QObject *parent) :
 }
 
 void TransferItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const {
+#ifdef TABLE_TRANSFER_VIEW
+    if (index.column() == 4) {
+        QStyleOptionProgressBar progressBar;
+        progressBar.rect = option.rect;
+        progressBar.minimum = 0;
+        progressBar.maximum = 100;
+        progressBar.progress = index.data(Transfer::ProgressRole).toInt();
+        progressBar.textVisible = true;
+        progressBar.text = QString::number(progressBar.progress) + "%";
+        QApplication::style()->drawControl(QStyle::CE_ProgressBar, &progressBar, painter);
+    }
+    else {
+        QStyledItemDelegate::paint(painter, option, index);
+    }
+#else
     QStyledItemDelegate::paint(painter, option, index);
     QImage icon(index.data(Transfer::IconRole).toString());
 
@@ -36,8 +51,10 @@ void TransferItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
         icon = QImage(ICON_PATH + "qdl.png");
     }
 
-    painter->drawImage(option.rect.left() + 8, option.rect.top() + 8, icon.scaled(36, 36, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
-    painter->drawText(option.rect.left() + 52, option.rect.top() + 8, option.rect.width() - 218, 98, Qt::TextWrapAnywhere, index.data(Transfer::NameRole).toString());
+    painter->drawImage(option.rect.left() + 8, option.rect.top() + 8,
+                       icon.scaled(36, 36, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
+    painter->drawText(option.rect.left() + 52, option.rect.top() + 8, option.rect.width() - 218,
+                      98, Qt::TextWrapAnywhere, index.data(Transfer::NameRole).toString());
 
     QFont font;
     font.setPixelSize(18);
@@ -53,15 +70,17 @@ void TransferItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
         break;
     default:
         if (size > 0) {
-            painter->drawText(option.rect.left() + 8, option.rect.bottom() - 36, option.rect.width() - 16, 28, Qt::AlignBottom | Qt::AlignRight,
-                              QString("%1 of %2").arg(Utils::fileSizeFromBytes(index.data(Transfer::PositionRole).toLongLong())).arg(Utils::fileSizeFromBytes(size)));
+            painter->drawText(option.rect.left() + 8, option.rect.bottom() - 36, option.rect.width() - 16,
+                              28, Qt::AlignBottom | Qt::AlignRight,
+                              QString("%1 of %2").arg(Utils::fileSizeFromBytes(index.data(Transfer::PositionRole).toLongLong()))
+                              .arg(Utils::fileSizeFromBytes(size)));
         }
 
         break;
     }
 
-    painter->drawText(option.rect.left() + 8, option.rect.bottom() - 36, option.rect.width() - 16, 28, Qt::AlignBottom,
-                      index.data(Transfer::StatusStringRole).toString());
+    painter->drawText(option.rect.left() + 8, option.rect.bottom() - 36, option.rect.width() - 16,
+                      28, Qt::AlignBottom, index.data(Transfer::StatusStringRole).toString());
 
     painter->restore();
 
@@ -77,10 +96,13 @@ void TransferItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
     progressBar.text = QString::number(progressBar.progress) + "%";
 
     QApplication::style()->drawControl(QStyle::CE_ProgressBar, &progressBar, painter);
+#endif
 }
 
+#ifndef TABLE_TRANSFER_VIEW
 QSize TransferItemDelegate::sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const {
     Q_UNUSED(index)
 
     return QSize(option.rect.width(), 108);
 }
+#endif

@@ -29,6 +29,7 @@
 #include "../shared/urlretriever.h"
 #include "../shared/pluginmanager.h"
 #include "../shared/transfermodel.h"
+#include "../shared/transferfiltermodel.h"
 #include "../shared/transfer.h"
 #include "../shared/settings.h"
 #include "../shared/clipboardmonitor.h"
@@ -50,6 +51,9 @@
 #include <QCoreApplication>
 #include <QMessageBox>
 #include <QDesktopServices>
+#ifdef TABLE_TRANSFER_VIEW
+#include <QHeaderView>
+#endif
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -116,6 +120,7 @@ MainWindow::MainWindow(QWidget *parent) :
     m_quitAction(this->menuBar()->addAction(tr("Close"), QCoreApplication::instance(), SLOT(quit()))),
     m_speedLabel(new QLabel("0 kB/s", this)),
     m_model(TransferModel::instance()),
+    m_filterModel(new TransferFilterModel(this)),
     m_view(new QTreeView(this)),
     m_checkDialog(new CheckUrlsDialog(this)),
     m_progressDialog(new QProgressDialog(this)),
@@ -250,24 +255,33 @@ MainWindow::MainWindow(QWidget *parent) :
     m_preferencesAction->setShortcut(Qt::CTRL + Qt::Key_S);
     m_quitAction->setShortcut(Qt::CTRL + Qt::Key_Q);
 
-    m_view->setModel(m_model);
-    m_view->setHeaderHidden(true);
+    m_view->setModel(m_filterModel);
     m_view->setSelectionBehavior(QTreeView::SelectRows);
     m_view->setContextMenuPolicy(Qt::CustomContextMenu);
     m_view->setEditTriggers(QTreeView::NoEditTriggers);
     m_view->setExpandsOnDoubleClick(true);
     m_view->setItemsExpandable(true);
     m_view->setItemDelegate(new TransferItemDelegate(m_view));
+#ifdef TABLE_TRANSFER_VIEW
+    QHeaderView *header = m_view->header();
+    QFontMetrics fm = header->fontMetrics();
+    header->resizeSection(0, 200);
+    header->resizeSection(1, fm.width(m_model->headerData(1).toString()) + 20);
+    header->resizeSection(2, fm.width(m_model->headerData(2).toString()) + 20);
+    header->resizeSection(3, fm.width(m_model->headerData(3).toString()) + 20);
+    header->resizeSection(4, fm.width(m_model->headerData(4).toString()) + 20);
+#else
+    m_view->setHeaderHidden(true);
+#endif
 
     m_progressDialog->setWindowTitle(tr("Please wait"));
-
 
     this->connect(m_addUrlsAction, SIGNAL(triggered()), this, SLOT(showAddUrlsDialog()));
     this->connect(m_importUrlsAction, SIGNAL(triggered()), this, SLOT(showTextFileDialog()));
     this->connect(m_retrieveUrlsAction, SIGNAL(triggered()), this, SLOT(showRetrieveUrlsDialog()));
     this->connect(m_startAction, SIGNAL(triggered()), m_model, SLOT(start()));
     this->connect(m_pauseAction, SIGNAL(triggered()), m_model, SLOT(pause()));
-    this->connect(m_searchEdit, SIGNAL(textChanged(QString)), m_model, SLOT(setSearchQuery(QString)));
+    this->connect(m_searchEdit, SIGNAL(textChanged(QString)), m_filterModel, SLOT(setSearchQuery(QString)));
     this->connect(m_view, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showContextMenu(QPoint)));
     this->connect(m_transferMenu, SIGNAL(aboutToShow()), this, SLOT(setTransferMenuActions()));
     this->connect(m_packageMenu, SIGNAL(aboutToShow()), this, SLOT(setPackageMenuActions()));
@@ -358,13 +372,27 @@ void MainWindow::onPluginsReady() {
 }
 
 void MainWindow::onPackageCountChanged(int count) {
-    m_transferMenu->setEnabled(count > 0);
-    m_packageMenu->setEnabled(count > 0);
-    m_transferStatusFilterMenu->setEnabled(count > 0);
-    m_nextActionMenu->setEnabled(count > 0);
-    m_startAction->setEnabled(count > 0);
-    m_pauseAction->setEnabled(count > 0);
-    m_searchEdit->setEnabled(count > 0);
+    if (count > 0) {
+        m_view->setContextMenuPolicy(Qt::CustomContextMenu);
+        m_transferMenu->setEnabled(true);
+        m_packageMenu->setEnabled(true);
+        m_startAction->setEnabled(true);
+        m_pauseAction->setEnabled(true);
+        m_nextActionMenu->setEnabled(true);
+        m_transferStatusFilterMenu->setEnabled(true);
+        m_searchEdit->setEnabled(true);
+    }
+    else {
+        m_view->setContextMenuPolicy(Qt::NoContextMenu);
+        m_transferMenu->setEnabled(false);
+        m_packageMenu->setEnabled(false);
+        m_startAction->setEnabled(false);
+        m_pauseAction->setEnabled(false);
+        m_nextActionMenu->setEnabled(false);
+        m_transferStatusFilterMenu->setEnabled(false);
+        m_searchEdit->setEnabled(false);
+        m_searchEdit->clear();
+    }
 }
 
 void MainWindow::setNextAction() {
@@ -384,7 +412,7 @@ void MainWindow::onNextActionChanged(Transfers::Action action) {
 
 void MainWindow::setTransferStatusFilter() {
     if (QAction *action = m_transferStatusFilterGroup->checkedAction()) {
-        m_model->setStatusFilter(static_cast<Transfers::Status>(action->data().toInt()));
+        m_filterModel->setStatusFilter(static_cast<Transfers::Status>(action->data().toInt()));
     }
 }
 
@@ -453,11 +481,10 @@ void MainWindow::setTransferMenuActions() {
     }
 
     m_transferConvertToAudioAction->setEnabled(index.data(Transfer::ConvertibleToAudioRole).toBool());
-    m_transferConvertToAudioAction->setChecked((m_transferConvertToAudioAction->isEnabled()) && (index.data(Transfer::ConvertToAudioRole).toBool()));
+    m_transferConvertToAudioAction->setChecked((m_transferConvertToAudioAction->isEnabled())
+                                               && (index.data(Transfer::ConvertToAudioRole).toBool()));
 
-    Transfers::Status status = static_cast<Transfers::Status>(index.data(Transfer::StatusRole).toInt());
-
-    switch (status) {
+    switch (index.data(Transfer::StatusRole).toInt()) {
     case Transfers::Paused:
     case Transfers::Failed:
         m_transferStartAction->setEnabled(true);
@@ -479,9 +506,7 @@ void MainWindow::setTransferMenuActions() {
         m_transferConnectionsMenu->actions().at(preferredConnections - 1)->setChecked(true);
     }
 
-    Transfers::Priority priority = static_cast<Transfers::Priority>(index.data(Transfer::PriorityRole).toInt());
-
-    switch (priority) {
+    switch (index.data(Transfer::PriorityRole).toInt()) {
     case Transfers::HighPriority:
         m_transferHighPriorityAction->setChecked(true);
         break;
@@ -517,9 +542,7 @@ void MainWindow::setPackageMenuActions() {
         index = index.parent();
     }
 
-    Transfers::Status status = static_cast<Transfers::Status>(index.data(Transfer::StatusRole).toInt());
-
-    switch (status) {
+    switch (index.data(Transfer::StatusRole).toInt()) {
     case Transfers::Paused:
     case Transfers::Failed:
         m_packageStartAction->setEnabled(true);
@@ -530,9 +553,7 @@ void MainWindow::setPackageMenuActions() {
         m_packagePauseAction->setEnabled(true);
     }
 
-    Transfers::Priority priority = static_cast<Transfers::Priority>(index.data(Transfer::PriorityRole).toInt());
-
-    switch (priority) {
+    switch (index.data(Transfer::PriorityRole).toInt()) {
     case Transfers::HighPriority:
         m_packageHighPriorityAction->setChecked(true);
         break;
@@ -583,39 +604,42 @@ void MainWindow::showContextMenu(const QPoint &pos) {
 
 void MainWindow::showCurrentTransferProperties() {
     if (m_view->currentIndex().isValid()) {
-        TransferPropertiesDialog *dialog = new TransferPropertiesDialog(m_model->get(m_view->currentIndex()), this);
+        TransferPropertiesDialog *dialog = 
+        new TransferPropertiesDialog(m_model->get(m_filterModel->mapToSource(m_view->currentIndex())), this);
         dialog->open();
     }
 }
 
 void MainWindow::setConvertCurrentTransferToAudio() {
     if (m_view->currentIndex().isValid()) {
-        m_model->setData(m_view->currentIndex(), m_transferConvertToAudioAction->isChecked(), Transfer::ConvertToAudioRole);
+        m_model->setData(m_filterModel->mapToSource(m_view->currentIndex()), 
+                         m_transferConvertToAudioAction->isChecked(), Transfer::ConvertToAudioRole);
     }
 }
 
 void MainWindow::startCurrentTransfer() {
     if (m_view->currentIndex().isValid()) {
-        m_model->setData(m_view->currentIndex(), Transfers::Queued, Transfer::StatusRole);
+        m_model->setData(m_filterModel->mapToSource(m_view->currentIndex()), Transfers::Queued, Transfer::StatusRole);
     }
 }
 
 void MainWindow::pauseCurrentTransfer() {
     if (m_view->currentIndex().isValid()) {
-        m_model->setData(m_view->currentIndex(), Transfers::Paused, Transfer::StatusRole);
+        m_model->setData(m_filterModel->mapToSource(m_view->currentIndex()), Transfers::Paused, Transfer::StatusRole);
     }
 }
 
 void MainWindow::removeCurrentTransfer() {
     if (m_view->currentIndex().isValid()) {
-        m_model->setData(m_view->currentIndex(), Transfers::Cancelled, Transfer::StatusRole);
+        m_model->setData(m_filterModel->mapToSource(m_view->currentIndex()), Transfers::Cancelled, Transfer::StatusRole);
     }
 }
 
 void MainWindow::setCurrentTransferConnections() {
     if (m_view->currentIndex().isValid()) {
         if (QAction *action = m_transferConnectionsGroup->checkedAction()) {
-            m_model->setData(m_view->currentIndex(), action->data().toInt(), Transfer::PreferredConnectionsRole);
+            m_model->setData(m_filterModel->mapToSource(m_view->currentIndex()),
+                             action->data().toInt(), Transfer::PreferredConnectionsRole);
         }
     }
 }
@@ -623,7 +647,7 @@ void MainWindow::setCurrentTransferConnections() {
 void MainWindow::setCurrentTransferCategory() {
     if (m_view->currentIndex().isValid()) {
         if (QAction *action = qobject_cast<QAction*>(this->sender())) {
-            m_model->setData(m_view->currentIndex(), action->text(), Transfer::CategoryRole);
+            m_model->setData(m_filterModel->mapToSource(m_view->currentIndex()), action->text(), Transfer::CategoryRole);
         }
     }
 }
@@ -631,13 +655,16 @@ void MainWindow::setCurrentTransferCategory() {
 void MainWindow::setCurrentTransferPriority() {
     if (m_view->currentIndex().isValid()) {
         if (m_transferPriorityGroup->checkedAction() == m_transferHighPriorityAction) {
-            m_model->setData(m_view->currentIndex(), Transfers::HighPriority, Transfer::PriorityRole);
+            m_model->setData(m_filterModel->mapToSource(m_view->currentIndex()),
+                             Transfers::HighPriority, Transfer::PriorityRole);
         }
         else if (m_transferPriorityGroup->checkedAction() == m_transferLowPriorityAction) {
-            m_model->setData(m_view->currentIndex(), Transfers::LowPriority, Transfer::PriorityRole);
+            m_model->setData(m_filterModel->mapToSource(m_view->currentIndex()),
+                             Transfers::LowPriority, Transfer::PriorityRole);
         }
         else {
-            m_model->setData(m_view->currentIndex(), Transfers::NormalPriority, Transfer::PriorityRole);
+            m_model->setData(m_filterModel->mapToSource(m_view->currentIndex()),
+                             Transfers::NormalPriority, Transfer::PriorityRole);
         }
     }
 }
@@ -653,7 +680,7 @@ void MainWindow::showCurrentPackageProperties() {
             index = m_view->currentIndex();
         }
 
-        if (Transfer *package = m_model->get(index)) {
+        if (Transfer *package = m_model->get(m_filterModel->mapToSource(index))) {
             PackagePropertiesDialog *dialog = new PackagePropertiesDialog(package, this);
             dialog->open();
         }
@@ -662,30 +689,39 @@ void MainWindow::showCurrentPackageProperties() {
 
 void MainWindow::startCurrentPackage() {
     if (m_view->currentIndex().isValid()) {
-        m_model->setData(m_view->currentIndex().parent().isValid() ? m_view->currentIndex().parent() : m_view->currentIndex(),
-                         Transfers::Queued, Transfer::PackageStatusRole);
+        m_model->setData(m_filterModel->mapToSource(m_view->currentIndex().parent().isValid()
+                                                    ? m_view->currentIndex().parent()
+                                                    : m_view->currentIndex()),
+                                                    Transfers::Queued, Transfer::PackageStatusRole);
     }
 }
 
 void MainWindow::pauseCurrentPackage() {
     if (m_view->currentIndex().isValid()) {
-        m_model->setData(m_view->currentIndex().parent().isValid() ? m_view->currentIndex().parent() : m_view->currentIndex(),
-                         Transfers::Paused, Transfer::PackageStatusRole);
+        m_model->setData(m_filterModel->mapToSource(m_view->currentIndex().parent().isValid()
+                                                    ? m_view->currentIndex().parent()
+                                                    : m_view->currentIndex()),
+                                                    Transfers::Paused, Transfer::PackageStatusRole);
     }
 }
 
 void MainWindow::removeCurrentPackage() {
     if (m_view->currentIndex().isValid()) {
-        m_model->setData(m_view->currentIndex().parent().isValid() ? m_view->currentIndex().parent() : m_view->currentIndex(),
-                         Transfers::Cancelled, Transfer::PackageStatusRole);
+        m_model->setData(m_filterModel->mapToSource(m_view->currentIndex().parent().isValid()
+                                                    ? m_view->currentIndex().parent()
+                                                    : m_view->currentIndex()),
+                                                    Transfers::Cancelled, Transfer::PackageStatusRole);
     }
 }
 
 void MainWindow::setCurrentPackageCategory() {
     if (m_view->currentIndex().isValid()) {
         if (QAction *action = qobject_cast<QAction*>(this->sender())) {
-            m_model->setData(m_view->currentIndex().parent().isValid() ? m_view->currentIndex().parent() : m_view->currentIndex(),
-                             action->text(), Transfer::CategoryRole);
+            m_model->setData(m_filterModel->mapToSource(m_view->currentIndex().parent().isValid()
+                                                        ? m_view->currentIndex().parent()
+                                                        : m_view->currentIndex()),
+                                                        action->text(),
+                                                        Transfer::CategoryRole);
         }
     }
 }
@@ -693,16 +729,25 @@ void MainWindow::setCurrentPackageCategory() {
 void MainWindow::setCurrentPackagePriority() {
     if (m_view->currentIndex().isValid()) {
         if (m_packagePriorityGroup->checkedAction() == m_packageHighPriorityAction) {
-            m_model->setData(m_view->currentIndex().parent().isValid() ? m_view->currentIndex().parent() : m_view->currentIndex(),
-                             Transfers::HighPriority, Transfer::PriorityRole);
+            m_model->setData(m_filterModel->mapToSource(m_view->currentIndex().parent().isValid()
+                                                        ? m_view->currentIndex().parent()
+                                                        : m_view->currentIndex()),
+                                                        Transfers::HighPriority,
+                                                        Transfer::PriorityRole);
         }
         else if (m_packagePriorityGroup->checkedAction() == m_packageLowPriorityAction) {
-            m_model->setData(m_view->currentIndex().parent().isValid() ? m_view->currentIndex().parent() : m_view->currentIndex(),
-                             Transfers::LowPriority, Transfer::PriorityRole);
+            m_model->setData(m_filterModel->mapToSource(m_view->currentIndex().parent().isValid()
+                                                        ? m_view->currentIndex().parent()
+                                                        : m_view->currentIndex()),
+                                                        Transfers::LowPriority,
+                                                        Transfer::PriorityRole);
         }
         else {
-            m_model->setData(m_view->currentIndex().parent().isValid() ? m_view->currentIndex().parent() : m_view->currentIndex(),
-                             Transfers::NormalPriority, Transfer::PriorityRole);
+            m_model->setData(m_filterModel->mapToSource(m_view->currentIndex().parent().isValid()
+                                                        ? m_view->currentIndex().parent()
+                                                        : m_view->currentIndex()),
+                                                        Transfers::NormalPriority,
+                                                        Transfer::PriorityRole);
         }
     }
 }
@@ -765,7 +810,10 @@ void MainWindow::onUrlRetrieverFinished() {
 }
 
 void MainWindow::showTextFileDialog() {
-    QString filePath = QFileDialog::getOpenFileName(this, m_importUrlsAction->text(), QDesktopServices::storageLocation(QDesktopServices::HomeLocation), "*.txt");
+    QString filePath = QFileDialog::getOpenFileName(this,
+                                                    m_importUrlsAction->text(),
+                                                    QDesktopServices::storageLocation(QDesktopServices::HomeLocation),
+                                                    "*.txt");
 
     if (!filePath.isEmpty()) {
         this->showAddUrlsDialog(QString(), filePath);

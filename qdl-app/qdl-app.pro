@@ -1,6 +1,7 @@
 TEMPLATE = app
 TARGET = qdl
 QT += network sql xml
+INSTALLS += target
 
 HEADERS += $$files(src/shared/*.h) \
     $$files(src/interfaces/*.h)
@@ -8,6 +9,7 @@ HEADERS += $$files(src/shared/*.h) \
 SOURCES += $$files(src/shared/*.cpp)
 
 #DEFINES += MAEMO4_OS
+DEFINES += TABLE_TRANSFER_VIEW
 
 maemo5 {
     DEFINES += WEB_INTERFACE
@@ -178,5 +180,3 @@ contains(DEFINES,WEB_INTERFACE) {
 
     INSTALLS += webif
 }
-
-INSTALLS += target

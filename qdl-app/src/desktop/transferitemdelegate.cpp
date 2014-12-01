@@ -29,6 +29,33 @@ TransferItemDelegate::TransferItemDelegate(QObject *parent) :
 }
 
 void TransferItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const {
+#ifdef TABLE_TRANSFER_VIEW
+    if (index.column() == 4) {
+        QStyleOptionProgressBar progressBar;
+        progressBar.rect = option.rect;
+        progressBar.minimum = 0;
+        progressBar.maximum = 100;
+        progressBar.progress = index.data(Transfer::ProgressRole).toInt();
+        progressBar.textVisible = true;
+        
+        qint64 size = index.data(Transfer::SizeRole).toLongLong();
+
+        if (size > 0) {
+            progressBar.text = QString("%1 of %2 (%3%)").arg(Utils::fileSizeFromBytes(index.data(Transfer::PositionRole).toLongLong()))
+                                                       .arg(Utils::fileSizeFromBytes(size))
+                                                       .arg(index.data(Transfer::ProgressRole).toInt());
+        }
+        else {
+            progressBar.text = QString("%1 of %2").arg(Utils::fileSizeFromBytes(index.data(Transfer::PositionRole).toLongLong()))
+                                                  .arg(tr("Unknown"));
+        }
+
+        QApplication::style()->drawControl(QStyle::CE_ProgressBar, &progressBar, painter);
+    }
+    else {
+        QStyledItemDelegate::paint(painter, option, index);
+    }
+#else
     QStyledItemDelegate::paint(painter, option, index);
     QImage icon(index.data(Transfer::IconRole).toString());
 
@@ -36,14 +63,16 @@ void TransferItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
         icon = QImage(ICON_PATH + "qdl.png");
     }
 
-    painter->drawImage(option.rect.left() + 5, option.rect.top() + 5, icon.scaled(20, 20, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
+    painter->drawImage(option.rect.left() + 5, option.rect.top() + 5,
+                       icon.scaled(20, 20, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
 
     painter->save();
     QFont bold;
     bold.setBold(true);
     painter->setFont(bold);
 
-    painter->drawText(option.rect.left() + 30, option.rect.top() + 5, option.rect.width() - 35, 20, Qt::TextSingleLine, index.data(Transfer::NameRole).toString());
+    painter->drawText(option.rect.left() + 30, option.rect.top() + 5, option.rect.width() - 35, 20,
+                      Qt::TextSingleLine, index.data(Transfer::NameRole).toString());
 
     painter->restore();
 
@@ -53,12 +82,17 @@ void TransferItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
     qint64 size = index.data(Transfer::SizeRole).toLongLong();
 
     if (size > 0) {
-        painter->drawText(option.rect.left() + 5, option.rect.top() + 30, option.rect.width() - 10, 20, Qt::TextSingleLine | Qt::AlignRight,
-                          QString("%1 of %2 (%3%)").arg(Utils::fileSizeFromBytes(index.data(Transfer::PositionRole).toLongLong())).arg(Utils::fileSizeFromBytes(size)).arg(index.data(Transfer::ProgressRole).toInt()));
+        painter->drawText(option.rect.left() + 5, option.rect.top() + 30, option.rect.width() - 10, 20,
+                          Qt::TextSingleLine | Qt::AlignRight,
+                          QString("%1 of %2 (%3%)").arg(Utils::fileSizeFromBytes(index.data(Transfer::PositionRole).toLongLong()))
+                                                   .arg(Utils::fileSizeFromBytes(size))
+                                                   .arg(index.data(Transfer::ProgressRole).toInt()));
     }
     else {
-        painter->drawText(option.rect.left() + 5, option.rect.top() + 30, option.rect.width() - 10, 20, Qt::TextSingleLine | Qt::AlignRight,
-                          QString("%1 of %2").arg(Utils::fileSizeFromBytes(index.data(Transfer::PositionRole).toLongLong())).arg(tr("Unknown")));
+        painter->drawText(option.rect.left() + 5, option.rect.top() + 30, option.rect.width() - 10, 20,
+                          Qt::TextSingleLine | Qt::AlignRight,
+                          QString("%1 of %2").arg(Utils::fileSizeFromBytes(index.data(Transfer::PositionRole).toLongLong()))
+                                             .arg(tr("Unknown")));
     }
 
     painter->save();
@@ -71,7 +105,8 @@ void TransferItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
         break;
     }
 
-    painter->drawText(option.rect.left() + 5, option.rect.bottom() - 25, option.rect.width() - 10, 20, Qt::TextSingleLine | Qt::AlignBottom,
+    painter->drawText(option.rect.left() + 5, option.rect.bottom() - 25, option.rect.width() - 10, 20,
+                      Qt::TextSingleLine | Qt::AlignBottom,
                       index.data(Transfer::StatusStringRole).toString());
 
     painter->restore();
@@ -87,10 +122,13 @@ void TransferItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
     progressBar.textVisible = false;
 
     QApplication::style()->drawControl(QStyle::CE_ProgressBar, &progressBar, painter);
+#endif
 }
 
+#ifndef TABLE_TRANSFER_VIEW
 QSize TransferItemDelegate::sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const {
     Q_UNUSED(index)
 
     return QSize(option.rect.width(), 100);
 }
+#endif
