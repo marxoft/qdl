@@ -75,7 +75,7 @@ void GoFourUp::checkUrlIsValid() {
         
         if (re.indexIn(response) >= 0) {
             QUrl url(re.cap());
-            QString fileName = response.section("product_name=", 1, 1).section('&', 0, 0);
+            QString fileName = response.section("<title>Download", 1, 1).section("</title>", 0, 0).trimmed();
 
             if ((url.isValid()) && (!fileName.isEmpty())) {
                 emit urlChecked(true, url, m_filehost, fileName);
