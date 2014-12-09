@@ -68,6 +68,7 @@ private:
 private slots:
     void performDownload();
     void followRedirect(const QUrl &url);
+    void retry(const QUrl &url);
     void onMetaDataChanged();
     void onReadyRead();
     void onFinished();
@@ -91,6 +92,7 @@ private:
     Transfers::Status m_status;
     QString m_errorString;
     int m_redirects;
+    int m_retries;
 };
 
 #endif // CONNECTION_H

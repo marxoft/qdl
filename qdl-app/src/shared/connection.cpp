@@ -23,6 +23,7 @@
 
 static const qint64 BUFFER_SIZE = 1024 * 100;
 static const int MAX_REDIRECTS = 8;
+static const int MAX_RETRIES = 8;
 
 Connection::Connection(NetworkAccessManager *manager, QObject *parent) :
     QObject(parent),
@@ -39,7 +40,7 @@ Connection::Connection(NetworkAccessManager *manager, QObject *parent) :
 
 Connection::~Connection() {
     if (m_reply) {
-        m_reply->abort();
+        delete m_reply;
     }
 }
 
@@ -123,8 +124,13 @@ void Connection::performDownload() {
     this->setStatus(Transfers::Downloading);
 
     qDebug() << "Downloading:" << this->request().url();
+    
+    if (m_reply) {
+        delete m_reply;
+    }
 
     m_redirects = 0;
+    m_retries = 0;
     m_reply = this->data().isEmpty() ? m_nam->get(this->request()) : m_nam->post(this->request(), this->data());
     this->connect(m_reply, SIGNAL(finished()), this, SLOT(onFinished()));
 
@@ -138,9 +144,47 @@ void Connection::performDownload() {
 
 void Connection::followRedirect(const QUrl &url) {
     qDebug() << "Following redirect:" << url;
+    
+    if (m_reply) {
+        delete m_reply;
+    }
 
     m_redirects++;
-    m_reply = m_nam->get(QNetworkRequest(url));
+    
+    QNetworkRequest request(url);
+    
+    if (this->position() > 0) {
+        request.setRawHeader("Range", "bytes=" + QByteArray::number(this->position()) + "-");
+    }
+    
+    m_reply = m_nam->get(request);
+    
+    this->connect(m_reply, SIGNAL(finished()), this, SLOT(onFinished()));
+
+    if (this->contentRangeEnd() <= 0) {
+        this->connect(m_reply, SIGNAL(metaDataChanged()), this, SLOT(onMetaDataChanged()));
+    }
+    else {
+        this->connect(m_reply, SIGNAL(readyRead()), this, SLOT(onReadyRead()));
+    }
+}
+
+void Connection::retry(const QUrl &url) {
+    qDebug() << "Retrying:" << url;
+    
+    if (m_reply) {
+        delete m_reply;
+    }
+
+    m_retries++;
+    
+    QNetworkRequest request(url);
+    
+    if (this->position() > 0) {
+        request.setRawHeader("Range", "bytes=" + QByteArray::number(this->position()) + "-");
+    }
+    
+    m_reply = m_nam->get(request);
     this->connect(m_reply, SIGNAL(finished()), this, SLOT(onFinished()));
 
     if (this->contentRangeEnd() <= 0) {
@@ -263,9 +307,6 @@ void Connection::onFinished() {
     }
 
     if (!redirect.isEmpty()) {
-        m_reply->deleteLater();
-        m_reply = 0;
-        
         if (m_redirects < MAX_REDIRECTS) {
             this->followRedirect(redirect);
         }
@@ -277,35 +318,49 @@ void Connection::onFinished() {
         return;
     }
 
-    if (!m_buffer.isEmpty()) {
-        qint64 bytes = qint64(m_buffer.size());
-
-        emit bytesDownloaded(bytes);
-        emit dataAvailable(this->position(), m_buffer);
-
-        m_downloadedBytes += bytes;
-        m_buffer.clear();
-    }
-
     switch (m_reply->error()) {
     case QNetworkReply::NoError:
+        if (!m_buffer.isEmpty()) {
+            qint64 bytes = qint64(m_buffer.size());
+
+            emit bytesDownloaded(bytes);
+            emit dataAvailable(this->position(), m_buffer);
+
+            m_downloadedBytes += bytes;
+            m_buffer.clear();
+        }
+        
         this->setStatus(Transfers::Completed);
         break;
     case QNetworkReply::OperationCanceledError:
+        m_buffer.clear();
+        
         if ((this->contentRangeEnd() > 0) && (this->position() >= this->contentRangeEnd())) {
             this->setStatus(Transfers::Completed);
         }
 
         break;
+    case QNetworkReply::RemoteHostClosedError:
+        m_buffer.clear();
+    
+        if ((m_retries < MAX_RETRIES) && (!m_reply->url().isEmpty())) {
+            this->retry(m_reply->url());
+            return;
+        }
+        else {
+            qDebug() << "Connection error:" << m_reply->error() << m_reply->errorString();
+            this->setErrorString(m_reply->errorString());
+            this->setStatus(Transfers::Failed);
+        }
+        
+        break;
     default:
+        m_buffer.clear();
         qDebug() << "Connection error:" << m_reply->error() << m_reply->errorString();
         this->setErrorString(m_reply->errorString());
         this->setStatus(Transfers::Failed);
         break;
     }
-
-    m_reply->deleteLater();
-    m_reply = 0;
 }
 
 void Connection::onDownloadRateLimitChanged(int limit) {
