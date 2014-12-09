@@ -151,6 +151,9 @@ void Uploadable::onWebPageDownloaded() {
             request.setUrl(QUrl(re.cap()));
             emit downloadRequestReady(request);
         }
+        if ((response.contains("file is no longer available")) || (response.contains("file not found"))) {
+            emit error(NotFound);
+        }
         else {
             m_fileId = response.section("recaptcha_shortencode_field\" value=\"", 1, 1).section('"', 0, 0);
             m_captchaKey = response.section("reCAPTCHA_publickey='", 1, 1).section('\'', 0, 0);
