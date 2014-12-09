@@ -141,10 +141,6 @@ void ServiceAccountsModel::loadAccounts() {
 void ServiceAccountsModel::addAccount(const QString &serviceName, const QString &username, const QString &password) {
     if (Database::instance()->addAccount(serviceName, username, password)) {
         this->loadAccounts();
-
-        if (ServicePlugin *plugin = PluginManager::instance()->getServicePlugin(serviceName)) {
-            plugin->login(username, password);
-        }
     }
 }
 
