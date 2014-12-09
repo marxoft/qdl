@@ -100,7 +100,7 @@ void OneEightyUpload::checkUrlIsValid() {
     }
     else {
         QString response(reply->readAll());
-        QString fileName = response.section("Filename:</b></td><td nowrap>", 1, 1).section('<', 0, 0).trimmed();
+        QString fileName = response.section("Filename:</b></td><td nowrap>", 1, 1).section("</td>", 0, 0).trimmed();
 
         if (fileName.isEmpty()) {
             emit urlChecked(false);
@@ -177,12 +177,30 @@ void OneEightyUpload::onWebPageDownloaded() {
                 }
             }
             else {
-                this->getDownloadLink();
+                m_captchaKey = response.section("api.solvemedia.com/papi/challenge.noscript?k=", 1, 1).section('"', 0, 0);
+                
+                if (m_captchaKey.isEmpty()) {
+                    this->getDownloadLink();
+                }
+                else {
+                    emit statusChanged(CaptchaRequired);
+                }
             }
         }
     }
 
     reply->deleteLater();
+}
+
+void OneEightyUpload::submitCaptchaResponse(const QString &challenge, const QString &response) {
+    QString data = QString("op=download2&id=%1&rand=%2&adcopy_challenge=%3&adcopy_response=%4&down_direct=1")
+                           .arg(m_fileId).arg(m_rand).arg(challenge).arg(response);
+    QNetworkRequest request(m_url);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
+    request.setRawHeader("Referer", m_url.toString().toUtf8());
+    QNetworkReply *reply = this->networkAccessManager()->post(request, data.toUtf8());
+    this->connect(reply, SIGNAL(finished()), this, SLOT(checkDownloadLink()));
+    this->connect(this, SIGNAL(currentOperationCancelled()), reply, SLOT(deleteLater()));
 }
 
 void OneEightyUpload::getDownloadLink() {
@@ -210,6 +228,9 @@ void OneEightyUpload::checkDownloadLink() {
         QNetworkRequest request;
         request.setUrl(QUrl(re.cap()));
         emit downloadRequestReady(request);
+    }
+    else if (response.contains("Wrong captcha")) {
+        emit error(CaptchaError);
     }
     else {
         emit error(UnknownError);

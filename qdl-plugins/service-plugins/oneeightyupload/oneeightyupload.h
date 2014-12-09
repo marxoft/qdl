@@ -40,9 +40,14 @@ public:
     void getDownloadRequest(const QUrl &url);
     inline bool loginSupported() const { return true; }
     void login(const QString &username, const QString &password);
-    inline bool recaptchaRequired() const { return false; }
+    inline bool recaptchaRequired() const { return true; }
+    inline QString recaptchaServiceName() const { return QString("SolveMedia"); }
+    inline QString recaptchaKey() const { return m_captchaKey; }
     inline int maximumConnections() const { return m_connections; }
     bool cancelCurrentOperation();
+    
+public slots:
+    void submitCaptchaResponse(const QString &challenge, const QString &response);
 
 private:
     void startWait(int msecs);
@@ -63,6 +68,7 @@ private:
     QUrl m_url;
     QString m_fileId;
     QString m_rand;
+    QString m_captchaKey;
     QTimer *m_waitTimer;
     int m_waitTime;
     int m_connections;
