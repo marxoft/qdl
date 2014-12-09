@@ -185,27 +185,20 @@ MainWindow::MainWindow(QWidget *parent) :
     this->connect(m_model, SIGNAL(totalDownloadSpeedChanged(int)), this, SLOT(updateSpeed(int)));
     this->connect(m_model, SIGNAL(countChanged(int)), this, SLOT(onPackageCountChanged(int)));
     this->connect(m_contextMenu, SIGNAL(aboutToShow()), this, SLOT(setTransferMenuActions()));
-    this->connect(Settings::instance(), SIGNAL(maximumConcurrentTransfersChanged(int,int)), this, SLOT(onMaximumConcurrentTransfersChanged(int, int)));
-    this->connect(Settings::instance(), SIGNAL(maximumConnectionsPerTransferChanged(int,int)), this, SLOT(onGlobalTransferConnectionsChanged(int, int)));
+    this->connect(Settings::instance(), SIGNAL(maximumConcurrentTransfersChanged(int,int)),
+                  this, SLOT(onMaximumConcurrentTransfersChanged(int, int)));
+    this->connect(Settings::instance(), SIGNAL(maximumConnectionsPerTransferChanged(int,int)),
+                  this, SLOT(onGlobalTransferConnectionsChanged(int, int)));
     this->connect(Settings::instance(), SIGNAL(downloadRateLimitChanged(int)), this, SLOT(onDownloadRateLimitChanged(int)));
     this->connect(ClipboardMonitor::instance(), SIGNAL(clipboardUrlsReady(QString)), this, SLOT(showAddUrlsDialog(QString)));
-    this->connect(PluginManager::instance(), SIGNAL(busy(QString,int)), this, SLOT(showProgressDialog(QString,int)));
-    this->connect(PluginManager::instance(), SIGNAL(progressChanged(int)), this, SLOT(updateProgressDialog(int)));
     this->connect(PluginManager::instance(), SIGNAL(pluginsReady()), this, SLOT(onPluginsReady()));
-    this->connect(PluginManager::instance(), SIGNAL(pluginsReady()), this, SLOT(hideProgressDialog()));
 
     this->onPackageCountChanged(m_model->rowCount());
+    
+    PluginManager::instance()->loadPlugins();
 }
 
 MainWindow::~MainWindow() {}
-
-void MainWindow::showEvent(QShowEvent *event) {
-    if (PluginManager::instance()->servicePlugins().isEmpty()) {
-        QTimer::singleShot(1000, PluginManager::instance(), SLOT(loadPlugins()));
-    }
-
-    QMainWindow::showEvent(event);
-}
 
 void MainWindow::onPluginsReady() {
     this->disconnect(PluginManager::instance(), SIGNAL(pluginsReady()), this, SLOT(onPluginsReady()));

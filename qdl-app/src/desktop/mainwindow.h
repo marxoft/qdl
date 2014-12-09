@@ -45,7 +45,6 @@ public:
 
 protected:
     bool event(QEvent *event);
-    void showEvent(QShowEvent *event);
     void dragEnterEvent(QDragEnterEvent *event);
     void dropEvent(QDropEvent *event);
 

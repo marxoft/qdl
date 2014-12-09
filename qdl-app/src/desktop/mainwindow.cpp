@@ -385,14 +385,13 @@ MainWindow::MainWindow(QWidget *parent) :
     this->connect(Database::instance(), SIGNAL(categoriesChanged()), this, SLOT(setCategoryMenuActions()));
     this->connect(ClipboardMonitor::instance(), SIGNAL(clipboardUrlsReady(QString)),
                   this, SLOT(showAddUrlsDialog(QString)));
-    this->connect(PluginManager::instance(), SIGNAL(busy(QString,int)), this, SLOT(showProgressDialog(QString,int)));
-    this->connect(PluginManager::instance(), SIGNAL(progressChanged(int)), this, SLOT(updateProgressDialog(int)));
     this->connect(PluginManager::instance(), SIGNAL(pluginsReady()), this, SLOT(onPluginsReady()));
-    this->connect(PluginManager::instance(), SIGNAL(pluginsReady()), this, SLOT(hideProgressDialog()));
 
     this->onWindowStateChanged();
     this->onPackageCountChanged(m_model->rowCount());
     this->setCategoryMenuActions();
+    
+    PluginManager::instance()->loadPlugins();
 }
 
 MainWindow::~MainWindow() {}
@@ -407,14 +406,6 @@ bool MainWindow::event(QEvent *event) {
     }
 
     return QMainWindow::event(event);
-}
-
-void MainWindow::showEvent(QShowEvent *event) {
-    if (PluginManager::instance()->servicePlugins().isEmpty()) {
-        QTimer::singleShot(1000, PluginManager::instance(), SLOT(loadPlugins()));
-    }
-
-    QMainWindow::showEvent(event);
 }
 
 void MainWindow::dragEnterEvent(QDragEnterEvent *event) {

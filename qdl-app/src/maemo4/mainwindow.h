@@ -44,7 +44,6 @@ public:
 protected:
     bool event(QEvent *event);
     void keyPressEvent(QKeyEvent *event);
-    void showEvent(QShowEvent *event);
 
 private slots:
     void setFullScreen(bool fullScreen);

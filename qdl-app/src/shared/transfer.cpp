@@ -66,6 +66,8 @@ Transfer::Transfer(QObject *parent) :
     m_convertible(false),
     m_checkedIfConvertible(false),
     m_convert(false),
+    m_serviceLoggedIn(false),
+    m_decaptchaLoggedIn(false),
     m_row(0),
     m_preferredConnections(1),
     m_maxConnections(1)
@@ -996,9 +998,27 @@ void Transfer::start() {
         m_servicePlugin->setNetworkAccessManager(m_nam);
 
         this->connect(m_servicePlugin, SIGNAL(waiting(int)), this, SLOT(onServicePluginWaiting(int)));
-        this->connect(m_servicePlugin, SIGNAL(statusChanged(ServicePlugin::Status)), this, SLOT(onServicePluginStatusChanged(ServicePlugin::Status)));
-        this->connect(m_servicePlugin, SIGNAL(error(ServicePlugin::ErrorType)), this, SLOT(onServicePluginError(ServicePlugin::ErrorType)));
-        this->connect(m_servicePlugin, SIGNAL(downloadRequestReady(QNetworkRequest,QByteArray)), this, SLOT(onDownloadRequestReady(QNetworkRequest,QByteArray)));
+        this->connect(m_servicePlugin, SIGNAL(statusChanged(ServicePlugin::Status)),
+                      this, SLOT(onServicePluginStatusChanged(ServicePlugin::Status)));
+        this->connect(m_servicePlugin, SIGNAL(error(ServicePlugin::ErrorType)),
+                      this, SLOT(onServicePluginError(ServicePlugin::ErrorType)));
+        this->connect(m_servicePlugin, SIGNAL(downloadRequestReady(QNetworkRequest,QByteArray)),
+                      this, SLOT(onDownloadRequestReady(QNetworkRequest,QByteArray)));
+                      
+        if (m_servicePlugin->loginSupported()) {
+            this->connect(m_servicePlugin, SIGNAL(loggedIn(bool)), this, SLOT(onServicePluginLoggedIn(bool)));
+        }
+    }
+    
+    if ((m_servicePlugin->loginSupported()) && (!m_serviceLoggedIn)) {
+        QPair<QString, QString> account = Database::instance()->getAccount(m_servicePlugin->serviceName());
+        
+        if ((!account.first.isEmpty()) && (!account.second.isEmpty())) {
+            qDebug() << "Logging in:" << m_servicePlugin->serviceName();
+            this->setStatus(Transfers::Connecting);
+            m_servicePlugin->login(account.first, account.second);
+            return;
+        }
     }
 
     m_servicePlugin->getDownloadRequest(this->url());
@@ -1036,6 +1056,15 @@ void Transfer::cancel() {
     default:
         this->setStatus(Transfers::Cancelled);
         return;
+    }
+}
+
+void Transfer::onServicePluginLoggedIn(bool ok) {
+    qDebug() << (ok ? "Login successful:" : "Login failed:")  << this->serviceName();
+    m_serviceLoggedIn = ok;
+    
+    if (m_servicePlugin) {
+        m_servicePlugin->getDownloadRequest(this->url());
     }
 }
 
@@ -1100,7 +1129,8 @@ void Transfer::onServicePluginError(ServicePlugin::ErrorType errorType) {
         this->setStatusInfo(tr("Network error"));
         break;
     default:
-        this->setStatusInfo(m_servicePlugin->errorString().isEmpty() ? tr("Cannot retreive download url") : m_servicePlugin->errorString());
+        this->setStatusInfo(m_servicePlugin->errorString().isEmpty() ? tr("Cannot retreive download url")
+                                                                     : m_servicePlugin->errorString());
     }
 
     this->setStatus(Transfers::Failed);
@@ -1125,8 +1155,10 @@ void Transfer::onCaptchaRequired() {
         m_recaptchaPlugin->setParent(this);
         m_recaptchaPlugin->setNetworkAccessManager(m_nam);
 
-        this->connect(m_recaptchaPlugin, SIGNAL(error(RecaptchaPlugin::ErrorType)), this, SLOT(onRecaptchaPluginError(RecaptchaPlugin::ErrorType)));
-        this->connect(m_recaptchaPlugin, SIGNAL(captchaReady(QByteArray)), this, SLOT(onCaptchaReady(QByteArray)));
+        this->connect(m_recaptchaPlugin, SIGNAL(error(RecaptchaPlugin::ErrorType)),
+                      this, SLOT(onRecaptchaPluginError(RecaptchaPlugin::ErrorType)));
+        this->connect(m_recaptchaPlugin, SIGNAL(captchaReady(QByteArray)),
+                      this, SLOT(onCaptchaReady(QByteArray)));
     }
     else if (m_recaptchaPlugin->serviceName() != m_servicePlugin->recaptchaServiceName()) {
         delete m_recaptchaPlugin;
@@ -1141,10 +1173,12 @@ void Transfer::onCaptchaRequired() {
         m_recaptchaPlugin->setParent(this);
         m_recaptchaPlugin->setNetworkAccessManager(m_nam);
 
-        this->connect(m_recaptchaPlugin, SIGNAL(error(RecaptchaPlugin::ErrorType)), this, SLOT(onRecaptchaPluginError(RecaptchaPlugin::ErrorType)));
-        this->connect(m_recaptchaPlugin, SIGNAL(captchaReady(QByteArray)), this, SLOT(onCaptchaReady(QByteArray)));
+        this->connect(m_recaptchaPlugin, SIGNAL(error(RecaptchaPlugin::ErrorType)),
+                      this, SLOT(onRecaptchaPluginError(RecaptchaPlugin::ErrorType)));
+        this->connect(m_recaptchaPlugin, SIGNAL(captchaReady(QByteArray)),
+                      this, SLOT(onCaptchaReady(QByteArray)));
     }
-
+    
     this->setStatusInfo(tr("Retrieving captcha challenge"));
 
     m_recaptchaPlugin->getCaptcha(m_servicePlugin->recaptchaKey());
@@ -1185,8 +1219,10 @@ void Transfer::onCaptchaReady(const QByteArray &imageData) {
             m_decaptchaPlugin->setParent(this);
             m_decaptchaPlugin->setNetworkAccessManager(m_nam);
 
-            this->connect(m_decaptchaPlugin, SIGNAL(error(DecaptchaPlugin::ErrorType)), this, SLOT(onDecaptchaPluginError(DecaptchaPlugin::ErrorType)));
-            this->connect(m_decaptchaPlugin, SIGNAL(captchaResponseReady(QString)), this, SLOT(onCaptchaResponseReady(QString)));
+            this->connect(m_decaptchaPlugin, SIGNAL(error(DecaptchaPlugin::ErrorType)),
+                          this, SLOT(onDecaptchaPluginError(DecaptchaPlugin::ErrorType)));
+            this->connect(m_decaptchaPlugin, SIGNAL(captchaResponseReady(QString)),
+                          this, SLOT(onCaptchaResponseReady(QString)));
         }
         else if (Settings::instance()->decaptchaService() != m_decaptchaPlugin->serviceName()) {
             delete m_decaptchaPlugin;
@@ -1201,8 +1237,19 @@ void Transfer::onCaptchaReady(const QByteArray &imageData) {
             m_decaptchaPlugin->setParent(this);
             m_decaptchaPlugin->setNetworkAccessManager(m_nam);
 
-            this->connect(m_decaptchaPlugin, SIGNAL(error(DecaptchaPlugin::ErrorType)), this, SLOT(onDecaptchaPluginError(DecaptchaPlugin::ErrorType)));
-            this->connect(m_decaptchaPlugin, SIGNAL(captchaResponseReady(QString)), this, SLOT(onCaptchaResponseReady(QString)));
+            this->connect(m_decaptchaPlugin, SIGNAL(error(DecaptchaPlugin::ErrorType)),
+                          this, SLOT(onDecaptchaPluginError(DecaptchaPlugin::ErrorType)));
+            this->connect(m_decaptchaPlugin, SIGNAL(captchaResponseReady(QString)),
+                          this, SLOT(onCaptchaResponseReady(QString)));
+        }
+        
+        if (!m_decaptchaLoggedIn) {
+            QPair<QString, QString> account = Database::instance()->getAccount(m_decaptchaPlugin->serviceName());
+
+            if ((!account.first.isEmpty()) && (!account.second.isEmpty())) {
+                m_decaptchaPlugin->login(account.first, account.second);
+                m_decaptchaLoggedIn = true;
+            }
         }
 
         this->setStatusInfo(QString("%1 %2").arg(tr("Retrieving captcha response from")).arg(m_decaptchaPlugin->serviceName()));
@@ -1436,7 +1483,8 @@ void Transfer::onConnectionCompleted(Connection *connection) {
                 this->onFileWriteCompleted();
             }
         }
-        else if ((this->activeConnections() < this->preferredConnections()) && ((this->size() - this->position()) > MIN_FRAGMENT_SIZE)) {
+        else if ((this->activeConnections() < this->preferredConnections())
+                  && ((this->size() - this->position()) > MIN_FRAGMENT_SIZE)) {
             this->addConnections();
         }
     }
@@ -1564,8 +1612,10 @@ void Transfer::moveFiles() {
         int i = 1;
 
         while ((destinationDir.exists(fileName)) && (i < 100)) {
-            fileName = (i == 1 ? QString("%1(%2)%3").arg(fileName.left(fileName.lastIndexOf('.'))).arg(i).arg(fileName.mid(fileName.lastIndexOf('.')))
-                              : QString("%1(%2)%3").arg(fileName.left(fileName.lastIndexOf('('))).arg(i).arg(fileName.mid(fileName.lastIndexOf('.'))));
+            fileName = (i == 1 ? QString("%1(%2)%3").arg(fileName.left(fileName.lastIndexOf('.')))
+                                                    .arg(i).arg(fileName.mid(fileName.lastIndexOf('.')))
+                              : QString("%1(%2)%3").arg(fileName.left(fileName.lastIndexOf('('))).arg(i)
+                                                   .arg(fileName.mid(fileName.lastIndexOf('.'))));
             i++;
         }
 
@@ -1593,7 +1643,8 @@ void Transfer::removeFiles() {
     this->removeCaptchaFile();
 
     if (!m_file.remove()) {
-        QFile::remove(QString("%1%2%3").arg(this->downloadPath()).arg(this->downloadPath().endsWith("/") ? "" : "/").arg(this->fileName()));
+        QFile::remove(QString("%1%2%3").arg(this->downloadPath()).arg(this->downloadPath().endsWith("/") ? "" : "/")
+                                       .arg(this->fileName()));
     }
 
     if ((m_transfers.isEmpty()) && (this->isPackage())) {

@@ -263,7 +263,7 @@ Page {
         ValueDialog {
             titleText: qsTr("After current download(s)")
             model: TransferActionModel {}
-	    value: TransferModel.nextAction
+	        value: TransferModel.nextAction
             onNameChanged: nextActionMenuItem.subTitle = name
             onValueChanged: TransferModel.nextAction = value
         }
@@ -382,15 +382,7 @@ Page {
 
     Connections {
         target: PluginManager
-        onBusy: progressInfo.open(message, numberOfOperations)
-        onProgressChanged: progressInfo.updateProgress(progress)
-        onPluginsReady: {
-            progressInfo.close();
-
-            if (!TransferModel.count) {
-                TransferModel.restoreStoredTransfers();
-            }
-        }
+        onPluginsReady: if (!TransferModel.count) TransferModel.restoreStoredTransfers();
     }
 
     Component.onCompleted: PluginManager.loadPlugins()

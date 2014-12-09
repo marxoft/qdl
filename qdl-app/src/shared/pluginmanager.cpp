@@ -16,14 +16,12 @@
  */
 
 #include "pluginmanager.h"
+#include "networkaccessmanager.h"
 #include "../interfaces/serviceplugin.h"
 #include "../interfaces/decaptchaplugin.h"
 #include "../interfaces/recaptchaplugin.h"
-#include "database.h"
-#include "networkaccessmanager.h"
 #include <QPluginLoader>
 #include <QDir>
-#include <QDebug>
 #include <QCoreApplication>
 
 #if (defined Q_OS_SYMBIAN)
@@ -37,8 +35,7 @@
 PluginManager* PluginManager::self = 0;
 
 PluginManager::PluginManager() :
-    QObject(),
-    m_progress(0)
+    QObject()
 {
     if (!self) {
         self = this;
@@ -71,21 +68,11 @@ void PluginManager::loadServicePlugins() {
                 plugin->setNetworkAccessManager(NetworkAccessManager::instance());
                 m_services.append(plugin);
                 m_serviceNames.append(plugin->serviceName());
-
-                if (plugin->loginSupported()) {
-                    m_loginQueue.enqueue(plugin);
-                }
             }
         }
     }
 
-    if (!m_loginQueue.isEmpty()) {
-        emit busy(tr("Loading plugins"), m_loginQueue.size());
-        this->loginToAccounts();
-    }
-    else {
-        emit pluginsReady();
-    }
+    emit pluginsReady();
 }
 
 void PluginManager::loadDecaptchaPlugins() {
@@ -100,12 +87,6 @@ void PluginManager::loadDecaptchaPlugins() {
         if (DecaptchaInterface* decaptchaIf = qobject_cast<DecaptchaInterface*>(instance)) {
             if (DecaptchaPlugin *plugin = decaptchaIf->getDecaptchaPlugin()) {
                 plugin->setNetworkAccessManager(NetworkAccessManager::instance());
-                QPair<QString, QString> account = Database::instance()->getAccount(plugin->serviceName());
-
-                if ((!account.first.isEmpty()) && (!account.second.isEmpty())) {
-                    plugin->login(account.first, account.second);
-                }
-
                 m_decaptchaServices.append(plugin);
                 m_decaptchaNames.append(plugin->serviceName());
             }
@@ -129,49 +110,6 @@ void PluginManager::loadRecaptchaPlugins() {
                 m_recaptchaNames.append(plugin->serviceName());
             }
         }
-    }
-}
-
-void PluginManager::loginToAccounts() {
-    ServicePlugin *plugin = m_loginQueue.first();
-    QPair<QString, QString> account = Database::instance()->getAccount(plugin->serviceName());
-
-    if ((!account.first.isEmpty()) && (!account.second.isEmpty())) {
-        plugin->login(account.first, account.second);
-        this->connect(plugin, SIGNAL(loggedIn(bool)), this, SLOT(onAccountLogin(bool)));
-    }
-    else {
-        emit progressChanged(m_progress++);
-        m_loginQueue.dequeue();
-
-        if (!m_loginQueue.isEmpty()) {
-            this->loginToAccounts();
-        }
-        else {
-            emit pluginsReady();
-        }
-    }
-}
-
-void PluginManager::onAccountLogin(bool ok) {
-    emit progressChanged(m_progress++);
-
-    if (ServicePlugin *plugin = m_loginQueue.dequeue()) {
-        this->disconnect(plugin, SIGNAL(loggedIn(bool)), this, SLOT(onAccountLogin(bool)));
-
-        if (ok) {
-            qDebug() << "Login successful: " + plugin->serviceName();
-        }
-        else {
-            qDebug() << "Login failed: " + plugin->serviceName();
-        }
-    }
-
-    if (!m_loginQueue.isEmpty()) {
-        this->loginToAccounts();
-    }
-    else {
-        emit pluginsReady();
     }
 }
 
@@ -262,8 +200,6 @@ DecaptchaPlugin* PluginManager::createDecaptchaPlugin(const QString &serviceName
         if (m_decaptchaServices.at(i)->serviceName() == serviceName) {
             if (DecaptchaPlugin *plugin = m_decaptchaServices.at(i)->createDecaptchaPlugin()) {
                 plugin->setNetworkAccessManager(NetworkAccessManager::instance());
-                plugin->login(m_decaptchaServices.at(i)->username(), m_decaptchaServices.at(i)->password());
-                this->connect(m_decaptchaServices.at(i), SIGNAL(credentialsChanged(QString,QString)), plugin, SLOT(login(QString,QString)));
                 return plugin;
             }
             else {

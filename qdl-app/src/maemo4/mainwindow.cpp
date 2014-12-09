@@ -292,13 +292,12 @@ MainWindow::MainWindow(QWidget *parent) :
     this->connect(Settings::instance(), SIGNAL(downloadRateLimitChanged(int)), this, SLOT(onDownloadRateLimitChanged(int)));
     this->connect(Database::instance(), SIGNAL(categoriesChanged()), this, SLOT(setCategoryMenuActions()));
     this->connect(ClipboardMonitor::instance(), SIGNAL(clipboardUrlsReady(QString)), this, SLOT(showAddUrlsDialog(QString)));
-    this->connect(PluginManager::instance(), SIGNAL(busy(QString,int)), this, SLOT(showProgressDialog(QString,int)));
-    this->connect(PluginManager::instance(), SIGNAL(progressChanged(int)), this, SLOT(updateProgressDialog(int)));
     this->connect(PluginManager::instance(), SIGNAL(pluginsReady()), this, SLOT(onPluginsReady()));
-    this->connect(PluginManager::instance(), SIGNAL(pluginsReady()), this, SLOT(hideProgressDialog()));
 
     this->onPackageCountChanged(m_model->rowCount());
     this->setCategoryMenuActions();
+    
+    PluginManager::instance()->loadPlugins();
 }
 
 MainWindow::~MainWindow() {}
@@ -347,14 +346,6 @@ void MainWindow::keyPressEvent(QKeyEvent *event) {
     }
 
     QMainWindow::keyPressEvent(event);
-}
-
-void MainWindow::showEvent(QShowEvent *event) {
-    if (PluginManager::instance()->servicePlugins().isEmpty()) {
-        QTimer::singleShot(1000, PluginManager::instance(), SLOT(loadPlugins()));
-    }
-
-    QMainWindow::showEvent(event);
 }
 
 void MainWindow::setFullScreen(bool fullScreen) {

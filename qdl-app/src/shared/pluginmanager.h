@@ -19,7 +19,6 @@
 #define PLUGINMANAGER_H
 
 #include <QObject>
-#include <QQueue>
 #include <QStringList>
 
 class ServicePlugin;
@@ -31,13 +30,7 @@ class PluginManager : public QObject
 {
     Q_OBJECT
 
-    Q_PROPERTY(int progress
-               READ progress
-               NOTIFY progressChanged)
-
 public:
-    inline int progress() const { return m_progress; }
-
     Q_INVOKABLE bool servicePluginExists(const QString &serviceName) const;
     Q_INVOKABLE bool servicePluginExists(const QUrl &url) const;
     ServicePlugin* getServicePlugin(const QString &serviceName) const;
@@ -69,14 +62,8 @@ private:
     void loadServicePlugins();
     void loadDecaptchaPlugins();
     void loadRecaptchaPlugins();
-    void loginToAccounts();
-
-private slots:
-    void onAccountLogin(bool ok);
 
 signals:
-    void busy(const QString &message, int numberOfOperations);
-    void progressChanged(int progress);
     void pluginsReady();
     
 private:
@@ -90,10 +77,6 @@ private:
 
     QList<RecaptchaPlugin*> m_recaptchaServices;
     QStringList m_recaptchaNames;
-
-    QQueue<ServicePlugin*> m_loginQueue;
-
-    int m_progress;
 };
 
 #endif // PLUGINMANAGER_H
