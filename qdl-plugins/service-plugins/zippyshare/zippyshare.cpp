@@ -119,10 +119,9 @@ void Zippyshare::checkUrlIsValid() {
     reply->deleteLater();
 }
 
-void Zippyshare::getDownloadRequest(const QUrl &webUrl) {
+void Zippyshare::getDownloadRequest(const QUrl &url) {
     emit statusChanged(Connecting);
-    m_url = webUrl.toString();
-    QNetworkRequest request(webUrl);
+    QNetworkRequest request(url);
     request.setRawHeader("Accept-Language", "en-GB,en-US;q=0.8,en;q=0.6");
     QNetworkReply *reply = this->networkAccessManager()->get(request);
     this->connect(reply, SIGNAL(finished()), this, SLOT(onWebPageDownloaded()));
@@ -160,62 +159,46 @@ void Zippyshare::onWebPageDownloaded() {
             emit error(NotFound);
         }
         else {
-            QString varA = response.section("var a = ", 1, 1).section(';', 0, 0);
-            QString varB = response.section("var b = ", 1, 1).section(';', 0, 0);
-            QString varC = response.section("var c = ", 1, 1).section(';', 0, 0);
-            QString varD = response.section("var d = ", -1).section(';', 0, 0);
+            QString func = response.section("var somffunction = function()", 1, 1).section("</script>", 0, 0).simplified();
 
-            int a = 0;
-            int b = 0;
-            int c = 0;
-            int d = 0;
-
-            if (varA.contains('%')) {
-                a = varA.section('%', 0, 0).toInt() % varA.section('%', -1).toInt();
+            if (func.isEmpty()) {
+                emit error(UnknownError);
             }
             else {
-                a = varA.toInt();
-            }
+                QString varOmg = func.section("document.getElementById('downloadB').omg = ", 1, 1).section(';', 0, 0);
+                QString varB = func.section("var b = parseInt(document.getElementById('downloadB').omg) * (", 1, 1)
+                                   .section(");", 0, 0);
 
-            if (varB.contains('%')) {
-                b = varB.section('%', 0, 0).toInt() % varB.section('%', -1).toInt();
-            }
-            else {
-                b = varB.toInt();
-            }
-
-            if (varC.contains('%')) {
-                c = varC.section('%', 0, 0).toInt() % varC.section('%', -1).toInt();
-            }
-            else {
-                c = varC.toInt();
-            }
-
-            if (varD.contains('%')) {
-                d = varD.section('%', 0, 0).toInt() % varD.section('%', -1).toInt();
-            }
-            else {
-                d = varD.toInt();
-            }
-
-            int num = a * b + c + d;
-
-            if (num > 0) {
-                QString urlPartOne = m_url.section("/v/", 0, 0);
-                QString urlPartTwo = response.section("getElementById('dlbutton').href = \"", 1, 1).section('"', 0, 0);
-                QString urlPartThree = QString::number(num);
-                QString urlPartFour = response.section("(a * b + c + d)+\"", 1, 1).section('"', 0, 0);
-                QUrl url(urlPartOne + urlPartTwo + urlPartThree + urlPartFour);
-
-                if (url.isValid()) {
-                    emit downloadRequestReady(QNetworkRequest(url));
+                int omg = 0;
+                int b = 0;
+                int add = 18;
+                
+                if (varOmg.contains('%')) {
+                    omg = qMax(1, varOmg.section('%', 0, 0).toInt() % varOmg.section('%', -1).toInt());
                 }
                 else {
+                    omg = qMax(1, varOmg.toInt());
+                }
+
+                if (varB.contains('%')) {
+                    b = omg * qMax(1, varB.section('%', 0, 0).toInt() % varB.section('%', -1).toInt());
+                }
+                else {
+                    b = omg * qMax(1, varB.toInt());
+                }
+
+                QString path = func.section("getElementById('downloadB').href = \"", 1, 1)
+                                   .section("\";", 0, 0)
+                                   .replace(QRegExp("\"\\+\\(b\\+\\d+\\)\\+\""), QString::number(b + add));
+                                 
+                if (path.isEmpty()) {
                     emit error(UnknownError);
                 }
-            }
-            else {
-                emit error(UnknownError);
+                else {
+                    QUrl url = reply->url();
+                    url.setPath(path);
+                    emit downloadRequestReady(QNetworkRequest(url));
+                }
             }
         }
     }

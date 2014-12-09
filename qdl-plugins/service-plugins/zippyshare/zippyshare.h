@@ -58,7 +58,6 @@ signals:
     void currentOperationCancelled();
 
 private:
-    QString m_url;
     QTimer *m_waitTimer;
     int m_waitTime;
     int m_wait;
