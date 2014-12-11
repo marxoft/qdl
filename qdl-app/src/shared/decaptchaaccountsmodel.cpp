@@ -91,7 +91,7 @@ QVariant DecaptchaAccountsModel::data(const QModelIndex &index, int role) const 
         case 1:
             return m_list.at(index.row()).username;
         case 2:
-            return m_list.at(index.row()).password;
+            return QString("********");
         default:
             return QVariant();
         }

@@ -51,6 +51,8 @@ CaptchaSettingsTab::CaptchaSettingsTab(QWidget *parent) :
 
     m_editAction->setIconVisibleInMenu(true);
     m_removeAction->setIconVisibleInMenu(true);
+    
+    m_passEdit->setEchoMode(QLineEdit::Password);
 
     m_doneButton->setEnabled(false);
 
@@ -92,7 +94,8 @@ void CaptchaSettingsTab::onCheckboxClicked(bool checked) {
 
 void CaptchaSettingsTab::addAccount() {
     if (m_view->currentIndex().isValid()) {
-        m_model->addAccount(m_view->currentIndex().data(DecaptchaAccountsModel::ServiceNameRole).toString(), m_nameEdit->text(), m_passEdit->text());
+        m_model->addAccount(m_view->currentIndex().data(DecaptchaAccountsModel::ServiceNameRole).toString(),
+                            m_nameEdit->text(), m_passEdit->text());
     }
 
     m_nameEdit->clear();
@@ -111,7 +114,8 @@ void CaptchaSettingsTab::editAccount() {
     if (index.isValid()) {
         m_nameEdit->setText(index.data(DecaptchaAccountsModel::UsernameRole).toString());
         m_passEdit->setText(index.data(DecaptchaAccountsModel::PasswordRole).toString());
-        m_checkbox->setChecked(Settings::instance()->decaptchaService() == index.data(DecaptchaAccountsModel::ServiceNameRole).toString());
+        m_checkbox->setChecked(Settings::instance()->decaptchaService()
+                               == index.data(DecaptchaAccountsModel::ServiceNameRole).toString());
     }
 }
 

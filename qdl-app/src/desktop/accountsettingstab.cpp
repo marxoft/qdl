@@ -47,6 +47,8 @@ AccountSettingsTab::AccountSettingsTab(QWidget *parent) :
 
     m_editAction->setIconVisibleInMenu(true);
     m_removeAction->setIconVisibleInMenu(true);
+    
+    m_passEdit->setEchoMode(QLineEdit::Password);
 
     m_doneButton->setEnabled(false);
 
@@ -76,7 +78,8 @@ void AccountSettingsTab::showContextMenu(const QPoint &pos) {
 
 void AccountSettingsTab::addAccount() {
     if (m_view->currentIndex().isValid()) {
-        m_model->addAccount(m_view->currentIndex().data(ServiceAccountsModel::ServiceNameRole).toString(), m_nameEdit->text(), m_passEdit->text());
+        m_model->addAccount(m_view->currentIndex().data(ServiceAccountsModel::ServiceNameRole).toString(),
+                            m_nameEdit->text(), m_passEdit->text());
     }
 
     m_nameEdit->clear();
