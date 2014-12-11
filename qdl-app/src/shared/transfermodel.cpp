@@ -867,7 +867,8 @@ void TransferModel::onTransferStatusChanged(Transfers::Status status) {
 
             break;
         }
-
+        
+        QMetaObject::invokeMethod(this, "storeTransfers", Qt::QueuedConnection);
         break;
     }
     case Transfers::Cancelled:
@@ -933,6 +934,8 @@ void TransferModel::onTransferStatusChanged(Transfers::Status status) {
 
             QMetaObject::invokeMethod(this, "storeTransfers", Qt::QueuedConnection);
         }
+        
+        break;
     }
     default:
         break;
