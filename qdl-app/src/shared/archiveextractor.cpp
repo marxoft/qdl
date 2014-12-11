@@ -104,7 +104,10 @@ void ArchiveExtractor::start() {
         command.append(QString(" -d \"%1%2\"").arg(this->outputDirectory()).arg(this->createSubfolder() ? subFolder : ""));
     }
     else if (fileSuffix == "gz") {
-        command = QString("untar xvf \"%1\" -C \"%2%3\"").arg(this->fileName()).arg(this->outputDirectory()).arg(this->createSubfolder() ? subFolder : "");
+        command = QString("untar xvf \"%1\" -C \"%2%3\"")
+                  .arg(this->fileName())
+                  .arg(this->outputDirectory())
+                  .arg(this->createSubfolder() ? subFolder : "");
     }
 
     qDebug() << "Extracting files with command:" << command;
@@ -117,7 +120,8 @@ void ArchiveExtractor::start() {
     else {
         if (!m_process) {
             m_process = new QProcess(this);
-            this->connect(m_process, SIGNAL(finished(int,QProcess::ExitStatus)), this, SLOT(onProcessFinished(int,QProcess::ExitStatus)));
+            this->connect(m_process, SIGNAL(finished(int,QProcess::ExitStatus)),
+                          this, SLOT(onProcessFinished(int,QProcess::ExitStatus)));
         }
 
         if (m_process->state() != QProcess::Running) {

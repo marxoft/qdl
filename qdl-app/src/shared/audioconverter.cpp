@@ -62,7 +62,10 @@ void AudioConverter::start() {
     }
 
     if (m_process->state() != QProcess::Running) {
-        m_process->start(QString("ffmpeg -i \"%1\" -acodec copy -y -vn \"%2\"").arg(this->fileName()).arg(this->outputDirectory() + this->fileName().section('/', -1).section('.', 0, -2) + ".m4a"));
+        m_process->start(QString("ffmpeg -i \"%1\" -acodec copy -y -vn \"%2\"")
+                         .arg(this->fileName())
+                         .arg(this->outputDirectory()
+                         + this->fileName().section('/', -1).section('.', 0, -2) + ".m4a"));
     }
 }
 

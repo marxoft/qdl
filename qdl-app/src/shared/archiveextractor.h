@@ -45,7 +45,8 @@ public:
 
 public slots:
     void start();
-    void start(const QString &fileName, const QString &outputDirectory, const QString &password = QString(), bool createSubfolder = true);
+    void start(const QString &fileName, const QString &outputDirectory, const QString &password = QString(),
+               bool createSubfolder = true);
 
 private:
     void setErrorString(const QString &errorString);
