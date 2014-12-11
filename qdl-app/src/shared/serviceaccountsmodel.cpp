@@ -91,7 +91,7 @@ QVariant ServiceAccountsModel::data(const QModelIndex &index, int role) const {
         case 1:
             return m_list.at(index.row()).username;
         case 2:
-            return QString("********");
+            return m_list.at(index.row()).password.isEmpty() ? QString() : QString("******");
         default:
             return QVariant();
         }
