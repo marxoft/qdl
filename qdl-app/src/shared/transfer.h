@@ -257,7 +257,7 @@ public:
     void setConvertToAudio(bool convert);
 
     int preferredConnections() const;
-    void setPreferredConnections(int pref, bool overrideGlobalSetting = true);
+    void setPreferredConnections(int pref);
 
     int maximumConnections() const;
 

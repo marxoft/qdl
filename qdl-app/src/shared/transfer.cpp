@@ -69,8 +69,8 @@ Transfer::Transfer(QObject *parent) :
     m_serviceLoggedIn(false),
     m_decaptchaLoggedIn(false),
     m_row(0),
-    m_preferredConnections(1),
-    m_maxConnections(1)
+    m_preferredConnections(qMin(Settings::instance()->maximumConnectionsPerTransfer(), MAX_CONNECTIONS)),
+    m_maxConnections(MAX_CONNECTIONS)
   #ifdef QML_USER_INTERFACE
     ,m_expanded(false)
   #endif
@@ -446,22 +446,10 @@ void Transfer::setServiceName(const QString &name) {
 
         if (name.isEmpty()) {
             this->setIconFileName(ICON_PATH + "qdl.png");
-            this->setPreferredConnections(1);
-            this->setMaximumConnections(1);
         }
         else {
             ServicePlugin *plugin = PluginManager::instance()->getServicePlugin(name);
             this->setIconFileName(ICON_PATH + (!plugin ? "qdl.png" : plugin->iconName()));
-
-            if ((plugin) && (plugin->maximumConnections() <= 0)) {
-                // Plugin allows unlimited connections
-                this->setMaximumConnections(MAX_CONNECTIONS);
-                this->setPreferredConnections(Settings::instance()->maximumConnectionsPerTransfer(), false);
-            }
-            else {
-                this->setMaximumConnections(!plugin ? 1 : qMin(plugin->maximumConnections(), MAX_CONNECTIONS));
-                this->setPreferredConnections(!plugin ? 1 : qMin(plugin->maximumConnections(), Settings::instance()->maximumConnectionsPerTransfer()), false);
-            }
         }
     }
 }
@@ -685,21 +673,14 @@ int Transfer::preferredConnections() const {
     return m_preferredConnections;
 }
 
-void Transfer::setPreferredConnections(int pref, bool overrideGlobalSetting) {
-    if ((pref != this->preferredConnections()) && (pref > 0) && (pref < this->maximumConnections())) {
+void Transfer::setPreferredConnections(int pref) {
+    if ((pref != this->preferredConnections()) && (pref > 0) && (pref <= this->maximumConnections())) {
         m_preferredConnections = pref;
 #ifdef QML_USER_INTERFACE
         emit preferredConnectionsChanged();
 #else
         emit dataChanged(PreferredConnectionsRole);
 #endif
-        if (overrideGlobalSetting) {
-            this->disconnect(Settings::instance(), SIGNAL(maximumConnectionsPerTransferChanged(int,int)), this, SLOT(onMaximumConnectionsChanged(int,int)));
-        }
-        else {
-            this->connect(Settings::instance(), SIGNAL(maximumConnectionsPerTransferChanged(int,int)), this, SLOT(onMaximumConnectionsChanged(int,int)));
-        }
-
         if (this->status() == Transfers::Downloading) {
             if (pref > this->activeConnections()) {
                 this->addConnections(pref - this->activeConnections());
@@ -1020,6 +1001,11 @@ void Transfer::start() {
             return;
         }
     }
+    
+    if (m_servicePlugin->maximumConnections() > 0) {
+        this->setMaximumConnections(qMin(m_servicePlugin->maximumConnections(), MAX_CONNECTIONS));
+        this->setPreferredConnections(qMin(m_servicePlugin->maximumConnections(), this->preferredConnections()));
+    }
 
     m_servicePlugin->getDownloadRequest(this->url());
 }
@@ -1064,6 +1050,11 @@ void Transfer::onServicePluginLoggedIn(bool ok) {
     m_serviceLoggedIn = ok;
     
     if (m_servicePlugin) {
+        if (m_servicePlugin->maximumConnections() > 0) {
+            this->setMaximumConnections(qMin(m_servicePlugin->maximumConnections(), MAX_CONNECTIONS));
+            this->setPreferredConnections(qMin(m_servicePlugin->maximumConnections(), this->preferredConnections()));
+        }
+        
         m_servicePlugin->getDownloadRequest(this->url());
     }
 }
@@ -1552,7 +1543,8 @@ void Transfer::extractArchive(const QString &password) {
         outputDirectory = Settings::instance()->downloadPath();
     }
 
-    m_extractor->start(this->downloadPath() + this->fileName(), outputDirectory, password, Settings::instance()->createSubfolderForArchives());
+    m_extractor->start(this->downloadPath() + this->fileName(), outputDirectory, password,
+                       Settings::instance()->createSubfolderForArchives());
 }
 
 void Transfer::onArchiveExtractionFinished() {
