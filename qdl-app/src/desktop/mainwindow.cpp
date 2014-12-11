@@ -83,7 +83,7 @@ MainWindow::MainWindow(QWidget *parent) :
     m_model(TransferModel::instance()),
     m_filterModel(new TransferFilterModel(this)),
     m_view(new QTreeView(this)),
-    m_urlMenu(this->menuBar()->addMenu(tr("URLs"))),
+    m_urlMenu(this->menuBar()->addMenu(tr("File"))),
     m_addUrlsAction(m_urlMenu->addAction(QIcon::fromTheme("list-add"), tr("Add URLs"),
                                          this, SLOT(showAddUrlsDialog()), Qt::CTRL + Qt::Key_A)),
     m_importUrlsAction(m_urlMenu->addAction(QIcon::fromTheme("document-open"), tr("Import URLs"),
