@@ -628,11 +628,10 @@ void TransferModel::addTransfer(const QUrl &url, const QString &service, const Q
 #endif
     this->connect(transfer, SIGNAL(statusChanged(Transfers::Status)), this, SLOT(onTransferStatusChanged(Transfers::Status)));
 
-    if ((Settings::instance()->startTransfersAutomatically()) && (m_activeTransfers.size() < Settings::instance()->maximumConcurrentTransfers())) {
-        if (this->canAddActiveTransfer(transfer)) {
-            this->addActiveTransfer(transfer);
-            transfer->start();
-        }
+    if ((Settings::instance()->startTransfersAutomatically())
+        && (m_activeTransfers.size() < Settings::instance()->maximumConcurrentTransfers())) {
+        this->addActiveTransfer(transfer);
+        transfer->start();
     }
 }
 
@@ -643,9 +642,7 @@ void TransferModel::getNextTransfers() {
         foreach (Transfer *parentTransfer, m_rootItem->childTransfers()) {
             if ((parentTransfer->priority() == priority) && (parentTransfer->status() == Transfers::Queued)) {
                 if (m_activeTransfers.size() < Settings::instance()->maximumConcurrentTransfers()) {
-                    if (this->canAddActiveTransfer(parentTransfer)) {
-                        this->addActiveTransfer(parentTransfer);
-                    }
+                    this->addActiveTransfer(parentTransfer);
                 }
                 else {
                     return;
@@ -655,9 +652,7 @@ void TransferModel::getNextTransfers() {
             foreach (Transfer *transfer, parentTransfer->childTransfers()) {
                 if ((transfer->priority() == priority) && (transfer->status() == Transfers::Queued)) {
                     if (m_activeTransfers.size() < Settings::instance()->maximumConcurrentTransfers()) {
-                        if (this->canAddActiveTransfer(transfer)) {
-                            this->addActiveTransfer(transfer);
-                        }
+                        this->addActiveTransfer(parentTransfer);
                     }
                     else {
                         return;
@@ -676,26 +671,6 @@ void TransferModel::startNextTransfers() {
     foreach (Transfer *transfer, m_activeTransfers) {
         transfer->start();
     }
-}
-
-bool TransferModel::canAddActiveTransfer(Transfer *transfer) {
-    if (ServicePlugin *plugin = PluginManager::instance()->getServicePlugin(transfer->serviceName())) {
-        if (plugin->maximumConnections() > 0) {
-            int count = 0;
-            
-            foreach (Transfer *t, m_activeTransfers) {
-                if (t->serviceName() == transfer->serviceName()) {
-                    count++;
-                }
-            }
-            
-            if (count >= plugin->maximumConnections()) {
-                return false;
-            }
-        }
-    }
-    
-    return true;
 }
 
 void TransferModel::addActiveTransfer(Transfer *transfer) {

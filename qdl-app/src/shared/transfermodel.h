@@ -118,7 +118,6 @@ private:
 
     void getNextTransfers();
 
-    bool canAddActiveTransfer(Transfer *transfer);
     void addActiveTransfer(Transfer *transfer);
     void removeActiveTransfer(Transfer *transfer);
 
