@@ -204,7 +204,7 @@ void Filespace::checkWaitTime() {
     else if (response.contains("You can download files up to ")) {
         emit error(TrafficExceeded);
     }
-    else if (response.contains("premium account to download this file")) {
+    else if (response.contains("file is available for Premium users only")) {
         this->setErrorString(tr("Premium account required"));
         emit error(Unauthorised);
     }
