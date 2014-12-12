@@ -66,8 +66,6 @@ Transfer::Transfer(QObject *parent) :
     m_convertible(false),
     m_checkedIfConvertible(false),
     m_convert(false),
-    m_serviceLoggedIn(false),
-    m_decaptchaLoggedIn(false),
     m_row(0),
     m_preferredConnections(qMin(Settings::instance()->maximumConnectionsPerTransfer(), MAX_CONNECTIONS)),
     m_maxConnections(MAX_CONNECTIONS)
@@ -991,7 +989,7 @@ void Transfer::start() {
         }
     }
     
-    if ((m_servicePlugin->loginSupported()) && (!m_serviceLoggedIn)) {
+    if (m_servicePlugin->loginSupported()) {
         QPair<QString, QString> account = Database::instance()->getAccount(m_servicePlugin->serviceName());
         
         if ((!account.first.isEmpty()) && (!account.second.isEmpty())) {
@@ -1047,7 +1045,6 @@ void Transfer::cancel() {
 
 void Transfer::onServicePluginLoggedIn(bool ok) {
     qDebug() << (ok ? "Login successful:" : "Login failed:")  << this->serviceName();
-    m_serviceLoggedIn = ok;
     
     if (m_servicePlugin) {
         if (m_servicePlugin->maximumConnections() > 0) {
@@ -1234,13 +1231,10 @@ void Transfer::onCaptchaReady(const QByteArray &imageData) {
                           this, SLOT(onCaptchaResponseReady(QString)));
         }
         
-        if (!m_decaptchaLoggedIn) {
-            QPair<QString, QString> account = Database::instance()->getAccount(m_decaptchaPlugin->serviceName());
+        QPair<QString, QString> account = Database::instance()->getAccount(m_decaptchaPlugin->serviceName());
 
-            if ((!account.first.isEmpty()) && (!account.second.isEmpty())) {
-                m_decaptchaPlugin->login(account.first, account.second);
-                m_decaptchaLoggedIn = true;
-            }
+        if ((!account.first.isEmpty()) && (!account.second.isEmpty())) {
+            m_decaptchaPlugin->login(account.first, account.second);
         }
 
         this->setStatusInfo(QString("%1 %2").arg(tr("Retrieving captcha response from")).arg(m_decaptchaPlugin->serviceName()));

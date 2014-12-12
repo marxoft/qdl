@@ -394,8 +394,6 @@ private:
     mutable bool m_convertible;
     mutable bool m_checkedIfConvertible;
     bool m_convert;
-    bool m_serviceLoggedIn;
-    bool m_decaptchaLoggedIn;
     int m_row;
     int m_preferredConnections;
     int m_maxConnections;
