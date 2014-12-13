@@ -1,3 +1,14 @@
+qdl-plugins (0.7.1) unstable; urgency=low
+  * Plugin fixes.
+
+ -- Stuart Howarth <showarth@marxoft.co.uk>  Mon, 01 Dec 2014 13:29:41 +0100
+
+qdl-plugins (0.7.0) unstable; urgency=low
+  * Plugins added for Bl.st, SecureUpload, Uploadto.us and Xerver.
+  * Plugin fixes.
+
+ -- Stuart Howarth <showarth@marxoft.co.uk>  Wed, 17 Sep 2014 23:07:24 +0100
+
 qdl-plugins (0.6.0) unstable; urgency=low
   * Plugins added for GigaPeta, Go4Up and Lafiles.
   * Plugin fixes.

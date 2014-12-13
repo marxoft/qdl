@@ -1,3 +1,11 @@
+qdl (1.2.2) unstable; urgency=low
+
+  * Attempt to re-connect if the connection is closed by the host (maximum of 8 re-connects).
+  * Login to accounts when required, instead of at startup.
+  * Hide account passwords in the UI.
+
+ -- Stuart Howarth <showarth@marxoft.co.uk>  Wed, 10 Dec 2014 21:56:45 +0000
+
 qdl (1.2.1) unstable; urgency=low
 
   * Use multiple columns for the transfer view.
