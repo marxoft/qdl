@@ -72,7 +72,7 @@ public:
     enum Status {
         Paused = 0,
         LongWait,
-        Cancelled,
+        Canceled,
         Failed,
         Completed,
         Queued,
@@ -112,8 +112,8 @@ public:
             return tr("Captcha required");
         case Downloading:
             return tr("Downloading");
-        case Cancelled:
-            return tr("Cancelled");
+        case Canceled:
+            return tr("Canceled");
         case Failed:
             return tr("Failed");
         case Completed:

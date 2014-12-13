@@ -31,7 +31,7 @@ UrlChecker::UrlChecker() :
     QObject(),
     m_model(new UrlCheckModel(this)),
     m_index(0),
-    m_cancelled(false)
+    m_canceled(false)
 {
     if (!self) {
         self = this;
@@ -139,7 +139,7 @@ void UrlChecker::addUrlToQueue(const QUrl &url) {
 }
 
 void UrlChecker::addUrlToQueue(const QUrl &url, const QString &service) {
-    m_cancelled = false;
+    m_canceled = false;
     bool start = m_urlQueue.isEmpty();
 
     if (m_model->rowCount() == 0) {
@@ -165,7 +165,7 @@ void UrlChecker::addUrlToQueue(const QString &url) {
 }
 
 void UrlChecker::addUrlToQueue(const QString &url, const QString &service) {
-    m_cancelled = false;
+    m_canceled = false;
     bool start = m_urlQueue.isEmpty();
 
     if (m_model->rowCount() == 0) {
@@ -196,7 +196,7 @@ void UrlChecker::addUrlsToQueue(QList<QUrl> urls) {
 }
 
 void UrlChecker::addUrlsToQueue(QList<QUrl> urls, const QString &service) {
-    m_cancelled = false;
+    m_canceled = false;
     bool start = m_urlQueue.isEmpty();
 
     if (m_model->rowCount() == 0) {
@@ -224,7 +224,7 @@ void UrlChecker::addUrlsToQueue(QStringList urls) {
 }
 
 void UrlChecker::addUrlsToQueue(QStringList urls, const QString &service) {
-    m_cancelled = false;
+    m_canceled = false;
     bool start = m_urlQueue.isEmpty();
 
     if (m_model->rowCount() == 0) {
@@ -276,8 +276,8 @@ void UrlChecker::importUrlsFromTextFile(const QString &filePath, const QString &
 }
 
 void UrlChecker::cancel() {
-    if (!m_cancelled) {
-        m_cancelled = true;
+    if (!m_canceled) {
+        m_canceled = true;
 
         const QModelIndex index = m_model->index(m_index, 0);
 
@@ -298,7 +298,7 @@ void UrlChecker::cancel() {
         }
 
         m_urlQueue.clear();
-        emit cancelled();
+        emit canceled();
     }
 }
 
@@ -312,7 +312,7 @@ void UrlChecker::onUrlChecked(bool ok, const QUrl &url, const QString &service, 
         m_index++;
         emit progressChanged(this->progress());
 
-        if ((!m_urlQueue.isEmpty()) && (!m_cancelled)) {
+        if ((!m_urlQueue.isEmpty()) && (!m_canceled)) {
             this->checkUrl(m_urlQueue.dequeue());
         }
     }

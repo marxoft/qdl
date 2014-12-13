@@ -720,7 +720,7 @@ void MainWindow::pauseCurrentTransfer() {
 
 void MainWindow::removeCurrentTransfer() {
     if (m_view->currentIndex().isValid()) {
-        m_model->setData(m_filterModel->mapToSource(m_view->currentIndex()), Transfers::Cancelled, Transfer::StatusRole);
+        m_model->setData(m_filterModel->mapToSource(m_view->currentIndex()), Transfers::Canceled, Transfer::StatusRole);
     }
 }
 
@@ -792,7 +792,7 @@ void MainWindow::removeCurrentPackage() {
     if (m_view->currentIndex().isValid()) {
         m_model->setData(m_filterModel->mapToSource(m_view->currentIndex().parent().isValid() ? m_view->currentIndex().parent()
                                                                                               : m_view->currentIndex()),
-                         Transfers::Cancelled, Transfer::PackageStatusRole);
+                         Transfers::Canceled, Transfer::PackageStatusRole);
     }
 }
 
@@ -865,7 +865,7 @@ void MainWindow::retrieveUrlsFromText(const QString &text) {
     this->connect(UrlRetriever::instance(), SIGNAL(progressChanged(int)), this, SLOT(updateProgressDialog(int)));
     this->connect(UrlRetriever::instance(), SIGNAL(finished()), this, SLOT(onUrlRetrieverFinished()));
     this->connect(UrlRetriever::instance(), SIGNAL(finished()), this, SLOT(hideProgressDialog()));
-    this->connect(UrlRetriever::instance(), SIGNAL(cancelled()), this, SLOT(hideProgressDialog()));
+    this->connect(UrlRetriever::instance(), SIGNAL(canceled()), this, SLOT(hideProgressDialog()));
     UrlRetriever::instance()->parseUrlsFromText(text);
 }
 

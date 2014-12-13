@@ -58,7 +58,7 @@ CheckUrlsDialog::CheckUrlsDialog(QWidget *parent) :
     grid->addWidget(buttonBox, 0, 1, 3, 1, Qt::AlignBottom);
 
     this->connect(UrlChecker::instance(), SIGNAL(progressChanged(int)), this, SLOT(onProgressChanged(int)));
-    this->connect(UrlChecker::instance(), SIGNAL(cancelled()), this, SLOT(onCancelled()));
+    this->connect(UrlChecker::instance(), SIGNAL(canceled()), this, SLOT(onCanceled()));
     this->connect(buttonBox, SIGNAL(accepted()), this, SLOT(accept()));
     this->connect(buttonBox, SIGNAL(rejected()), UrlChecker::instance(), SLOT(cancel()));
 }
@@ -80,10 +80,10 @@ void CheckUrlsDialog::onProgressChanged(int progress) {
     }
 }
 
-void CheckUrlsDialog::onCancelled() {
+void CheckUrlsDialog::onCanceled() {
     m_okButton->setEnabled(true);
     m_cancelButton->setEnabled(false);
-    m_infoLabel->setText(QString("<i>%1</i>").arg(tr("Cancelled")));
+    m_infoLabel->setText(QString("<i>%1</i>").arg(tr("Canceled")));
 }
 
 void CheckUrlsDialog::resetDialog() {

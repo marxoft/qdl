@@ -212,7 +212,7 @@ bool Transfer::setData(int role, const QVariant &value) {
         case Transfers::Paused:
             this->pause();
             break;
-        case Transfers::Cancelled:
+        case Transfers::Canceled:
             this->cancel();
             break;
         }
@@ -234,7 +234,7 @@ bool Transfer::setData(int role, const QVariant &value) {
         case Transfers::Paused:
             this->pausePackage();
             break;
-        case Transfers::Cancelled:
+        case Transfers::Canceled:
             this->cancelPackage();
             break;
         }
@@ -591,7 +591,7 @@ void Transfer::setStatus(Transfers::Status status) {
         case Transfers::CaptchaRequired:
             m_captchaTime.start();
             break;
-        case Transfers::Cancelled:
+        case Transfers::Canceled:
             this->removeFiles();
 
             if (m_servicePlugin) m_servicePlugin->cancelCurrentOperation();
@@ -1038,7 +1038,7 @@ void Transfer::cancel() {
 
         return;
     default:
-        this->setStatus(Transfers::Cancelled);
+        this->setStatus(Transfers::Canceled);
         return;
     }
 }
@@ -1437,7 +1437,7 @@ void Transfer::onConnectionStatusChanged(Transfers::Status status) {
         }
 
         break;
-    case Transfers::Cancelled:
+    case Transfers::Canceled:
         foreach (Connection *connection, m_connections) {
             if (connection->status() != status) {
                 return;

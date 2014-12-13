@@ -208,7 +208,7 @@ void Connection::cancel() {
         m_reply->abort();
     }
 
-    this->setStatus(Transfers::Cancelled);
+    this->setStatus(Transfers::Canceled);
 }
 
 void Connection::processData() {

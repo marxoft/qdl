@@ -79,7 +79,7 @@ private slots:
 signals:
     void urlReady(const QUrl &url, const QString &service, const QString &fileName);
     void progressChanged(int progress);
-    void cancelled();
+    void canceled();
     
 private:
     static UrlChecker *self;
@@ -89,7 +89,7 @@ private:
     QQueue<UrlCheck> m_urlQueue;
 
     int m_index;
-    bool m_cancelled;
+    bool m_canceled;
 };
 
 class UrlCheckModel : public QAbstractTableModel

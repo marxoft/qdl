@@ -67,7 +67,7 @@ signals:
     void busy(const QString &message, int numberOfOperations);
     void finished();
     void progressChanged(int progress);
-    void cancelled();
+    void canceled();
     
 private:
     static UrlRetriever *self;
@@ -80,7 +80,7 @@ private:
 
     int m_index;
     int m_total;
-    bool m_cancelled;
+    bool m_canceled;
 };
 
 class UrlProcessor : public QObject

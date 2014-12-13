@@ -32,7 +32,7 @@ UrlRetriever::UrlRetriever() :
     m_reply(0),
     m_index(0),
     m_total(0),
-    m_cancelled(false)
+    m_canceled(false)
 {
     if (!self) {
         self = this;
@@ -58,7 +58,7 @@ int UrlRetriever::progress() const {
 }
 
 void UrlRetriever::addUrlToQueue(const QUrl &url) {
-    m_cancelled = false;
+    m_canceled = false;
     bool start = m_urlQueue.isEmpty();
     m_urlQueue.enqueue(url);
     m_total = m_urlQueue.size();
@@ -72,7 +72,7 @@ void UrlRetriever::addUrlToQueue(const QUrl &url) {
 }
 
 void UrlRetriever::addUrlToQueue(const QString &url) {
-    m_cancelled = false;
+    m_canceled = false;
     bool start = m_urlQueue.isEmpty();
     m_urlQueue.enqueue(url);
     m_total = m_urlQueue.size();
@@ -86,7 +86,7 @@ void UrlRetriever::addUrlToQueue(const QString &url) {
 }
 
 void UrlRetriever::addUrlsToQueue(QList<QUrl> urls) {
-    m_cancelled = false;
+    m_canceled = false;
     bool start = m_urlQueue.isEmpty();
     
     while (!urls.isEmpty()) {
@@ -104,7 +104,7 @@ void UrlRetriever::addUrlsToQueue(QList<QUrl> urls) {
 }
 
 void UrlRetriever::addUrlsToQueue(QStringList urls) {
-    m_cancelled = false;
+    m_canceled = false;
     bool start = m_urlQueue.isEmpty();
     
     while (!urls.isEmpty()) {
@@ -137,8 +137,8 @@ void UrlRetriever::importUrlsFromTextFile(const QString &filePath) {
 }
 
 void UrlRetriever::cancel() {
-    if (!m_cancelled) {
-        m_cancelled = true;
+    if (!m_canceled) {
+        m_canceled = true;
 
         if (m_reply) {
             m_reply->deleteLater();
@@ -147,7 +147,7 @@ void UrlRetriever::cancel() {
 
         m_urlQueue.clear();
 
-        emit cancelled();
+        emit canceled();
     }
 }
 
@@ -164,7 +164,7 @@ void UrlRetriever::getWebPage(const QUrl &url) {
 
 void UrlRetriever::checkWebPage() {
     if (!m_reply) {
-        if (!m_cancelled) {
+        if (!m_canceled) {
             this->cancel();
         }
 
@@ -205,7 +205,7 @@ void UrlRetriever::onUrlsProcessed(const QList<QUrl> &urls) {
     m_index++;
     emit progressChanged(this->progress());
 
-    if ((!m_urlQueue.isEmpty()) && (!m_cancelled)) {
+    if ((!m_urlQueue.isEmpty()) && (!m_canceled)) {
         this->getWebPage(m_urlQueue.dequeue());
     }
     else {

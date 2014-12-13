@@ -38,7 +38,7 @@ protected:
 
 private slots:
     void onProgressChanged(int progress);
-    void onCancelled();
+    void onCanceled();
     void resetDialog();
     
 private:

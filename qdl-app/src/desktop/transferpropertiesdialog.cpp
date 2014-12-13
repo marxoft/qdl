@@ -161,7 +161,7 @@ void TransferPropertiesDialog::onTransferStatusChanged(Transfers::Status status)
         m_pauseButton->setEnabled(false);
         return;
     case Transfers::Completed:
-    case Transfers::Cancelled:
+    case Transfers::Canceled:
         this->close();
         return;
     default:

@@ -342,13 +342,13 @@ function updateCheckUrlsDialog() {
                 var okButton = document.getElementById("closeUrlChecksButton");
                 var label = document.getElementById("checkUrlsLabel");
                 var table = document.getElementById("checkUrlsTable");
-                var cancelled = cancelButton.disabled;
+                var canceled = cancelButton.disabled;
                 var completed = progress == 100;
                 
                 bar.style.width = progress + "%";
-                cancelButton.disabled = ((completed) || (cancelled));
+                cancelButton.disabled = ((completed) || (canceled));
                 okButton.disabled = !cancelButton.disabled;
-                label.innerHTML = "<br><i>" + (completed ? "Completed" : cancelled ? "Cancelled" : "Checking URLs") + "</i><br>";
+                label.innerHTML = "<br><i>" + (completed ? "Completed" : canceled ? "Canceled" : "Checking URLs") + "</i><br>";
                 
                 for (var i = 0; i < urls.length; i++) {
                     var row = table.rows[i + 1];
@@ -365,7 +365,7 @@ function updateCheckUrlsDialog() {
                     }
                 }
                 
-                if ((!cancelled) && (!completed)) {
+                if ((!canceled) && (!completed)) {
                     window.setTimeout(updateCheckUrlsDialog, 2000);
                 }       
             }

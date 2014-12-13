@@ -205,7 +205,7 @@ void PackageTransferModel::onTransferDataChanged(int role) {
 void PackageTransferModel::onTransferStatusChanged(Transfers::Status status) {
     switch (status) {
     case Transfers::Completed:
-    case Transfers::Cancelled:
+    case Transfers::Canceled:
         if (Transfer *transfer = qobject_cast<Transfer*>(this->sender())) {
             if ((transfer->rowNumber() >= 0) && (transfer->rowNumber() < this->rowCount())) {
                 this->beginRemoveRows(QModelIndex(), transfer->rowNumber(), transfer->rowNumber());
