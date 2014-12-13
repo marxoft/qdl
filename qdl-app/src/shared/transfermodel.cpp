@@ -225,6 +225,10 @@ QModelIndex TransferModel::index(int row, int column, const QModelIndex &parent)
     return QModelIndex();
 }
 
+QVariant TransferModel::modelIndex(int row, int column, const QModelIndex &parent) const {
+    return QVariant::fromValue(this->index(row, column, parent));
+}
+
 QModelIndex TransferModel::parent(const QModelIndex &child) const {
     if (!child.isValid()) {
         return QModelIndex();
@@ -243,6 +247,10 @@ QModelIndex TransferModel::parent(const QModelIndex &child) const {
     }
 
     return this->createIndex(parentTransfer->rowNumber(), 0, parentTransfer);
+}
+
+QVariant TransferModel::parentModelIndex(const QModelIndex &child) const {
+    return QVariant::fromValue(this->parent(child));
 }
 
 #ifdef TABLE_TRANSFER_VIEW
@@ -314,9 +322,8 @@ QVariant TransferModel::data(const QModelIndex &index, int role) const {
     return QVariant();
 }
 
-QVariant TransferModel::data(int row, int parentRow, const QByteArray &role) const {
-    return this->data(this->index(row, 0, parentRow >= 0 ? this->index(parentRow, 0)
-                                                         : QModelIndex()), this->roleNames().key(role));
+QVariant TransferModel::data(const QModelIndex &index, const QByteArray &role) const {
+    return this->data(index, this->roleNames().key(role));
 }
 
 QVariant TransferModel::data(const QString &id, const QByteArray &role) const {
@@ -335,14 +342,6 @@ QMap<int, QVariant> TransferModel::itemData(const QModelIndex &index) const {
     }
 
     return QMap<int, QVariant>();
-}
-
-QVariantMap TransferModel::itemData(int row, int parentRow) const {
-    if (Transfer *transfer = this->get(row, parentRow)) {
-        return transfer->itemDataWithRoleNames();
-    }
-
-    return QVariantMap();
 }
 
 QVariantMap TransferModel::itemData(const QString &id) const {
@@ -466,9 +465,8 @@ bool TransferModel::setData(const QModelIndex &index, const QVariant &value, int
     return false;
 }
 
-bool TransferModel::setData(int row, int parentRow, const QVariant &value, const QByteArray &role) {
-    return this->setData(this->index(row, 0, parentRow >= 0 ? this->index(parentRow, 0)
-                                                            : QModelIndex()), value, this->roleNames().key(role));
+bool TransferModel::setData(const QModelIndex &index, const QVariant &value, const QByteArray &role) {
+    return this->setData(index, value, this->roleNames().key(role));
 }
 
 bool TransferModel::setData(const QString &id, const QVariant &value, const QByteArray &role) {
@@ -481,10 +479,6 @@ bool TransferModel::setData(const QString &id, const QVariant &value, const QByt
 
 Transfer* TransferModel::get(const QModelIndex &index) const {
     return index.isValid() ? static_cast<Transfer*>(index.internalPointer()) : m_rootItem;
-}
-
-Transfer* TransferModel::get(int row, int parentRow) const {
-    return this->get(this->index(row, 0, parentRow >= 0 ? this->index(parentRow, 0) : QModelIndex()));
 }
 
 Transfer* TransferModel::get(const QString &id) const {
@@ -522,15 +516,6 @@ void TransferModel::move(const QModelIndex &sourceParent, int sourceRow,
         
         this->endMoveRows();
     }
-}
-
-void TransferModel::move(int sourceParentRow, int sourceRow, int destinationParentRow, int destinationRow) {
-    const QModelIndex sourceParent = (sourceParentRow == -1 ? QModelIndex()
-                                                            : this->index(sourceParentRow, 0, QModelIndex()));
-    const QModelIndex destinationParent = (destinationParentRow == -1 ? QModelIndex()
-                                                                      : this->index(destinationParentRow, 0, QModelIndex()));
-    
-    this->move(sourceParent, sourceRow, destinationParent, destinationRow);
 }
 
 QModelIndexList TransferModel::match(const QModelIndex &start, int role, const QVariant &value,
@@ -846,7 +831,7 @@ void TransferModel::onTransferStatusChanged(Transfers::Status status) {
         QMetaObject::invokeMethod(this, "storeTransfers", Qt::QueuedConnection);
         break;
     }
-    case Transfers::Cancelled:
+    case Transfers::Canceled:
     case Transfers::Completed:
     {
         if (Transfer *transfer = qobject_cast<Transfer*>(this->sender())) {

@@ -18,7 +18,7 @@
 #ifndef TRANSFERFILTERMODEL_H
 #define TRANSFERFILTERMODEL_H
 
-#include "enums.h"
+#include "transfermodel.h"
 #include <QSortFilterProxyModel>
 
 class TransferFilterModel : public QSortFilterProxyModel
@@ -40,6 +40,11 @@ public:
     
     QString searchQuery() const;
     Transfers::Status statusFilter() const;
+    
+    Q_INVOKABLE QVariant modelIndex(int row, int column, const QModelIndex &parent = QModelIndex()) const;
+    Q_INVOKABLE QVariant parentModelIndex(const QModelIndex &child) const;
+    Q_INVOKABLE QVariant mapFromSourceModelIndex(const QModelIndex &sourceIndex) const;
+    Q_INVOKABLE QVariant mapToSourceModelIndex(const QModelIndex &proxyIndex) const;
 
 public slots:
     void setSearchQuery(const QString &query);

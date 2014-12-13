@@ -16,7 +16,6 @@
  */
 
 #include "transferfiltermodel.h"
-#include "transfermodel.h"
 #include "transfer.h"
 
 TransferFilterModel::TransferFilterModel(QObject *parent) :
@@ -60,6 +59,22 @@ void TransferFilterModel::setStatusFilter(Transfers::Status status) {
 void TransferFilterModel::resetFilters() {
     this->setSearchQuery(QString());
     this->setStatusFilter(Transfers::Unknown);
+}
+
+QVariant TransferFilterModel::modelIndex(int row, int column, const QModelIndex &parent) const {
+    return QVariant::fromValue(this->index(row, column, parent));
+}
+
+QVariant TransferFilterModel::parentModelIndex(const QModelIndex &child) const {
+    return QVariant::fromValue(this->parent(child));
+}
+
+QVariant TransferFilterModel::mapFromSourceModelIndex(const QModelIndex &sourceIndex) const {
+    return QVariant::fromValue(this->mapFromSource(sourceIndex));
+}
+
+QVariant TransferFilterModel::mapToSourceModelIndex(const QModelIndex &proxyIndex) const {
+    return QVariant::fromValue(this->mapToSource(proxyIndex));
 }
 
 bool TransferFilterModel::filterAcceptsRow(int source_row, const QModelIndex &source_parent) const {

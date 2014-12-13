@@ -60,32 +60,31 @@ public:
     int columnCount(const QModelIndex &parent = QModelIndex()) const;
 
     QModelIndex index(int row, int column, const QModelIndex &parent = QModelIndex()) const;
+    Q_INVOKABLE QVariant modelIndex(int row, int column, const QModelIndex &parent = QModelIndex()) const;
     QModelIndex parent(const QModelIndex &child) const;
+    Q_INVOKABLE QVariant parentModelIndex(const QModelIndex &child) const;
     
 #ifdef TABLE_TRANSFER_VIEW
     QVariant headerData(int section, Qt::Orientation orientation = Qt::Horizontal, int role = Qt::DisplayRole) const;
 #endif
 
-    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
-    Q_INVOKABLE QVariant data(int row, int parentRow, const QByteArray &role) const;
+    Q_INVOKABLE QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
+    Q_INVOKABLE QVariant data(const QModelIndex &index, const QByteArray &role) const;
     Q_INVOKABLE QVariant data(const QString &id, const QByteArray &role) const;
 
     QMap<int, QVariant> itemData(const QModelIndex &index) const;
-    Q_INVOKABLE QVariantMap itemData(int row, int parentRow) const;
     Q_INVOKABLE QVariantMap itemData(const QString &id) const;
     Q_INVOKABLE QVariantList allItemData(Transfers::Status filter = Transfers::Unknown,
                                          const QString &query = QString(), int start = 0, int count = -1) const;
 
-    bool setData(const QModelIndex &index, const QVariant &value, int role);
-    Q_INVOKABLE bool setData(int row, int parentRow, const QVariant &value, const QByteArray &role);
+    Q_INVOKABLE bool setData(const QModelIndex &index, const QVariant &value, int role);
+    Q_INVOKABLE bool setData(const QModelIndex &index, const QVariant &value, const QByteArray &role);
     Q_INVOKABLE bool setData(const QString &id, const QVariant &value, const QByteArray &role);
 
-    Transfer* get(const QModelIndex &index) const;
-    Q_INVOKABLE Transfer* get(int row, int parentRow) const;
+    Q_INVOKABLE Transfer* get(const QModelIndex &index) const;
     Q_INVOKABLE Transfer* get(const QString &id) const;
     
-    void move(const QModelIndex &sourceParent, int sourceRow, const QModelIndex &destinationParent, int destinationRow);
-    Q_INVOKABLE void move(int sourceParentRow, int sourceRow, int destinationParentRow, int destinationRow);
+    Q_INVOKABLE void move(const QModelIndex &sourceParent, int sourceRow, const QModelIndex &destinationParent, int destinationRow);
 
     QModelIndexList match(const QModelIndex &start, int role, const QVariant &value,
                           int hits = -1, Qt::MatchFlags flags = Qt::MatchExactly) const;
@@ -147,5 +146,7 @@ private:
     Transfers::Action m_nextAction;
     QHash<int, QByteArray> m_roleNames;
 };
+
+Q_DECLARE_METATYPE(QModelIndex)
 
 #endif // TRANSFERMODEL_H
