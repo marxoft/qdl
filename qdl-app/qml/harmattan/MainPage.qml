@@ -150,7 +150,7 @@ Page {
         z: 1000
         placeholderText: qsTr("Search")
         enabled: (view.visible) && (TransferModel.count > 0)
-        onSearchTextChanged: TransferModel.searchQuery = searchText
+        onSearchTextChanged: TransferFilterModel.searchQuery = searchText
         onMenuTriggered: filterMenu.open()
     }
 
@@ -167,7 +167,7 @@ Page {
             bottom: parent.bottom
         }
 
-        model: TransferModel
+        model: TransferFilterModel
         delegate: TransferPackageDelegate {}
         visible: (!urlCheckInfo.visible) && (!progressInfo.visible)
     }
@@ -196,17 +196,20 @@ Page {
 
             MenuItem {
                 text: qsTr("Start")
-                onClicked: TransferModel.setData(view.selectedIndex, view.selectedParentIndex, Transfers.Queued, "status")
+                onClicked: TransferModel.setData(TransferFilterModel.mapToSourceModelIndex(TransferFilterModel.modelIndex(view.selectedIndex, 0,
+                           TransferFilterModel.modelIndex(view.selectedParentIndex, 0))), Transfers.Queued, "status")
             }
 
             MenuItem {
                 text: qsTr("Pause")
-                onClicked: TransferModel.setData(view.selectedIndex, view.selectedParentIndex, Transfers.Paused, "status")
+                onClicked: TransferModel.setData(TransferFilterModel.mapToSourceModelIndex(TransferFilterModel.modelIndex(view.selectedIndex, 0,
+                           TransferFilterModel.modelIndex(view.selectedParentIndex, 0))), Transfers.Paused, "status")
             }
 
             MenuItem {
                 text: qsTr("Remove")
-                onClicked: TransferModel.setData(view.selectedIndex, view.selectedParentIndex, Transfers.Cancelled, "status")
+                onClicked: TransferModel.setData(TransferFilterModel.mapToSourceModelIndex(TransferFilterModel.modelIndex(view.selectedIndex, 0,
+                           TransferFilterModel.modelIndex(view.selectedParentIndex, 0))), Transfers.Canceled, "status")
             }
         }
     }
@@ -276,8 +279,8 @@ Page {
             titleText: qsTr("Show")
             model: StatusFilterModel {}
             onNameChanged: statusFilterMenuItem.subTitle = name
-            onValueChanged: TransferModel.statusFilter = value
-            Component.onCompleted: value = TransferModel.statusFilter
+            onValueChanged: TransferFilterModel.statusFilter = value
+            Component.onCompleted: value = TransferFilterModel.statusFilter
         }
     }
 
@@ -307,7 +310,9 @@ Page {
         id: transferPropertiesDialog
 
         TransferPropertiesDialog {
-            transfer: status === DialogStatus.Closed ? null : TransferModel.get(view.selectedIndex, view.selectedParentIndex)
+            transfer: status === DialogStatus.Closed ? null
+                                                     : TransferModel.get(TransferFilterModel.mapToSourceModelIndex(TransferFilterModel.modelIndex(view.selectedIndex,
+                                                     0, TransferFilterModel.modelIndex(view.selectedParentIndex, 0))))
         }
     }
 
@@ -315,7 +320,9 @@ Page {
         id: packagePropertiesDialog
 
         PackagePropertiesDialog {
-            transfer: status === DialogStatus.Closed ? null : TransferModel.get(view.selectedIndex, -1)
+            transfer: status === DialogStatus.Closed ? null
+                                                     : TransferModel.get(TransferFilterModel.mapToSourceModelIndex(TransferFilterModel.modelIndex(view.selectedIndex,
+                                                     0)))
         }
     }
 

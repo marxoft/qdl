@@ -6,7 +6,8 @@ import "file:///usr/lib/qt4/imports/com/nokia/meego/UIConstants.js" as UI
 Item {
     id: root
 
-    property Transfer packageTransfer: TransferModel.get(index, -1)
+    property Transfer packageTransfer:
+    TransferModel.get(TransferFilterModel.mapToSourceModelIndex(TransferFilterModel.modelIndex(index, 0)))
 
     width: parent ? parent.width : screen.displayWidth
     height: column.height

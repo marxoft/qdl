@@ -8,7 +8,9 @@ ListItem {
     id: root
 
     property int parentIndex: -1
-    property Transfer transfer: TransferModel.get(index, parentIndex)
+    property Transfer transfer:
+    TransferModel.get(TransferFilterModel.mapToSourceModelIndex(TransferFilterModel.modelIndex(index, 0,
+                                                                TransferFilterModel.modelIndex(parentIndex, 0))))
 
     height: 140
 
@@ -165,7 +167,12 @@ ListItem {
         id: loader
 
         z: 100
-        sourceComponent: packageTransfer.count === 0 ? undefined : parentIndex === -1 ? topDecoration : index === (packageTransfer.count - 1) ? bottomDecoration : middleDecoration
+        sourceComponent: packageTransfer.count === 0 ? undefined
+                                                     : parentIndex === -1
+                                                     ? topDecoration
+                                                     : index === (packageTransfer.count - 1)
+                                                     ? bottomDecoration
+                                                     : middleDecoration
     }
 
     Item {
@@ -248,7 +255,12 @@ ListItem {
             font.family: UI.FONT_FAMILY_LIGHT
             visible: transfer.status !== Transfers.Failed
             horizontalAlignment: Text.AlignRight
-            text: Utils.fileSizeFromBytes(transfer.position) + " " + qsTr("of") + " " + (transfer.size > 0 ? Utils.fileSizeFromBytes(transfer.size) + " (" + transfer.progress + "%)" : qsTr("Unknown"))
+            text: Utils.fileSizeFromBytes(transfer.position)
+                  + " "
+                  + qsTr("of")
+                  + " "
+                  + (transfer.size > 0 ? Utils.fileSizeFromBytes(transfer.size)
+                  + " (" + transfer.progress + "%)" : qsTr("Unknown"))
         }
     }
 }

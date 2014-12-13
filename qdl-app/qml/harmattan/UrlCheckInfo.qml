@@ -122,8 +122,8 @@ Item {
 
     states: [
         State {
-            name: "cancelled"
-            PropertyChanges { target: label; text: qsTr("Cancelled") }
+            name: "canceled"
+            PropertyChanges { target: label; text: qsTr("Canceled") }
             PropertyChanges { target: button; text: qsTr("Close") }
         },
 
@@ -137,6 +137,6 @@ Item {
 
     Connections {
         target: UrlChecker
-        onCancelled: root.state = "cancelled"
+        onCanceled: root.state = "canceled"
     }
 }

@@ -17,6 +17,7 @@
 
 #include "../shared/session.h"
 #include "../shared/transfermodel.h"
+#include "../shared/transferfiltermodel.h"
 #include "../shared/pluginmanager.h"
 #include "../shared/settings.h"
 #include "../shared/urlchecker.h"
@@ -49,6 +50,7 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
 
     Session session;
     Utils utils;
+    TransferFilterModel filterModel;
     DBusServiceAdaptor adaptor(DBusService::instance());
 
     QDBusConnection connection = QDBusConnection::sessionBus();
@@ -85,6 +87,7 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
 
     QDeclarativeContext *context = view->rootContext();
     context->setContextProperty("TransferModel", TransferModel::instance());
+    context->setContextProperty("TransferFilterModel", &filterModel);
     context->setContextProperty("UrlChecker", UrlChecker::instance());
     context->setContextProperty("UrlCheckModel", UrlChecker::instance()->model());
     context->setContextProperty("UrlRetriever", UrlRetriever::instance());

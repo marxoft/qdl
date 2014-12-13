@@ -119,7 +119,13 @@ MySheet {
                     horizontalAlignment: Text.AlignRight
                     font.pixelSize: UI.FONT_SMALL
                     font.family: UI.FONT_FAMILY_LIGHT
-                    text: transfer === null ? "" : Utils.fileSizeFromBytes(transfer.position) + " " + qsTr("of") + " " + (transfer.size > 0 ? Utils.fileSizeFromBytes(transfer.size) + " (" + transfer.progress + "%)" : qsTr("Unknown"))
+                    text: transfer === null ? ""
+                                            : Utils.fileSizeFromBytes(transfer.position)
+                                            + " "
+                                            + qsTr("of")
+                                            + " "
+                                            + (transfer.size > 0 ? Utils.fileSizeFromBytes(transfer.size)
+                                            + " (" + transfer.progress + "%)" : qsTr("Unknown"))
                 }
 
                 ProgressBar {
@@ -155,13 +161,17 @@ MySheet {
 
                     Button {
                         text: qsTr("Start")
-                        enabled: (transfer !== null) && ((transfer.status === Transfers.Paused) || (transfer.status === Transfers.Failed))
+                        enabled: (transfer !== null) && ((transfer.status === Transfers.Paused)
+                                                         || (transfer.status === Transfers.Failed))
                         onClicked: transfer.queue()
                     }
 
                     Button {
                         text: qsTr("Pause")
-                        enabled: (transfer !== null) && ((transfer.status !== Transfers.Paused) && (transfer.status !== Transfers.Failed) && (transfer.status !== Transfers.Extracting) && (transfer.status !== Transfers.Converting))
+                        enabled: (transfer !== null) && ((transfer.status !== Transfers.Paused)
+                                                         && (transfer.status !== Transfers.Failed)
+                                                         && (transfer.status !== Transfers.Extracting)
+                                                         && (transfer.status !== Transfers.Converting))
                         onClicked: transfer.pause()
                     }
 
@@ -195,7 +205,7 @@ MySheet {
         target: transfer === null ? null : transfer
         onStatusChanged: {
             switch (transfer.status) {
-            case Transfers.Cancelled:
+            case Transfers.Canceled:
             case Transfers.Completed:
                 root.close();
                 return;
