@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
     qRegisterMetaType< QList<Transfer*> >("QList<Transfer*>");
     qRegisterMetaType< QList<QUrl> >("QList<QUrl>");
 
-    QIcon::setThemeName("elementary-xfce");
+    QIcon::setThemeName("elementary");
 
     Session session;
 

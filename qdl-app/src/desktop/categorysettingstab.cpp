@@ -61,6 +61,8 @@ CategorySettingsTab::CategorySettingsTab(QWidget *parent) :
     m_view->setModel(m_model);
     m_view->setRootIsDecorated(false);
     m_view->setSelectionBehavior(QTreeView::SelectRows);
+    m_view->setUniformRowHeights(true);
+    m_view->setAllColumnsShowFocus(true);
     m_view->setEditTriggers(QTreeView::NoEditTriggers);
     m_view->setExpandsOnDoubleClick(false);
     m_view->setItemsExpandable(false);

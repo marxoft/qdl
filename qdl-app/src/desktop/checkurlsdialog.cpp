@@ -42,6 +42,8 @@ CheckUrlsDialog::CheckUrlsDialog(QWidget *parent) :
     m_view->setModel(UrlChecker::instance()->model());
     m_view->setRootIsDecorated(false);
     m_view->setSelectionMode(QTreeView::NoSelection);
+    m_view->setUniformRowHeights(true);
+    m_view->setAllColumnsShowFocus(true);
     m_view->header()->setStretchLastSection(false);
     m_view->header()->resizeSection(1, 40);
     m_view->header()->setResizeMode(0, QHeaderView::Stretch);
