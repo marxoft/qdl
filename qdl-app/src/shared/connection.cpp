@@ -38,11 +38,7 @@ Connection::Connection(NetworkAccessManager *manager, QObject *parent) :
     this->connect(Settings::instance(), SIGNAL(downloadRateLimitChanged(int)), this, SLOT(onDownloadRateLimitChanged(int)));
 }
 
-Connection::~Connection() {
-    if (m_reply) {
-        delete m_reply;
-    }
-}
+Connection::~Connection() {}
 
 QNetworkRequest Connection::request() const {
     return m_request;
@@ -307,6 +303,9 @@ void Connection::onFinished() {
     }
 
     if (!redirect.isEmpty()) {
+        m_reply->deleteLater();
+        m_reply = 0;
+        
         if (m_redirects < MAX_REDIRECTS) {
             this->followRedirect(redirect);
         }
@@ -344,7 +343,10 @@ void Connection::onFinished() {
         m_buffer.clear();
     
         if ((m_retries < MAX_RETRIES) && (!m_reply->url().isEmpty())) {
-            this->retry(m_reply->url());
+            redirect = m_reply->url();
+            m_reply->deleteLater();
+            m_reply = 0;
+            this->retry(redirect);
             return;
         }
         else {
@@ -361,6 +363,9 @@ void Connection::onFinished() {
         this->setStatus(Transfers::Failed);
         break;
     }
+    
+    m_reply->deleteLater();
+    m_reply = 0;
 }
 
 void Connection::onDownloadRateLimitChanged(int limit) {
