@@ -194,6 +194,7 @@ void Filespace::checkWaitTime() {
     QString response(reply->readAll());
     int mins = 0;
     int secs = 0;
+    m_waitTime = 0;
 
     if (response.contains("You have to wait")) {
         mins = response.section("You have to wait ", 1, 1).section(" minutes", 0, 0).toInt();
