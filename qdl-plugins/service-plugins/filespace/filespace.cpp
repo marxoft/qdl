@@ -199,7 +199,7 @@ void Filespace::checkWaitTime() {
     if (response.contains("You have to wait")) {
         mins = response.section("You have to wait ", 1, 1).section(" minutes", 0, 0).toInt();
         secs = response.section(" seconds till next download", 0, 0).section(' ', 1, 1).toInt();
-        this->startWait((mins * 60000) + (secs + 1000));
+        this->startWait((mins * 60000) + (secs * 1000));
         this->connect(this, SIGNAL(waitFinished()), this, SLOT(onWaitFinished()));
     }
     else if (response.contains("You can download files up to ")) {
