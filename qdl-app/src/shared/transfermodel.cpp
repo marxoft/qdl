@@ -637,7 +637,7 @@ void TransferModel::getNextTransfers() {
             foreach (Transfer *transfer, parentTransfer->childTransfers()) {
                 if ((transfer->priority() == priority) && (transfer->status() == Transfers::Queued)) {
                     if (m_activeTransfers.size() < Settings::instance()->maximumConcurrentTransfers()) {
-                        this->addActiveTransfer(parentTransfer);
+                        this->addActiveTransfer(transfer);
                     }
                     else {
                         return;
@@ -757,7 +757,7 @@ void TransferModel::onTransferDataChanged(int role) {
                 index = this->index(transfer->rowNumber(), column);
             }
             else {
-                index = this->index(transfer->rowNumber(), column, this->index(parentTransfer->rowNumber(), column));
+                index = this->index(transfer->rowNumber(), column, this->index(parentTransfer->rowNumber(), 0));
             }
 
             emit dataChanged(index, index);
