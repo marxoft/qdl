@@ -11,6 +11,7 @@ SUBDIRS += \
     kingfiles \
     megashares \
     netload \
+    secureupload \
     solvemedia \
     turbobit \
     uloz \
