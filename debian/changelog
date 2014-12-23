@@ -1,3 +1,11 @@
+qdl (1.2.3) unstable; urgency=low
+
+  * Bug-fix: Possible crashing when cancelling a transfer that is in progress.
+  * Bug-fix: Wrong transfer started when attempting to start a child transfer belonging to a package.
+  * UI fixes.
+
+ -- Stuart Howarth <showarth@marxoft.co.uk>  Mon, 22 Dec 2014 14:17:15 +0000
+
 qdl (1.2.2) unstable; urgency=low
 
   * Attempt to re-connect if the connection is closed by the host (maximum of 8 re-connects).
