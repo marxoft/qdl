@@ -77,4 +77,5 @@ QVariant ValueDialog::currentValue() {
 
 void ValueDialog::onItemClicked(const QModelIndex &index) {
     emit valueChanged(index.data(Qt::UserRole + 1));
+    this->accept();
 }

@@ -18,7 +18,7 @@
 #include "checkurlsdialog.h"
 #include "../shared/urlchecker.h"
 #include <QGridLayout>
-#include <QHideEvent>
+#include <QShowEvent>
 #include <QDialogButtonBox>
 #include <QTreeView>
 #include <QProgressBar>
@@ -30,8 +30,7 @@ CheckUrlsDialog::CheckUrlsDialog(QWidget *parent) :
     m_view(new QTreeView(this)),
     m_progressBar(new QProgressBar(this)),
     m_infoLabel(new QLabel(QString("<i>%1</i>").arg(tr("Checking URLs")), this)),
-    m_okButton(new QPushButton(tr("Done"), this)),
-    m_cancelButton(new QPushButton(tr("Cancel"), this))
+    m_buttonBox(new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, Qt::Vertical, this))
 {
     this->setWindowTitle(tr("Check URLs"));
     this->setAttribute(Qt::WA_DeleteOnClose, false);
@@ -47,49 +46,53 @@ CheckUrlsDialog::CheckUrlsDialog(QWidget *parent) :
     m_progressBar->setValue(0);
     m_progressBar->setMaximum(100);
 
-    QDialogButtonBox *buttonBox = new QDialogButtonBox(Qt::Vertical, this);
-    buttonBox->addButton(m_cancelButton, QDialogButtonBox::RejectRole);
-    buttonBox->addButton(m_okButton, QDialogButtonBox::AcceptRole);
-
     QGridLayout *grid = new QGridLayout(this);
     grid->addWidget(m_view, 0, 0);
     grid->addWidget(m_progressBar, 1, 0, Qt::AlignBottom);
     grid->addWidget(m_infoLabel, 2, 0, Qt::AlignBottom);
-    grid->addWidget(buttonBox, 0, 1, 3, 1, Qt::AlignBottom);
+    grid->addWidget(m_buttonBox, 0, 1, 3, 1, Qt::AlignBottom);
 
     this->connect(UrlChecker::instance(), SIGNAL(progressChanged(int)), this, SLOT(onProgressChanged(int)));
-    this->connect(UrlChecker::instance(), SIGNAL(canceled()), this, SLOT(onCanceled()));
-    this->connect(buttonBox, SIGNAL(accepted()), this, SLOT(accept()));
-    this->connect(buttonBox, SIGNAL(rejected()), UrlChecker::instance(), SLOT(cancel()));
+    this->connect(UrlChecker::instance(), SIGNAL(canceled()), this, SLOT(accept()));
+    this->connect(m_buttonBox, SIGNAL(accepted()), this, SLOT(accept()));
+    this->connect(m_buttonBox, SIGNAL(rejected()), this, SLOT(reject()));
 }
 
 CheckUrlsDialog::~CheckUrlsDialog() {}
 
-void CheckUrlsDialog::hideEvent(QHideEvent *event) {
-    this->resetDialog();
-    QDialog::hideEvent(event);
+void CheckUrlsDialog::accept() {
+	QDialog::accept();
+	UrlChecker::instance()->model()->clear();
+}
+
+void CheckUrlsDialog::reject() {
+	QDialog::reject();
+	
+	if (UrlChecker::instance()->progress() < 100) {
+		UrlChecker::instance()->cancel();
+	}
+	else {
+		UrlChecker::instance()->model()->clear();
+	}
+}
+
+void CheckUrlsDialog::showEvent(QShowEvent *event) {
+   QDialog::showEvent(event);
+   this->resetDialog();
+   this->onProgressChanged(UrlChecker::instance()->progress());
 }
 
 void CheckUrlsDialog::onProgressChanged(int progress) {
     m_progressBar->setValue(progress);
 
     if (progress == 100) {
-        m_okButton->setEnabled(true);
-        m_cancelButton->setEnabled(false);
+        m_buttonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
         m_infoLabel->setText(QString("<i>%1</i>").arg(tr("Completed")));
     }
 }
 
-void CheckUrlsDialog::onCanceled() {
-    m_okButton->setEnabled(true);
-    m_cancelButton->setEnabled(false);
-    m_infoLabel->setText(QString("<i>%1</i>").arg(tr("Canceled")));
-}
-
 void CheckUrlsDialog::resetDialog() {
     m_progressBar->setValue(0);
-    m_okButton->setEnabled(false);
-    m_cancelButton->setEnabled(true);
+    m_buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
     m_infoLabel->setText(QString("<i>%1</i>").arg(tr("Checking URLs")));
-    UrlChecker::instance()->model()->clear();
 }

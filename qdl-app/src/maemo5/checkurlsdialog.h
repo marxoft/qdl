@@ -23,7 +23,7 @@
 class QTreeView;
 class QProgressBar;
 class QLabel;
-class QPushButton;
+class QDialogButtonBox;
 
 class CheckUrlsDialog : public QDialog
 {
@@ -32,21 +32,24 @@ class CheckUrlsDialog : public QDialog
 public:
     explicit CheckUrlsDialog(QWidget *parent = 0);
     ~CheckUrlsDialog();
+	
+public slots:
+	void accept();
+	void reject();
 
 protected:
-    void hideEvent(QHideEvent *event);
+    void showEvent(QShowEvent *event);
 
 private slots:
     void onProgressChanged(int progress);
-    void onCanceled();
-    void resetDialog();
     
 private:
+	void resetDialog();
+	
     QTreeView *m_view;
     QProgressBar *m_progressBar;
     QLabel *m_infoLabel;
-    QPushButton *m_okButton;
-    QPushButton *m_cancelButton;
+    QDialogButtonBox *m_buttonBox;
 };
 
 #endif // CHECKURLSDIALOG_H
