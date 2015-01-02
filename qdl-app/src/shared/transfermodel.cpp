@@ -551,8 +551,8 @@ void TransferModel::setNextAction(Transfers::Action action) {
         
         if ((action == Transfers::Continue)
             && (m_activeTransfers.size() < Settings::instance()->maximumConcurrentTransfers())) {
-            
-            this->getNextTransfers();
+
+            this->startNextTransfers();
         }
     }
 }
