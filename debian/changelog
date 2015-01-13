@@ -1,3 +1,10 @@
+qdl (1.2.4) unstable; urgency=low
+
+  * Bug-fix: Queued transfers not started when changing next action to 'Continue'.
+  * Bug-fix: Changing number of connections to 4 has no effect.
+
+ -- Stuart Howarth <showarth@marxoft.co.uk>  Tue, 13 Jan 2015 14:04:42 +0000
+
 qdl (1.2.3) unstable; urgency=low
 
   * Bug-fix: Possible crashing when cancelling a transfer that is in progress.
