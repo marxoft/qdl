@@ -247,19 +247,19 @@ void YouTube::checkYouTubeWebPage() {
     }
 
     QString response(reply->readAll());
-
+	
     if (!response.contains("url_encoded_fmt_stream_map\":")) {
         emit error(UnknownError);
     }
     else {
-        QVariantMap assets = Json::parse(QString("%1}").arg(response.section("\"assets\": ", 1, 1).section('}', 0, 0))).toMap();
+        QVariantMap assets = Json::parse(QString("%1}").arg(response.section("\"assets\":", 1, 1).section('}', 0, 0))).toMap();
         QUrl playerUrl = assets.value("js").toUrl();
 
         if (playerUrl.scheme().isEmpty()) {
             playerUrl.setScheme("http");
         }
 
-        response = response.section("url_encoded_fmt_stream_map\": \"", 1, 1).section(", \"", 0, 0).trimmed().replace("\\u0026", "&").remove(QRegExp("itag=\\d+"));
+        response = response.section("url_encoded_fmt_stream_map\":\"", 1, 1).section(",\"", 0, 0).trimmed().replace("\\u0026", "&").remove(QRegExp("itag=\\d+"));
 
         bool encryptedSignatures = !response.contains("sig=");
 
@@ -316,7 +316,7 @@ QScriptValue YouTube::getYouTubeDecryptionFunction(const QUrl &playerUrl) {
     if (decryptionCache.contains(playerUrl)) {
         return decryptionCache.value(playerUrl);
     }
-
+	
     QNetworkRequest request(playerUrl);
     QNetworkReply *reply = this->networkAccessManager()->get(request);
     this->connect(reply, SIGNAL(finished()), this, SLOT(addYouTubeDecryptionFunctionToCache()));
