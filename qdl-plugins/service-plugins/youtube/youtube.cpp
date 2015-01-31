@@ -335,7 +335,7 @@ void YouTube::addYouTubeDecryptionFunctionToCache() {
     }
 
     QString response(reply->readAll());
-    QRegExp re("\\.sig\\|\\|\\w+(?=\\()");
+    QRegExp re("\\.sig\\|\\|[\\w\\$]+(?=\\()");
     
     if (re.indexIn(response) != -1) {
         QString funcName = re.cap().section("||", -1);
