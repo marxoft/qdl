@@ -15,33 +15,34 @@
  * Inc., 51 Franklin St - Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "joggs.h"
+#include "recordedbabes.h"
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QNetworkRequest>
 #include <QRegExp>
 
-Joggs::Joggs(QObject *parent) :
+RecordedBabes::RecordedBabes(QObject *parent) :
     ServicePlugin(parent)
 {
 }
 
-QRegExp Joggs::urlPattern() const {
-    return QRegExp("http(s|)://(www.|)joggs.com/videos/[\\w-]+", Qt::CaseInsensitive);
+QRegExp RecordedBabes::urlPattern() const {
+    return QRegExp("http(s|)://(www\\.|)recordedbabes.com/.+", Qt::CaseInsensitive);
 }
 
-bool Joggs::urlSupported(const QUrl &url) const {
-    return urlPattern().indexIn(url.toString()) == 0;
+bool RecordedBabes::urlSupported(const QUrl &url) const {
+    return this->urlPattern().indexIn(url.toString()) == 0;
 }
 
-void Joggs::checkUrl(const QUrl &webUrl) {
-    QNetworkRequest request(webUrl);
-    QNetworkReply *reply = networkAccessManager()->get(request);
+void RecordedBabes::checkUrl(const QUrl &url) {
+    QNetworkRequest request(url);
+	request.setRawHeader("User-Agent", "Wget/1.13.4 (linux-gnu)");
+    QNetworkReply *reply = this->networkAccessManager()->get(request);
     this->connect(reply, SIGNAL(finished()), this, SLOT(checkUrlIsValid()));
     this->connect(this, SIGNAL(currentOperationCancelled()), reply, SLOT(deleteLater()));
 }
 
-void Joggs::checkUrlIsValid() {
+void RecordedBabes::checkUrlIsValid() {
     QNetworkReply* reply = qobject_cast<QNetworkReply*>(this->sender());
 
     if (!reply) {
@@ -49,18 +50,24 @@ void Joggs::checkUrlIsValid() {
         return;
     }
 
-    QString redirect = reply->attribute(QNetworkRequest::RedirectionTargetAttribute).toString();
-
+    QUrl redirect = reply->attribute(QNetworkRequest::RedirectionTargetAttribute).toUrl();
+	
     if (!redirect.isEmpty()) {
-        this->checkUrl(QUrl(redirect));
+        this->checkUrl(redirect);
     }
     else {
         QString response(reply->readAll());
-        QString videoUrl = response.section("file=", 1, 1).section('&', 0, 0);
+        QUrl videoUrl = response.section("embed src=\"", 1, 1).section('"', 0, 0);
 
-        if (videoUrl.startsWith("http")) {
-            QString fileName = response.section("<title>", 1, 1).section('<', 0, 0) + ".flv";
-            emit urlChecked(true, reply->request().url(), this->serviceName(), fileName);
+        if (videoUrl.hasQueryItem("file")) {
+            QString fileName = videoUrl.queryItemValue("file");
+			
+			if (!fileName.isEmpty()) {
+				emit urlChecked(true, reply->request().url(), this->serviceName(), fileName);
+			}
+			else {
+				emit urlChecked(false);
+			}
         }
         else {
             emit urlChecked(false);
@@ -70,15 +77,16 @@ void Joggs::checkUrlIsValid() {
     reply->deleteLater();
 }
 
-void Joggs::getDownloadRequest(const QUrl &webUrl) {
+void RecordedBabes::getDownloadRequest(const QUrl &url) {
     emit statusChanged(Connecting);
-    QNetworkRequest request(webUrl);
-    QNetworkReply *reply = networkAccessManager()->get(request);
+    QNetworkRequest request(url);
+	request.setRawHeader("User-Agent", "Wget/1.13.4 (linux-gnu)");
+    QNetworkReply *reply = this->networkAccessManager()->get(request);
     this->connect(reply, SIGNAL(finished()), this, SLOT(parseVideoPage()));
     this->connect(this, SIGNAL(currentOperationCancelled()), reply, SLOT(deleteLater()));
 }
 
-void Joggs::parseVideoPage() {
+void RecordedBabes::parseVideoPage() {
     QNetworkReply* reply = qobject_cast<QNetworkReply*>(this->sender());
 
     if (!reply) {
@@ -87,11 +95,15 @@ void Joggs::parseVideoPage() {
     }
 
     QString response(reply->readAll());
-    QString videoUrl = response.section("file=", 1, 1).section('&', 0, 0);
+    QUrl videoUrl = response.section("embed src=\"", 1, 1).section('"', 0, 0);
 
-    if (videoUrl.startsWith("http")) {
-        QNetworkRequest request;
-        request.setUrl(QUrl(videoUrl));
+    if (videoUrl.hasQueryItem("file")) {
+		QUrl url;
+		url.setScheme(videoUrl.scheme());
+		url.setAuthority(videoUrl.authority());
+		url.setPath(videoUrl.path().section("/", 0, -2) + "/" + videoUrl.queryItemValue("file"));
+		QNetworkRequest request(url);
+		request.setRawHeader("User-Agent", "Wget/1.13.4 (linux-gnu)");
         emit downloadRequestReady(request);
     }
     else {
@@ -101,10 +113,12 @@ void Joggs::parseVideoPage() {
     reply->deleteLater();
 }
 
-bool Joggs::cancelCurrentOperation() {
+bool RecordedBabes::cancelCurrentOperation() {
     emit currentOperationCancelled();
 
     return true;
 }
 
-Q_EXPORT_PLUGIN2(joggs, Joggs)
+#if QT_VERSION < 0x050000
+Q_EXPORT_PLUGIN2(recordedbabes, RecordedBabes)
+#endif

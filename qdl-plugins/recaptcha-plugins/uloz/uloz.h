@@ -28,6 +28,9 @@ class Uloz : public RecaptchaPlugin
 {
     Q_OBJECT
     Q_INTERFACES(RecaptchaInterface)
+#if QT_VERSION >= 0x050000
+    Q_PLUGIN_METADATA(IID "org.qdl.UlozRecaptcha")
+#endif
 
 public:
     explicit Uloz(QObject *parent = 0);

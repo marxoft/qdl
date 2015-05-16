@@ -28,6 +28,9 @@ class GigaPeta : public ServicePlugin
 {
     Q_OBJECT
     Q_INTERFACES(ServiceInterface)
+#if QT_VERSION >= 0x050000
+    Q_PLUGIN_METADATA(IID "org.qdl.GigaPeta")
+#endif
 
 public:
     explicit GigaPeta(QObject *parent = 0);

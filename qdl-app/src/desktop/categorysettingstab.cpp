@@ -106,7 +106,7 @@ void CategorySettingsTab::editCategory() {
 
 void CategorySettingsTab::showFolderDialog() {
 #if QT_VERSION >= 0x050000
-    QString currentPath = m_pathEdit->text().isEmpty() ? QStandardPaths::writableLocation(QDesktopServices::HomeLocation) : m_pathEdit->text();
+    QString currentPath = m_pathEdit->text().isEmpty() ? QStandardPaths::writableLocation(QStandardPaths::HomeLocation) : m_pathEdit->text();
 #else
     QString currentPath = m_pathEdit->text().isEmpty() ? QDesktopServices::storageLocation(QDesktopServices::HomeLocation) : m_pathEdit->text();
 #endif

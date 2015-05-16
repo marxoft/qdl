@@ -216,12 +216,21 @@ void FilesMonster::checkMultipartJson() {
 
 void FilesMonster::getDownloadRequest(const QUrl &webUrl) {
     emit statusChanged(Connecting);
-
+#if QT_VERSION >= 0x050000
+    QUrlQuery query(webUrl);
+    
+    if (query.hasQueryItem("fileName")) {
+        m_fileName = query.queryItemValue("fileName");
+        QUrl url(webUrl.toString().section('&', 0, -2));
+        this->checkUrl(url);
+    }
+#else
     if (webUrl.hasQueryItem("fileName")) {
         m_fileName = webUrl.queryItemValue("fileName");
         QUrl url(webUrl.toString().section('&', 0, -2));
         this->checkUrl(url);
     }
+#endif
     else {
         m_url = webUrl;
         QNetworkRequest request(webUrl);
@@ -414,4 +423,6 @@ bool FilesMonster::cancelCurrentOperation() {
     return true;
 }
 
+#if QT_VERSION < 0x050000
 Q_EXPORT_PLUGIN2(filesmonster, FilesMonster)
+#endif

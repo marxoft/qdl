@@ -197,8 +197,8 @@ void Filespace::checkWaitTime() {
     m_waitTime = 0;
 
     if (response.contains("You have to wait")) {
-        mins = response.section("You have to wait ", 1, 1).section(" minutes", 0, 0).toInt();
-        secs = response.section(" seconds till next download", 0, 0).section(' ', 1, 1).toInt();
+        mins = qMax(1, response.section("You have to wait ", 1, 1).section(" minutes", 0, 0).toInt());
+        secs = qMax(1, response.section(" seconds till next download", 0, 0).section(' ', 1, 1).toInt());
         this->startWait((mins * 60000) + (secs * 1000));
         this->connect(this, SIGNAL(waitFinished()), this, SLOT(onWaitFinished()));
     }
@@ -216,9 +216,10 @@ void Filespace::checkWaitTime() {
     else {
         secs = response.section(QRegExp("Please wait <span id=\"\\w+\">"), 1, 1).section('<', 0, 0).toInt();
         m_rand = response.section("rand\" value=\"", 1, 1).section('"', 0, 0);
+        m_rand2 = response.section("rand2\" value=\"", 1, 1).section('"', 0, 0);
         m_captchaKey = response.section("api.solvemedia.com/papi/challenge.noscript?k=", 1, 1).section('"', 0, 0);
 
-        if ((m_rand.isEmpty()) || (m_captchaKey.isEmpty())) {
+        if ((m_rand.isEmpty()) || (m_rand2.isEmpty()) || (m_captchaKey.isEmpty())) {
             emit error(UnknownError);
         }
         else {
@@ -242,7 +243,8 @@ void Filespace::downloadCaptcha() {
 }
 
 void Filespace::submitCaptchaResponse(const QString &challenge, const QString &response) {
-    QString data = QString("op=download2&id=%1&fname=%2&rand=%3&method_free=Free+Download&down_direct=1&adcopy_challenge=%4&adcopy_response=%5").arg(m_fileId).arg(m_fileName).arg(m_rand).arg(challenge).arg(response);
+    QString data = QString("op=download2&id=%1&fname=%2&rand=%3&rand2=%4&method_free=Free+Download&down_script=1&adcopy_challenge=%5&adcopy_response=%6")
+                          .arg(m_fileId).arg(m_fileName).arg(m_rand).arg(m_rand2).arg(challenge).arg(response);
     QNetworkRequest request(m_url);
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
     QNetworkReply *reply = this->networkAccessManager()->post(request, data.toUtf8());
@@ -321,4 +323,6 @@ bool Filespace::cancelCurrentOperation() {
     return true;
 }
 
+#if QT_VERSION < 0x050000
 Q_EXPORT_PLUGIN2(filespace, Filespace)
+#endif

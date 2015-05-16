@@ -20,6 +20,9 @@
 #include <QNetworkReply>
 #include <QNetworkRequest>
 #include <QRegExp>
+#if QT_VERSION >= 0x050000
+#include <QUrlQuery>
+#endif
 
 XHamster::XHamster(QObject *parent) :
     ServicePlugin(parent)
@@ -94,9 +97,14 @@ void XHamster::parseVideoPage() {
 
         if (!varString.isEmpty()) {
 	        url = QUrl::fromEncoded("http://xhamster.com?" + varString.toUtf8());
-	        QString srv = url.queryItemValue("srv");
+#if QT_VERSION >= 0x050000
+            QUrlQuery query(url);
+	        QString srv = query.queryItemValue("srv");
+	        QString file = query.queryItemValue("file");
+#else
+            QString srv = url.queryItemValue("srv");
 	        QString file = url.queryItemValue("file");
-
+#endif
             if (file.startsWith("http")) {
                 QNetworkRequest request;
                 request.setUrl(QUrl(file));
@@ -125,4 +133,6 @@ bool XHamster::cancelCurrentOperation() {
     return true;
 }
 
+#if QT_VERSION < 0x050000
 Q_EXPORT_PLUGIN2(xhamster, XHamster)
+#endif

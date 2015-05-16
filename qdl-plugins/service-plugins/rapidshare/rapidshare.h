@@ -28,6 +28,9 @@ class RapidShare : public ServicePlugin
 {
     Q_OBJECT
     Q_INTERFACES(ServiceInterface)
+#if QT_VERSION >= 0x050000
+    Q_PLUGIN_METADATA(IID "org.qdl.RapidShare")
+#endif
 
 public:
     explicit RapidShare(QObject *parent = 0);

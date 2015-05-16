@@ -1,11 +1,5 @@
-qdl-plugins-uploadtous (0.0.2) unstable; urgency=low
-
-  * Fix download URL retrieval.
-
- -- Stuart Howarth <showarth@marxoft.co.uk>  Wed, 15 Oct 2014 14:53:12 +0000
-
 qdl-plugins-uploadtous (0.0.1) unstable; urgency=low
 
   * Inital release.
 
- -- Stuart Howarth <showarth@marxoft.co.uk>  Wed, 17 Sep 2014 23:22:04 +0000
+ -- Stuart Howarth <showarth@marxoft.co.uk>  Wed, 15 Oct 2014 14:53:12 +0000

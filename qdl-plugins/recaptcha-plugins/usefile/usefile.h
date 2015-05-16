@@ -28,6 +28,9 @@ class UseFile : public RecaptchaPlugin
 {
     Q_OBJECT
     Q_INTERFACES(RecaptchaInterface)
+#if QT_VERSION >= 0x050000
+    Q_PLUGIN_METADATA(IID "org.qdl.UseFileRecaptcha")
+#endif
 
 public:
     explicit UseFile(QObject *parent = 0);

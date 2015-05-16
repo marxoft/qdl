@@ -36,7 +36,7 @@ MegaShares::MegaShares(QObject *parent) :
 }
 
 QRegExp MegaShares::urlPattern() const {
-    return QRegExp("http://d01.megashares.com/dl/\\w+", Qt::CaseInsensitive);
+    return QRegExp("http(s|)://d01.megashares.com/(dl/|\\?d01=)\\w+", Qt::CaseInsensitive);
 }
 
 bool MegaShares::urlSupported(const QUrl &url) const {
@@ -80,11 +80,27 @@ void MegaShares::checkLogin() {
 }
 
 void MegaShares::checkUrl(const QUrl &webUrl) {
-    QString urlString = webUrl.toString();
-    m_fileName = urlString.section('/', -1);
-    QString id = urlString.section("/dl/", 1, 1).section('/', 0, 0);
-    QUrl url("http://d01.megashares.com/index.php?d01=" + id);
-    QNetworkRequest request(url);
+    QNetworkRequest request;
+#if QT_VERSION >= 0x050000
+    QUrlQuery query(webUrl);
+    
+    if (query.hasQueryItem("d01")) {
+        m_fileName = query.queryItemValue("d01");
+        request.setUrl(webUrl);
+    }
+#else
+    if (webUrl.hasQueryItem("d01")) {
+        m_fileName = webUrl.queryItemValue("d01");
+        request.setUrl(webUrl);
+    }
+#endif
+    else {
+        QString urlString = webUrl.toString();
+        m_fileName = urlString.section('/', -1);
+        QString id = urlString.section("/dl/", 1, 1).section('/', 0, 0);
+        request.setUrl(QUrl("http://d01.megashares.com/?d01=" + id));
+    }
+
     request.setRawHeader("Accept-Language", "en-GB,en-US;q=0.8,en;q=0.6");
     QNetworkReply *reply = this->networkAccessManager()->get(request);
     this->connect(reply, SIGNAL(finished()), this, SLOT(checkUrlIsValid()));
@@ -286,4 +302,6 @@ bool MegaShares::cancelCurrentOperation() {
     return true;
 }
 
+#if QT_VERSION < 0x050000
 Q_EXPORT_PLUGIN2(megashares, MegaShares)
+#endif

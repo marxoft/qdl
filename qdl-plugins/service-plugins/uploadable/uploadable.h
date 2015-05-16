@@ -28,6 +28,9 @@ class Uploadable : public ServicePlugin
 {
     Q_OBJECT
     Q_INTERFACES(ServiceInterface)
+#if QT_VERSION >= 0x050000
+    Q_PLUGIN_METADATA(IID "org.qdl.Uploadable")
+#endif
 
 public:
     explicit Uploadable(QObject *parent = 0);

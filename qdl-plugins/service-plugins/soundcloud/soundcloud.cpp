@@ -27,6 +27,7 @@
 #endif
 
 #define CLIENT_ID "176d25110130f29509dc252c529fbd61"
+#define IPHONE_CLIENT_ID "376f225bf427445fc4bfb6b99b72e0bf"
 
 using namespace QtJson;
 
@@ -134,11 +135,11 @@ void SoundCloud::getDownloadRequest(const QUrl &webUrl) {
 
     QNetworkRequest request(url);
     QNetworkReply *reply = this->networkAccessManager()->get(request);
-    this->connect(reply, SIGNAL(finished()), this, SLOT(onWebPageDownloaded()));
+    this->connect(reply, SIGNAL(finished()), this, SLOT(parseJson()));
     this->connect(this, SIGNAL(currentOperationCancelled()), reply, SLOT(deleteLater()));
 }
 
-void SoundCloud::onWebPageDownloaded() {
+void SoundCloud::parseJson() {
     QNetworkReply *reply = qobject_cast<QNetworkReply*>(this->sender());
 
     if (!reply) {
@@ -158,16 +159,10 @@ void SoundCloud::onWebPageDownloaded() {
         if (!track.isEmpty()) {
             QString format = QSettings("QDL", "QDL").value("SoundCloud/audioFormat", "original").toString();
             QString downloadUrl = track.value("download_url").toString();
-            QString streamUrl = track.value("stream_url").toString();
             QUrl url;
 
             if ((format == "original") && (!downloadUrl.isEmpty())) {
                 url.setUrl(downloadUrl);
-            }
-            else  {
-                url.setUrl(streamUrl);
-            }
-            if (url.isValid()) {
 #if QT_VERSION >= 0x050000
                 QUrlQuery query(url);
                 query.addQueryItem("client_id", CLIENT_ID);
@@ -177,13 +172,74 @@ void SoundCloud::onWebPageDownloaded() {
 #endif
                 emit downloadRequestReady(QNetworkRequest(url));
             }
-            else {
-                emit error(UnknownError);
+            else  {
+                QString id = track.value("id").toString();
+                
+                if (!id.isEmpty()) {
+                    this->getStreamUrl(id);
+                }
+                else {
+                    emit error(UnknownError);
+                }
             }
         }
         else {
             emit error(UnknownError);
         }
+    }
+
+    reply->deleteLater();
+}
+
+void SoundCloud::getStreamUrl(const QString &id, const QString &token) {
+    QUrl url(QString("http://api.soundcloud.com/i1/tracks/%1/streams").arg(id));
+#if QT_VERSION >= 0x050000
+    QUrlQuery query(url);
+    query.addQueryItem("client_id", IPHONE_CLIENT_ID);
+
+    if (!token.isEmpty()) {
+        query.addQueryItem("secret_token", token);
+    }
+#else
+    url.addQueryItem("client_id", IPHONE_CLIENT_ID);
+    
+    if (!token.isEmpty()) {
+        url.addQueryItem("secret_token", token);
+    }
+#endif
+    QNetworkReply *reply = this->networkAccessManager()->get(request);
+    this->connect(reply, SIGNAL(finished()), this, SLOT(extractStreamUrl()));
+    this->connect(this, SIGNAL(currentOperationCancelled()), reply, SLOT(deleteLater()));
+}
+
+void SoundCloud::extractStreamUrl() {
+    QNetworkReply *reply = qobject_cast<QNetworkReply*>(this->sender());
+
+    if (!reply) {
+        emit error(NetworkError);
+        return;
+    }
+
+    QVariantMap formats = Json::parse(response).toMap();
+    QMapIterator<QString, QVariant> iterator(formats);
+    QUrl url;
+
+    while ((iterator.hasNext()) && (url.isEmpty())) {
+        iterator.next();
+        
+        if (iterator.key().startsWith("http")) {
+            url.setUrl(iterator.value().toString());
+        }
+        else if (iterator.key().startsWith("rtmp")) {
+            url.setUrl(iterator.value().section("mp3:", 1));
+        }
+    }
+
+    if (url.isValid()) {
+        emit downloadRequestReady(QNetworkRequest(url));
+    }
+    else {
+        emit error(UnknownError);
     }
 
     reply->deleteLater();
@@ -195,4 +251,6 @@ bool SoundCloud::cancelCurrentOperation() {
     return true;
 }
 
+#if QT_VERSION < 0x050000
 Q_EXPORT_PLUGIN2(soundcloud, SoundCloud)
+#endif

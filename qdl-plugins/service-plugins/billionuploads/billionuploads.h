@@ -28,6 +28,9 @@ class BillionUploads : public ServicePlugin
 {
     Q_OBJECT
     Q_INTERFACES(ServiceInterface)
+#if QT_VERSION >= 0x050000
+    Q_PLUGIN_METADATA(IID "org.qdl.BillionUploads")
+#endif
 
 public:
     explicit BillionUploads(QObject *parent = 0);
@@ -45,13 +48,13 @@ public:
     bool cancelCurrentOperation();
 
 private:
+    void getDownloadLink(const QUrl &url, const QString &data);
     void startWait(int msecs);
 
 private slots:
     void checkLogin();
     void checkUrlIsValid();
     void onWebPageDownloaded();
-    void getDownloadLink();
     void checkDownloadLink();
     void updateWaitTime();
     void onWaitFinished();
@@ -60,9 +63,6 @@ signals:
     void currentOperationCancelled();
 
 private:
-    QUrl m_url;
-    QString m_fileId;
-    QString m_rand;
     QTimer *m_waitTimer;
     int m_waitTime;
     int m_connections;

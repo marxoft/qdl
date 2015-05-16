@@ -21,7 +21,6 @@
 #include <QNetworkRequest>
 #include <QRegExp>
 #include <QTimer>
-#include <QDateTime>
 
 OneFichier::OneFichier(QObject *parent) :
     ServicePlugin(parent),
@@ -33,7 +32,7 @@ OneFichier::OneFichier(QObject *parent) :
 }
 
 QRegExp OneFichier::urlPattern() const {
-    return QRegExp("http(s|)://\\w+.1fichier.com", Qt::CaseInsensitive);
+    return QRegExp("http(s|)://(\\w+.1fichier.com|1fichier.com/\\?\\w+)", Qt::CaseInsensitive);
 }
 
 bool OneFichier::urlSupported(const QUrl &url) const {
@@ -42,7 +41,7 @@ bool OneFichier::urlSupported(const QUrl &url) const {
 
 void OneFichier::login(const QString &username, const QString &password) {
     QString data = QString("mail=%1&pass=%2").arg(username).arg(password);
-    QUrl url("http://1fichier.com/login.pl");
+    QUrl url("https://1fichier.com/login.pl");
     QNetworkRequest request(url);
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
     QNetworkReply *reply = this->networkAccessManager()->post(request, data.toUtf8());
@@ -76,18 +75,8 @@ void OneFichier::checkLogin() {
     reply->deleteLater();
 }
 
-void OneFichier::checkUrl(const QUrl &webUrl) {
-    QString urlString = webUrl.toString();
-    QNetworkRequest request;
-
-    if (!urlString.endsWith("/en")) {
-        urlString = urlString.section("1fichier.com", 0, 0).append("1fichier.com/en");
-        request.setUrl(QUrl(urlString));
-    }
-    else {
-        request.setUrl(webUrl);
-    }
-
+void OneFichier::checkUrl(const QUrl &url) {
+    QNetworkRequest request(url);
     request.setRawHeader("Accept-Language", "en-GB,en-US;q=0.8,en;q=0.6");
     QNetworkReply *reply = this->networkAccessManager()->get(request);
     this->connect(reply, SIGNAL(finished()), this, SLOT(checkUrlIsValid()));
@@ -103,14 +92,16 @@ void OneFichier::checkUrlIsValid() {
     }
 
     QString redirect = reply->attribute(QNetworkRequest::RedirectionTargetAttribute).toString();
-    QRegExp re("http://\\w-\\d.1fichier.com/get/[^'\"]+");
+    QRegExp re("http(s|)://\\w-\\d.1fichier.com/[^'\"]+");
 
     if ((!redirect.isEmpty()) && (re.indexIn(redirect) == -1)) {
         this->checkUrl(QUrl(redirect));
     }
     else {
         QString response(reply->readAll());
-        QString fileName = response.section("Filename :</th><td>", 1, 1).section('<', 0, 0);
+        QString fileName = response.section("FileName :</td>", 1, 1)
+                                   .section("class=\"normal\">", 1, 1)
+                                   .section('<', 0, 0);
 
         if (fileName.isEmpty()) {
             emit urlChecked(false);
@@ -123,9 +114,9 @@ void OneFichier::checkUrlIsValid() {
     reply->deleteLater();
 }
 
-void OneFichier::getDownloadRequest(const QUrl &webUrl) {
+void OneFichier::getDownloadRequest(const QUrl &url) {
     emit statusChanged(Connecting);
-    QNetworkRequest request(webUrl);
+    QNetworkRequest request(url);
     request.setRawHeader("Accept-Language", "en-GB,en-US;q=0.8,en;q=0.6");
     QNetworkReply *reply = this->networkAccessManager()->get(request);
     this->connect(reply, SIGNAL(finished()), this, SLOT(onWebPageDownloaded()));
@@ -140,7 +131,7 @@ void OneFichier::onWebPageDownloaded() {
         return;
     }
 
-    QRegExp re("http://\\w-\\d.1fichier.com/get/[^'\"]+");
+    QRegExp re("http(s|)://\\w-\\d.1fichier.com/[^'\"]+");
     QString redirect = reply->attribute(QNetworkRequest::RedirectionTargetAttribute).toString();
 
     if (re.indexIn(redirect) == 0) {
@@ -159,12 +150,23 @@ void OneFichier::onWebPageDownloaded() {
             request.setUrl(QUrl(re.cap()));
             emit downloadRequestReady(request);
         }
-        else if (response.contains("you must wait between each download")) {
-            this->startWait(300000);
-            this->connect(this, SIGNAL(waitFinished()), this, SLOT(onWaitFinished()));
-        }
         else {
-            this->getDownloadLink(reply->request().url());
+            QRegExp re("must wait \\d+ minutes");
+        
+            if (re.indexIn(response) >= 0) {
+                int mins = re.cap().section("must wait ", 1, 1).section(' ', 0, 0).toInt();
+                
+                if (mins > 0) {
+                    this->startWait(mins * 61000);
+                    this->connect(this, SIGNAL(waitFinished()), this, SLOT(onWaitFinished()));
+                }
+                else {
+                    emit error(UnknownError);
+                }
+            }
+            else {
+                this->getDownloadLink(reply->request().url());
+            }
         }
     }
 
@@ -174,8 +176,9 @@ void OneFichier::onWebPageDownloaded() {
 void OneFichier::getDownloadLink(const QUrl &url) {
     QNetworkRequest request(url);
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
-    request.setRawHeader("Accept-Language", "en-GB,en-US;q=0.8,en;q=0.6");
-    QNetworkReply *reply = this->networkAccessManager()->post(request, QByteArray("sub=1&submit=Download"));
+    request.setRawHeader("User-Agent", "Wget/1.13.4 (linux-gnu)");
+    request.setRawHeader("Connection", "Keep-Alive");
+    QNetworkReply *reply = this->networkAccessManager()->post(request, QByteArray());
     this->connect(reply, SIGNAL(finished()), this, SLOT(checkDownloadLink()));
     this->connect(this, SIGNAL(currentOperationCancelled()), reply, SLOT(deleteLater()));
 }
@@ -195,7 +198,7 @@ void OneFichier::checkDownloadLink() {
     }
     else {
         QString response(reply->readAll());
-        QRegExp re("must wait \\d+ minutes to download again");
+        QRegExp re("must wait \\d+ minutes");
         
         if (re.indexIn(response) >= 0) {
             int mins = re.cap().section("must wait ", 1, 1).section(' ', 0, 0).toInt();
@@ -252,4 +255,6 @@ bool OneFichier::cancelCurrentOperation() {
     return true;
 }
 
+#if QT_VERSION < 0x050000
 Q_EXPORT_PLUGIN2(onefichier, OneFichier)
+#endif

@@ -21,6 +21,9 @@
 #include <QNetworkRequest>
 #include <QTimer>
 #include <QRegExp>
+#if QT_VERSION >= 0x050000
+#include <QUrlQuery>
+#endif
 
 Netload::Netload(QObject *parent) :
     ServicePlugin(parent),
@@ -166,9 +169,14 @@ void Netload::onWebPageDownloaded() {
         }
         else {
             m_waitUrl = QUrl(QString("http://netload.in/" + response.section("Free_dl\"><a href=\"", 1, 1).section('"', 0, 0)).remove("amp;"));
+#if QT_VERSION >= 0x050000
+            QUrlQuery query(m_waitUrl);
+            m_fileId = query.queryItemValue("file_id");
+            m_id = query.queryItemValue("id");
+#else
             m_fileId = m_waitUrl.queryItemValue("file_id");
             m_id = m_waitUrl.queryItemValue("id");
-
+#endif
             if ((m_fileId.isEmpty()) || (m_id.isEmpty()) || (!m_waitUrl.isValid())) {
                 emit error(UrlError);
             }
@@ -343,4 +351,6 @@ bool Netload::cancelCurrentOperation() {
     return true;
 }
 
+#if QT_VERSION < 0x050000
 Q_EXPORT_PLUGIN2(netload, Netload)
+#endif

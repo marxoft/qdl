@@ -35,6 +35,9 @@
 #include <QDir>
 #include <QTimer>
 #include <QMetaEnum>
+#if QT_VERSION >= 0x050000
+#include <QUrlQuery>
+#endif
 
 using namespace QtJson;
 
@@ -240,6 +243,392 @@ static QByteArray error(const QString &message) {
 }
 
 void WebInterface::onNewRequest(QHttpRequest *request, QHttpResponse *response) {
+#if QT_VERSION >= 0x050000
+    QUrl url = request->url();
+    QUrlQuery query(url);
+    QString path = request->path();
+    QByteArray data;
+
+    if (!this->isAllowed(QHostAddress(request->remoteAddress()))) {
+        response->writeHead(403);
+        data = error(tr("Forbidden"));
+    }
+    else if (path == "/status") {
+        response->writeHead(200);
+        data = status();
+    }
+    else if (path == "/transfers") {
+        response->writeHead(200);
+        data = transfers(query.queryItemValue("filter"), query.queryItemValue("query"), query.queryItemValue("start").toInt(), query.queryItemValue("limit").toInt());
+    }
+    else if (path == "/categoryNames") {
+        response->writeHead(200);
+        data = categoryNames();
+    }
+    else if (path == "/categories") {
+        response->writeHead(200);
+        data = categories();
+    }
+    else if (path == "/serviceNames") {
+        response->writeHead(200);
+        data = serviceNames();
+    }
+    else if (path == "/serviceAccounts") {
+        response->writeHead(200);
+        data = serviceAccounts();
+    }
+    else if (path == "/decaptchaAccounts") {
+        response->writeHead(200);
+        data = decaptchaAccounts();
+    }
+    else if (path.mid(1).startsWith("urls")) {
+        QString method = path.section('/', -1);
+
+        if (method == "addUrls") {
+            QStringList urls = query.queryItemValue("urls").split(',', QString::SkipEmptyParts);
+
+            if (!urls.isEmpty()) {
+                if (query.hasQueryItem("category")) {
+                    Settings::instance()->setDefaultCategory(query.queryItemValue("category"));
+                }
+
+                UrlChecker::instance()->addUrlsToQueue(urls, query.queryItemValue("service"));
+                response->writeHead(200);
+                data = urlCheckProgress();
+            }
+            else {
+                response->writeHead(406);
+                data = error(tr("No URLs specified"));
+            }
+        }
+        else if (method == "retrieveUrls") {
+            QStringList urls = query.queryItemValue("urls").split(',', QString::SkipEmptyParts);
+
+            if (!urls.isEmpty()) {
+                UrlRetriever::instance()->addUrlsToQueue(urls);
+                response->writeHead(200);
+                data = urlRetrievalProgress();
+            }
+            else {
+                response->writeHead(406);
+                data = error(tr("No URLs specified"));
+            }
+        }
+        else if (method == "cancelUrlChecks") {
+            UrlChecker::instance()->cancel();
+            response->writeHead(200);
+            data = success();
+        }
+        else if (method == "clearUrlChecks") {
+            UrlChecker::instance()->model()->clear();
+            response->writeHead(200);
+            data = success();
+        }
+        else if (method == "cancelUrlRetrieval") {
+            UrlRetriever::instance()->cancel();
+            response->writeHead(200);
+            data = success();
+        }
+        else if (method == "clearRetrievedUrls") {
+            UrlRetriever::instance()->clearResults();
+            response->writeHead(200);
+            data = success();
+        }
+        else if (method == "urlCheckProgress") {
+            response->writeHead(200);
+            data = urlCheckProgress();
+        }
+        else if (method == "urlRetrievalProgress") {
+            response->writeHead(200);
+            data = urlRetrievalProgress();
+        }
+    }
+    else if (path.mid(1).startsWith("transfers")) {
+        QString method = path.section('/', -1);
+
+        if (method == "start") {
+            if (query.hasQueryItem("id")) {
+                if (TransferModel::instance()->start(query.queryItemValue("id"))) {
+                    response->writeHead(200);
+                    data = Json::serialize(TransferModel::instance()->itemData(query.queryItemValue("id")));
+                }
+                else {
+                    response->writeHead(404);
+                    data = error(tr("Transfer not found"));
+                }
+            }
+            else {
+                TransferModel::instance()->start();
+                response->writeHead(200);
+                data = success();
+            }
+        }
+        else if (method == "pause") {
+            if (query.hasQueryItem("id")) {
+                if (TransferModel::instance()->pause(query.queryItemValue("id"))) {
+                    response->writeHead(200);
+                    data = Json::serialize(TransferModel::instance()->itemData(query.queryItemValue("id")));
+                }
+                else {
+                    response->writeHead(404);
+                    data = error(tr("Transfer not found"));
+                }
+            }
+            else {
+                TransferModel::instance()->pause();
+                response->writeHead(200);
+                data = success();
+            }
+        }
+        else if ((method == "cancel") || (method == "remove")) {
+            if (TransferModel::instance()->cancel(query.queryItemValue("id"))) {
+                response->writeHead(200);
+                data = success();
+            }
+            else {
+                response->writeHead(404);
+                data = error(tr("Transfer not found"));
+            }
+        }
+        else if (method == "getTransferProperty") {
+            QVariant variant = TransferModel::instance()->data(query.queryItemValue("id"), query.queryItemValue("property").toUtf8());
+
+            if (!variant.isNull()) {
+                response->writeHead(200);
+
+                switch (variant.type()) {
+                case QVariant::String:
+                    data = variant.toString().toUtf8();
+                    break;
+                default:
+                    data = Json::serialize(variant);
+                }
+            }
+            else {
+                response->writeHead(404);
+                data = error(tr("Transfer not found"));
+            }
+        }
+        else if (method == "setTransferProperty") {
+            if (TransferModel::instance()->setData(query.queryItemValue("id"), query.queryItemValue("value"), query.queryItemValue("property").toUtf8())) {
+                response->writeHead(200);
+                data = Json::serialize(TransferModel::instance()->itemData(query.queryItemValue("id")));
+            }
+            else {
+                response->writeHead(406);
+                data = error(tr("Transfer property could not be set"));
+            }
+        }
+        else if (method == "getProperty") {
+            QVariant variant = TransferModel::instance()->property(query.queryItemValue("property").toUtf8());
+
+            if (!variant.isNull()) {
+                response->writeHead(200);
+
+                switch (variant.type()) {
+                case QVariant::String:
+                    data = variant.toString().toUtf8();
+                    break;
+                default:
+                    data = Json::serialize(variant);
+                }
+            }
+            else {
+                response->writeHead(404);
+                data = error(tr("Property not found"));
+            }
+        }
+        else if (method == "setProperty") {
+            if (TransferModel::instance()->setProperty(query.queryItemValue("property").toUtf8(), query.queryItemValue("value"))) {
+                response->writeHead(200);
+                data = success();
+            }
+            else {
+                response->writeHead(406);
+                data = error(tr("Property could not be set"));
+            }
+        }
+        else if (method == "quit") {
+            response->writeHead(200);
+            data = success();
+            TransferModel::instance()->pause();
+            QTimer::singleShot(1000, QCoreApplication::instance(), SLOT(quit()));
+        }
+        else {
+            response->writeHead(404);
+            data = error(tr("Method '%1' not found").arg(method));
+        }
+    }
+    else if (path.mid(1).startsWith("preferences")) {
+        QString method = path.section('/', -1);
+
+        if (method == "getProperties") {
+            QStringList properties = query.queryItemValue("properties").split(",", QString::SkipEmptyParts);
+
+            if (!properties.isEmpty()) {
+                response->writeHead(200);
+
+                QVariantMap map;
+
+                foreach (QString property, properties) {
+                    map[property] = Settings::instance()->property(property.toUtf8());
+                }
+
+                data = Json::serialize(map);
+            }
+            else {
+                response->writeHead(404);
+                data = error(tr("No properties specified"));
+            }
+        }
+        else if (method == "setProperties") {
+            QList< QPair<QString, QString> > queryItems = query.queryItems();
+
+            int head = queryItems.isEmpty() ? 406 : 200;
+
+            while (!queryItems.isEmpty()) {
+                QPair<QString, QString> queryItem = queryItems.takeFirst();
+
+                if (!Settings::instance()->setProperty(queryItem.first.toUtf8(), queryItem.second)) {
+                    head = 406;
+                }
+            }
+
+            data = (head == 200 ? success() : error(tr("Some properties could not be set")));
+        }
+        else {
+            response->writeHead(404);
+            data = error(tr("Method '%1' not found").arg(method));
+        }
+    }
+    else if (path.mid(1).startsWith("categories")) {
+        QString method = path.section('/', -1);
+
+        if (method == "addCategory") {
+            if (Database::instance()->addCategory(query.queryItemValue("name"), query.queryItemValue("path"))) {
+                response->writeHead(200);
+                data = "{ \"name\": \"" + query.queryItemValue("name").toUtf8() + "\", \"path\": \"" + query.queryItemValue("path").toUtf8() + "\" }";
+            }
+            else {
+                response->writeHead(406);
+                data = error(tr("Category could not be added"));
+            }
+        }
+        else if (method == "removeCategory") {
+            if (Database::instance()->removeCategory(query.queryItemValue("name"))) {
+                response->writeHead(200);
+                data = success();
+            }
+            else {
+                response->writeHead(406);
+                data = error(tr("Category could not be removed"));
+            }
+        }
+        else if (method == "getCategoryPath") {
+            QString path = Database::instance()->getCategoryPath(query.queryItemValue("name"));
+
+            if (path.isEmpty()) {
+                response->writeHead(404);
+                data = error(tr("Category not found"));
+            }
+            else {
+                response->writeHead(200);
+                data = path.toUtf8();
+            }
+        }
+    }
+    else if (path.mid(1).startsWith("serviceAccounts")) {
+        QString method = path.section('/', -1);
+
+        if (method == "addAccount") {
+            if (Database::instance()->addAccount(query.queryItemValue("serviceName"), query.queryItemValue("username"), query.queryItemValue("password"))) {
+                response->writeHead(200);
+                data = "{ \"serviceName\": \"" + query.queryItemValue("serviceName").toUtf8() + "\", \"username\": \"" + query.queryItemValue("username").toUtf8() + "\", \"password\": \"" + query.queryItemValue("password").toUtf8() + "\" }";
+
+		if (ServicePlugin *plugin = PluginManager::instance()->getServicePlugin(query.queryItemValue("serviceName"))) {
+            	    plugin->login(query.queryItemValue("username"), query.queryItemValue("password"));
+        	}
+            }
+            else {
+                response->writeHead(406);
+                data = error(tr("Account could not be added"));
+            }
+        }
+        else if (method == "removeAccount") {
+            if (Database::instance()->removeCategory(query.queryItemValue("serviceName"))) {
+                response->writeHead(200);
+                data = success();
+            }
+            else {
+                response->writeHead(406);
+                data = error(tr("Account could not be removed"));
+            }
+        }
+        else if (method == "getAccount") {
+            QPair<QString, QString> account = Database::instance()->getAccount(query.queryItemValue("serviceName"));
+
+            if (account.first.isEmpty()) {
+                response->writeHead(404);
+                data = error(tr("Account not found"));
+            }
+            else {
+                response->writeHead(200);
+                data = "{ \"serviceName\": \"" + query.queryItemValue("serviceName").toUtf8() + "\", \"username\": \"" + account.first.toUtf8() + "\", \"password\": \"" + account.second.toUtf8() + "\" }";
+            }
+        }
+    }
+    else if (path.mid(1).startsWith("decaptchaAccounts")) {
+        QString method = path.section('/', -1);
+
+        if (method == "addAccount") {
+            if (Database::instance()->addAccount(query.queryItemValue("serviceName"), query.queryItemValue("username"), query.queryItemValue("password"))) {
+                response->writeHead(200);
+                data = "{ \"serviceName\": \"" + query.queryItemValue("serviceName").toUtf8() + "\", \"username\": \"" + query.queryItemValue("username").toUtf8() + "\", \"password\": \"" + query.queryItemValue("password").toUtf8() + "\" }";
+            }
+            else {
+                response->writeHead(406);
+                data = error(tr("Account could not be added"));
+            }
+        }
+        else if (method == "removeAccount") {
+            if (Database::instance()->removeCategory(query.queryItemValue("serviceName"))) {
+                response->writeHead(200);
+                data = success();
+            }
+            else {
+                response->writeHead(406);
+                data = error(tr("Account could not be removed"));
+            }
+        }
+        else if (method == "getAccount") {
+            QPair<QString, QString> account = Database::instance()->getAccount(query.queryItemValue("serviceName"));
+
+            if (account.first.isEmpty()) {
+                response->writeHead(404);
+                data = error(tr("Account not found"));
+            }
+            else {
+                response->writeHead(200);
+                data = "{ \"serviceName\": \"" + query.queryItemValue("serviceName").toUtf8() + "\", \"username\": \"" + account.first.toUtf8() + "\", \"password\": \"" + account.second.toUtf8() + "\" }";
+            }
+        }
+    }
+    else {
+        if (path == "/") {
+            path += "queue";
+        }
+
+        data = resource(QFile::exists(path) ? path : QString("%1themes/%2%3").arg(m_path).arg(Settings::instance()->webInterfaceTheme()).arg(path));
+
+        if (data.isEmpty()) {
+            response->writeHead(404);
+            data = error(tr("Not found"));
+        }
+        else {
+            response->writeHead(200);
+        }
+    }
+#else
     QUrl url = request->url();
     QString path = request->path();
     QByteArray data;
@@ -623,7 +1012,7 @@ void WebInterface::onNewRequest(QHttpRequest *request, QHttpResponse *response) 
             response->writeHead(200);
         }
     }
-
+#endif
     response->setHeader("Content-Type", "application/json");
     response->setHeader("Content-Length", QString::number(data.size()));
     response->end(data);

@@ -30,7 +30,7 @@ MegaShares::MegaShares(QObject *parent) :
 
 void MegaShares::getCaptcha(const QString &key) {
     this->setChallenge(key);
-    QUrl url("http://d01.megashares.comindex.php");
+    QUrl url("http://d01.megashares.com/index.php");
 #if QT_VERSION >= 0x050000
     QUrlQuery query(url);
     query.addQueryItem("secgfx", "gfx");
@@ -91,4 +91,6 @@ bool MegaShares::cancelCurrentOperation() {
     return true;
 }
 
+#if QT_VERSION < 0x050000
 Q_EXPORT_PLUGIN2(megasharesrecaptcha, MegaShares)
+#endif

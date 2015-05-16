@@ -11,9 +11,8 @@ HEADERS += \
 SOURCES += \
     onefichier.cpp
 
-icon.files = "$$TARGET".jpg
-
 unix {
+    icon.files = "$$TARGET".jpg
     icon.path = /opt/qdl/icons
     target.path = /opt/qdl/service_plugins
     INSTALLS += target icon

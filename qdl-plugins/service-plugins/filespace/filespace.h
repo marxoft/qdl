@@ -28,6 +28,9 @@ class Filespace : public ServicePlugin
 {
     Q_OBJECT
     Q_INTERFACES(ServiceInterface)
+#if QT_VERSION >= 0x050000
+    Q_PLUGIN_METADATA(IID "org.qdl.Filespace")
+#endif
 
 public:
     explicit Filespace(QObject *parent = 0);
@@ -73,6 +76,7 @@ private:
     QString m_fileId;
     QString m_fileName;
     QString m_rand;
+    QString m_rand2;
     QString m_captchaKey;
     QTimer *m_waitTimer;
     int m_waitTime;

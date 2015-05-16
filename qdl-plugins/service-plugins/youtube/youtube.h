@@ -19,15 +19,21 @@
 #define YOUTUBE_H
 
 #include <QObject>
-#include <QList>
 #include <QUrl>
-#include <QScriptValue>
 #include "serviceplugin.h"
+
+namespace QYouTube {
+    class ResourcesRequest;
+    class StreamsRequest;
+}
 
 class YouTube : public ServicePlugin
 {
     Q_OBJECT
     Q_INTERFACES(ServiceInterface)
+#if QT_VERSION >= 0x050000
+    Q_PLUGIN_METADATA(IID "org.qdl.YouTube")
+#endif
 
 public:
     explicit YouTube(QObject *parent = 0);
@@ -43,28 +49,16 @@ public:
     inline int maximumConnections() const { return 0; }
     bool cancelCurrentOperation();
 
-private:
-    void checkPlaylistVideoUrls(const QUrl &url);
-    void getYouTubeVideoInfoPage(const QString &id);
-    void getYouTubeVideoWebPage(const QString &id);
-    QMap<int, QUrl> getYouTubeVideoUrlMap(QString page, QScriptValue decryptionFunction = QScriptValue());
-    QScriptValue getYouTubeDecryptionFunction(const QUrl &playerUrl);
-    QString unescape(const QString &s);
-
 private slots:
-    void checkUrlIsValid();
-    void checkYouTubeVideoInfoPage();
-    void checkYouTubeWebPage();
-    void parseYouTubeVideoPage(QScriptValue decryptionFunction = QScriptValue(), QString page = QString());
-    void addYouTubeDecryptionFunctionToCache();
+    void onResourcesRequestFinished();
+    void onStreamsRequestFinished();
 
 signals:
-    void youtubeDecryptionFunctionReady(QScriptValue decryptionFunction);
     void currentOperationCancelled();
     
 private:
-    QString m_youtubePage;
-    QList<int> m_formatList;
+    QYouTube::ResourcesRequest *m_resourcesRequest;
+    QYouTube::StreamsRequest *m_streamsRequest;
 };
 
 #endif // YOUTUBE_H

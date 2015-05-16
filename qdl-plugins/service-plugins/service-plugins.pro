@@ -5,7 +5,7 @@ SUBDIRS += \
     babevideo \
     bayfiles \
     bestreams \
-    billionuploads \
+#    billionuploads \
     bitshare \
 #    bliptv \
     blst \
@@ -26,6 +26,7 @@ SUBDIRS += \
     filepost \
     filerio \
     filesmonster \
+    filespace \
     filestay \
     filestoshare \
     filevice \
@@ -37,7 +38,6 @@ SUBDIRS += \
     googledrive \
     hugefiles \
     interfile \
-    joggs \
     jumbofiles \
     keeptoshare \
     kingfiles \
@@ -63,7 +63,7 @@ SUBDIRS += \
     shareonline \
     sharevnn \
     sockshare \
-    soundcloud \
+#    soundcloud \
     terafile \
     titworld \
 #    turbobit \
@@ -83,7 +83,6 @@ SUBDIRS += \
     vk \
     vube \
     winporn \
-    xerver \
     xhamster \
     xvideos \
     youjizz \

@@ -28,6 +28,9 @@ class TwoShared : public ServicePlugin
 {
     Q_OBJECT
     Q_INTERFACES(ServiceInterface)
+#if QT_VERSION >= 0x050000
+    Q_PLUGIN_METADATA(IID "org.qdl.TwoShared")
+#endif
 
 public:
     explicit TwoShared(QObject *parent = 0);

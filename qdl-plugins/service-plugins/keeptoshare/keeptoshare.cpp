@@ -305,20 +305,29 @@ void KeepToShare::checkCaptchaKey() {
         m_captchaKey = response.section("/file/captcha.html?v=", 1, 1).section('"', 0, 0);
         
         if (m_captchaKey.isEmpty()) {
-            QString waitString = response.section("Please wait", 1, 1).section("to download this file", 0, 0).trimmed();
-            
-            if (waitString.isEmpty()) {
-                emit error(UnknownError);
+            if (response.contains("download more than one file at the same time")) {
+                this->startWait(600000);
+                this->connect(this, SIGNAL(waitFinished()), this, SLOT(onWaitFinished()));
+            }
+            else if (response.contains("only for premium members")) {
+                emit error(Unauthorised);
             }
             else {
-                int waitTime = QTime().msecsTo(QTime::fromString(waitString));
-                
-                if (waitTime <= 0) {
+                QString waitString = response.section("Please wait", 1, 1).section("to download this file", 0, 0).trimmed();
+            
+                if (waitString.isEmpty()) {
                     emit error(UnknownError);
                 }
                 else {
-                    this->startWait(waitTime);
-                    this->connect(this, SIGNAL(waitFinished()), this, SLOT(onWaitFinished()));
+                    int waitTime = QTime().msecsTo(QTime::fromString(waitString));
+                
+                    if (waitTime <= 0) {
+                        emit error(UnknownError);
+                    }
+                    else {
+                        this->startWait(waitTime);
+                        this->connect(this, SIGNAL(waitFinished()), this, SLOT(onWaitFinished()));
+                    }
                 }
             }
         }
@@ -465,4 +474,6 @@ bool KeepToShare::cancelCurrentOperation() {
     return true;
 }
 
+#if QT_VERSION < 0x050000
 Q_EXPORT_PLUGIN2(keeptoshare, KeepToShare)
+#endif

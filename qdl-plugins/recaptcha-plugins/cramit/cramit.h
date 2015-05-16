@@ -28,6 +28,9 @@ class Cramit : public RecaptchaPlugin
 {
     Q_OBJECT
     Q_INTERFACES(RecaptchaInterface)
+#if QT_VERSION >= 0x050000
+    Q_PLUGIN_METADATA(IID "org.qdl.CramitRecaptcha")
+#endif
 
 public:
     explicit Cramit(QObject *parent = 0);

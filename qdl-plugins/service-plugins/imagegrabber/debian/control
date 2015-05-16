@@ -1,0 +1,16 @@
+Source: qdl-plugins-imagegrabber
+Section: user/network
+Priority: optional
+Maintainer: Stuart Howarth <showarth@marxoft.co.uk>
+Build-Depends: debhelper (>= 5), libqt4-dev
+Standards-Version: 3.7.3
+Homepage: http://marxoft.co.uk/qdl
+
+Package: qdl-plugins-imagegrabber
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, qdl (>= 1.2.0)
+Description: Image grabber plugin for the QDL download manager.
+ This plugin attempts to extract image URLs from the supplied location. 
+ It is intended for use where no specific plugin is available. 
+ This plugin will only be used if specified explicitly when
+ adding URLs in the QDL download manager.

@@ -28,6 +28,9 @@ class UseFile : public ServicePlugin
 {
     Q_OBJECT
     Q_INTERFACES(ServiceInterface)
+#if QT_VERSION >= 0x050000
+    Q_PLUGIN_METADATA(IID "org.qdl.UseFile")
+#endif
 
 public:
     explicit UseFile(QObject *parent = 0);

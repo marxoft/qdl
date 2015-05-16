@@ -28,6 +28,9 @@ class Google : public RecaptchaPlugin
 {
     Q_OBJECT
     Q_INTERFACES(RecaptchaInterface)
+#if QT_VERSION >= 0x050000
+    Q_PLUGIN_METADATA(IID "org.qdl.GoogleRecaptcha")
+#endif
 
 public:
     explicit Google(QObject *parent = 0);

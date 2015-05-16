@@ -76,7 +76,7 @@ void GoogleDrive::checkUrlIsValid() {
     else {
         QString response(reply->readAll());
         bool ok = false;
-	QString ps = response.section("\"download\":", -1).section("}", 0, 0) + "}";
+	    QString ps = response.section("\"download\":", -1).section("}", 0, 0) + "}";
         QVariantMap params = Json::parse(response.section("\"download\":", -1).section("}", 0, 0) + "}", ok).toMap();
 
         if ((!ok) || (params.isEmpty())) {
@@ -323,4 +323,6 @@ bool GoogleDrive::cancelCurrentOperation() {
     return true;
 }
 
+#if QT_VERSION < 0x050000
 Q_EXPORT_PLUGIN2(googledrive, GoogleDrive)
+#endif

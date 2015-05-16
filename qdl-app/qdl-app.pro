@@ -128,6 +128,10 @@ maemo5 {
 } else:unix {
     DEFINES += WEB_INTERFACE
     QT += dbus
+    
+    greaterThan(QT_MAJOR_VERSION, 4) {
+        QT += widgets
+    }
 
     HEADERS += $$files(src/desktop/*.h) \
         $$files(src/dbus/*.h) \

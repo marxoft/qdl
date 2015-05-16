@@ -1,3 +1,9 @@
+qdl-plugins-youtube (0.1.9) unstable; urgency=low
+
+  * Use QYouTube library to retrieve video metadata and streams.
+
+ -- Stuart Howarth <showarth@marxoft.co.uk>  Fri, 15 May 2015 22:45:26 +0000
+
 qdl-plugins-youtube (0.1.8) unstable; urgency=low
 
   * Fix error in decrypting video signatures.

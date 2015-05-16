@@ -1,5 +1,5 @@
 This package was debianized by Stuart Howarth <showarth@marxoft.co.uk> on
-Wed, 20 Aug 2014 14:33:04 +0000.
+Thu, 05 Feb 2015 15:21:04 +0000.
 
 It was downloaded from <url://example.com>
 
@@ -9,7 +9,7 @@ Upstream Author(s):
 
 Copyright:
 
-    <Copyright (C) 2014 Stuart Howarth>
+    <Copyright (C) 2015 Stuart Howarth>
 
 License:
 
@@ -30,7 +30,7 @@ License:
 On Debian systems, the complete text of the GNU General
 Public License can be found in `/usr/share/common-licenses/GPL'.
 
-The Debian packaging is (C) 2014, Stuart Howarth <showarth@marxoft.co.uk> and
+The Debian packaging is (C) 2015, Stuart Howarth <showarth@marxoft.co.uk> and
 is licensed under the GPL, see above.
 
 

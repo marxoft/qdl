@@ -26,6 +26,9 @@ class CloudStores : public ServicePlugin
 {
     Q_OBJECT
     Q_INTERFACES(ServiceInterface)
+#if QT_VERSION >= 0x050000
+    Q_PLUGIN_METADATA(IID "org.qdl.CloudStores")
+#endif
 
 public:
     explicit CloudStores(QObject *parent = 0);

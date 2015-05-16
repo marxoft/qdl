@@ -28,6 +28,9 @@ class FileVice : public RecaptchaPlugin
 {
     Q_OBJECT
     Q_INTERFACES(RecaptchaInterface)
+#if QT_VERSION >= 0x050000
+    Q_PLUGIN_METADATA(IID "org.qdl.FileViceRecaptcha")
+#endif
 
 public:
     explicit FileVice(QObject *parent = 0);

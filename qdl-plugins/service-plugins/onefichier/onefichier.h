@@ -28,6 +28,9 @@ class OneFichier : public ServicePlugin
 {
     Q_OBJECT
     Q_INTERFACES(ServiceInterface)
+#if QT_VERSION >= 0x050000
+    Q_PLUGIN_METADATA(IID "org.qdl.OneFichier")
+#endif
 
 public:
     explicit OneFichier(QObject *parent = 0);
@@ -52,7 +55,6 @@ private slots:
     void checkLogin();
     void checkUrlIsValid();
     void onWebPageDownloaded();
-    void checkToken();
     void updateWaitTime();
     void onWaitFinished();
     void checkDownloadLink();

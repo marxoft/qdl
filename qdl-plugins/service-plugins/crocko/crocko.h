@@ -28,6 +28,9 @@ class Crocko : public ServicePlugin
 {
     Q_OBJECT
     Q_INTERFACES(ServiceInterface)
+#if QT_VERSION >= 0x050000
+    Q_PLUGIN_METADATA(IID "org.qdl.Crocko")
+#endif
 
 public:
     explicit Crocko(QObject *parent = 0);

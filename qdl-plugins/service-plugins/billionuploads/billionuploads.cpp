@@ -21,6 +21,7 @@
 #include <QNetworkRequest>
 #include <QTimer>
 #include <QRegExp>
+#include <algorithm>
 
 BillionUploads::BillionUploads(QObject *parent) :
     ServicePlugin(parent),
@@ -99,7 +100,7 @@ void BillionUploads::checkUrlIsValid() {
     }
     else {
         QString response(reply->readAll());
-        QString fileName = response.section("Filename:</b>", 1, 1).section('<', 0, 0).trimmed();
+        QString fileName = response.section("dofir\" title=\"", 1, 1).section("\">", 0, 0).trimmed();
 
         if (fileName.isEmpty()) {
             emit urlChecked(false);
@@ -112,10 +113,9 @@ void BillionUploads::checkUrlIsValid() {
     reply->deleteLater();
 }
 
-void BillionUploads::getDownloadRequest(const QUrl &webUrl) {
+void BillionUploads::getDownloadRequest(const QUrl &url) {
     emit statusChanged(Connecting);
-    m_url = webUrl;
-    QNetworkRequest request(webUrl);
+    QNetworkRequest request(url);
     request.setRawHeader("Accept-Language", "en-GB,en-US;q=0.8,en;q=0.6");
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
     QNetworkReply *reply = this->networkAccessManager()->get(request);
@@ -154,10 +154,20 @@ void BillionUploads::onWebPageDownloaded() {
             emit error(NotFound);
         }
         else {
-            m_fileId = response.section("id\" value=\"", 1, 1).section('"', 0, 0);
-            m_rand = response.section("rand\" value=\"", 1, 1).section('"', 0, 0);
+            QString id = response.section("id\" value=\"", 1, 1).section('"', 0, 0);
+            QString rand = response.section("rand\" value=\"", 1, 1).section('"', 0, 0);
+            QString hidden1 = QByteArray::fromPercentEncoding(response.section("innerHTML=decodeURIComponent(\"", 1, 1)
+                                                                      .section("\")", 0, 0));
+                                                                      
+            QString hidden1Name = hidden1.section("name=\"", 1, 1).section('"', 0, 0);
+            QString hidden1Value = hidden1.section("value=\"", 1, 1).section('"', 0, 0);
+            QString hidden2Name = response.section("attr('type','hidden').attr('name','", 1, 1).section("')", 0, 0);
+            QString hidden2Value = response.section("visibility: hidden\">", 1, 1).section("</textarea>", 0, 0);
 
-            if ((m_fileId.isEmpty()) || (m_rand.isEmpty())) {
+            if ((id.isEmpty()) || (rand.isEmpty()) ||
+                (hidden1Name.isEmpty()) || (hidden1Value.isEmpty()) ||
+                (hidden2Name.isEmpty()) || (hidden2Value.isEmpty())) {
+                
                 QString errorString = response.section("<div class=\"err\">", 1, 1).section('<', 0, 0);
 
                 if (!errorString.isEmpty()) {
@@ -176,7 +186,11 @@ void BillionUploads::onWebPageDownloaded() {
                 }
             }
             else {
-                this->getDownloadLink();
+                QString data = QString("op=download2&id=%1&rand=%2&%3=%4&%5=%6&down_direct=1")
+                                      .arg(id).arg(rand).arg(hidden1Name).arg(hidden1Value)
+                                      .arg(hidden2Name).arg(hidden2Value);
+                                      
+                this->getDownloadLink(reply->url(), data);
             }
         }
     }
@@ -184,9 +198,8 @@ void BillionUploads::onWebPageDownloaded() {
     reply->deleteLater();
 }
 
-void BillionUploads::getDownloadLink() {
-    QString data = QString("op=download2&id=%1&rand=%2&down_direct=1").arg(m_fileId).arg(m_rand);
-    QNetworkRequest request(m_url);
+void BillionUploads::getDownloadLink(const QUrl &url, const QString &data) {
+    QNetworkRequest request(url);
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
     request.setRawHeader("Referer", m_url.toString().toUtf8());
     QNetworkReply *reply = this->networkAccessManager()->post(request, data.toUtf8());
@@ -211,7 +224,15 @@ void BillionUploads::checkDownloadLink() {
         emit downloadRequestReady(request);
     }
     else {
-        emit error(UnknownError);
+        QByteArray fastUrl = response.section("var fasturl = '", 1, 1).section("';", 0, 0).toUtf8();
+        
+        if (fastUrl.isEmpty()) {
+            emit error(UnknownError);
+        }
+        else {
+            std::reverse(fastUrl.constBegin(), fastUrl.constEnd());
+            emit downloadRequestReady(QNetworkRequest(QUrl::fromEncoded(fastUrl)));
+        }
     }
 
     reply->deleteLater();
@@ -253,4 +274,6 @@ bool BillionUploads::cancelCurrentOperation() {
     return true;
 }
 
+#if QT_VERSION < 0x050000
 Q_EXPORT_PLUGIN2(billionuploads, BillionUploads)
+#endif

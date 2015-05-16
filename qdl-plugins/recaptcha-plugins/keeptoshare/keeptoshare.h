@@ -28,6 +28,9 @@ class KeepToShare : public RecaptchaPlugin
 {
     Q_OBJECT
     Q_INTERFACES(RecaptchaInterface)
+#if QT_VERSION >= 0x050000
+    Q_PLUGIN_METADATA(IID "org.qdl.KeepToShareRecaptcha")
+#endif
 
 public:
     explicit KeepToShare(QObject *parent = 0);

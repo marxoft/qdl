@@ -25,6 +25,7 @@
 #include <QVBoxLayout>
 #include <QFile>
 #include <QDropEvent>
+#include <QMimeData>
 #include <QUrl>
 
 RetrieveUrlsDialog::RetrieveUrlsDialog(QWidget *parent) :

@@ -26,6 +26,9 @@ class SoundCloud : public ServicePlugin
 {
     Q_OBJECT
     Q_INTERFACES(ServiceInterface)
+#if QT_VERSION >= 0x050000
+    Q_PLUGIN_METADATA(IID "org.qdl.SoundCloud")
+#endif
 
 public:
     explicit SoundCloud(QObject *parent = 0);
@@ -41,9 +44,13 @@ public:
     inline int maximumConnections() const { return 0; }
     bool cancelCurrentOperation();
 
+private:
+    void getStreamUrl(const QString &id, const QString &token = QString());
+
 private slots:
     void checkUrlIsValid();
-    void onWebPageDownloaded();
+    void parseJson();
+    void extractStreamUrl();
 
 signals:
     void currentOperationCancelled();

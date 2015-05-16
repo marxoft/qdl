@@ -1,3 +1,18 @@
+qdl-plugins (0.7.4) unstable; urgency=low
+  * YouTube plugin fix.
+
+ -- Stuart Howarth <showarth@marxoft.co.uk>  Sat, 31 Jan 2015 15:13:24 +0100
+
+qdl-plugins (0.7.3) unstable; urgency=low
+  * YouTube plugin fix.
+
+ -- Stuart Howarth <showarth@marxoft.co.uk>  Thu, 29 Jan 2015 16:15:46 +0100
+
+qdl-plugins (0.7.2) unstable; urgency=low
+  * Plugin fixes.
+
+ -- Stuart Howarth <showarth@marxoft.co.uk>  Tue, 23 Dec 2014 13:41:22 +0100
+
 qdl-plugins (0.7.1) unstable; urgency=low
   * Plugin fixes.
 

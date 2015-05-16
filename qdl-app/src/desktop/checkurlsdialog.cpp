@@ -46,7 +46,11 @@ CheckUrlsDialog::CheckUrlsDialog(QWidget *parent) :
     m_view->setAllColumnsShowFocus(true);
     m_view->header()->setStretchLastSection(false);
     m_view->header()->resizeSection(1, 40);
+#if QT_VERSION >= 0x050000
+    m_view->header()->setSectionResizeMode(0, QHeaderView::Stretch);
+#else
     m_view->header()->setResizeMode(0, QHeaderView::Stretch);
+#endif
 
     m_progressBar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
     m_progressBar->setValue(0);

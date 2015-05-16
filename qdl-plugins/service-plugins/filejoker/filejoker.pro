@@ -1,15 +1,15 @@
 QT += core network
 QT -= gui
-TARGET = xerver
+TARGET = filejoker
 TEMPLATE = lib
 
 HEADERS += \
-    xerver.h \
+    filejoker.h \
     serviceinterface.h \
     serviceplugin.h
 
 SOURCES += \
-    xerver.cpp
+    filejoker.cpp
 
 icon.files = "$$TARGET".jpg
 

@@ -22,6 +22,9 @@
 #include <QNetworkRequest>
 #include <QRegExp>
 #include <QTimer>
+#if QT_VERSION >= 0x050000
+#include <QUrlQuery>
+#endif
 
 using namespace QtJson;
 
@@ -276,10 +279,17 @@ void FourShared::checkDownloadLink() {
     }
 
     QUrl redirect = reply->attribute(QNetworkRequest::RedirectionTargetAttribute).toUrl();
-
+#if QT_VERSION >= 0x050000
+    QUrlQuery query(redirect);
+    
+    if (query.hasQueryItem("cau2")) {
+        emit error(NotFound);
+    }
+#else
     if (redirect.hasQueryItem("cau2")) {
         emit error(NotFound);
     }
+#endif
     else {
         emit downloadRequestReady(QNetworkRequest(m_downloadUrl));
     }
@@ -295,4 +305,6 @@ bool FourShared::cancelCurrentOperation() {
     return true;
 }
 
+#if QT_VERSION < 0x050000
 Q_EXPORT_PLUGIN2(fourshared, FourShared)
+#endif

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
-<!-- Written by Qt Creator 2.4.1, 2014-03-07T15:38:47. -->
+<!-- Written by Qt Creator 2.4.1, 2015-01-31T15:27:29. -->
 <qtcreator>
  <data>
   <variable>ProjectExplorer.Project.ActiveTarget</variable>
@@ -173,11 +173,27 @@
       <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName"></value>
       <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">MaemoUploadAndInstallDpkgPackageStep</value>
       <valuelist type="QVariantList" key="Qt4ProjectManager.MaemoRunConfiguration.LastDeployedFiles">
+       <value type="QString">/home/stuart/Development/QtProjects/qdl/qdl-plugins-build-harmattan-Harmattan_Target_-_QEmu_PR1_2__Qt_SDK__Release/qdl-plugins_0.7.2_armel.deb</value>
        <value type="QString">/home/stuart/Development/QtProjects/qdl/qdl-plugins-build-harmattan-Harmattan_Target_-_QEmu_PR1_2__Qt_SDK__Release/qdl-plugins_0.2.1_armel.deb</value>
+       <value type="QString">/home/stuart/Development/QtProjects/qdl/qdl-plugins-build-harmattan-Harmattan_Target_-_QEmu_PR1_2__Qt_SDK__Release/qdl-plugins_0.7.1_armel.deb</value>
+       <value type="QString">/home/stuart/Development/QtProjects/qdl/qdl-plugins-build-harmattan-Harmattan_Target_-_QEmu_PR1_2__Qt_SDK__Release/qdl-plugins_0.5.0_armel.deb</value>
+       <value type="QString">/home/stuart/Development/QtProjects/qdl/qdl-plugins-build-harmattan-Harmattan_Target_-_QEmu_PR1_2__Qt_SDK__Release/qdl-plugins_0.6.0_armel.deb</value>
+       <value type="QString">/home/stuart/Development/QtProjects/qdl/qdl-plugins-build-harmattan-Harmattan_Target_-_QEmu_PR1_2__Qt_SDK__Release/qdl-plugins_0.7.4_armel.deb</value>
+       <value type="QString">/home/stuart/Development/QtProjects/qdl/qdl-plugins-build-harmattan-Harmattan_Target_-_QEmu_PR1_2__Qt_SDK__Release/qdl-plugins_0.3.0_armel.deb</value>
+       <value type="QString">/home/stuart/Development/QtProjects/qdl/qdl-plugins-build-harmattan-Harmattan_Target_-_QEmu_PR1_2__Qt_SDK__Release/qdl-plugins_0.7.3_armel.deb</value>
        <value type="QString">/home/stuart/Development/QtProjects/qdl/qdl-plugins-build-harmattan-Harmattan_Target_-_QEmu_PR1_2__Qt_SDK__Release/qdl-plugins_0.1.0_armel.deb</value>
+       <value type="QString">/home/stuart/Development/QtProjects/qdl/qdl-plugins-build-harmattan-Harmattan_Target_-_QEmu_PR1_2__Qt_SDK__Release/qdl-plugins_0.4.0_armel.deb</value>
        <value type="QString">/home/stuart/Development/QtProjects/qdl/qdl-plugins-build-harmattan-Harmattan_Target_-_QEmu_PR1_2__Qt_SDK__Release/qdl-plugins_0.2.0_armel.deb</value>
       </valuelist>
       <valuelist type="QVariantList" key="Qt4ProjectManager.MaemoRunConfiguration.LastDeployedHosts">
+       <value type="QString">192.168.2.15</value>
+       <value type="QString">192.168.2.15</value>
+       <value type="QString">192.168.2.15</value>
+       <value type="QString">192.168.2.15</value>
+       <value type="QString">192.168.2.15</value>
+       <value type="QString">192.168.2.15</value>
+       <value type="QString">192.168.2.15</value>
+       <value type="QString">192.168.2.15</value>
        <value type="QString">192.168.2.15</value>
        <value type="QString">192.168.2.15</value>
        <value type="QString">192.168.2.15</value>
@@ -186,10 +202,26 @@
        <value type="QString"></value>
        <value type="QString"></value>
        <value type="QString"></value>
+       <value type="QString"></value>
+       <value type="QString"></value>
+       <value type="QString"></value>
+       <value type="QString"></value>
+       <value type="QString"></value>
+       <value type="QString"></value>
+       <value type="QString"></value>
+       <value type="QString"></value>
       </valuelist>
       <valuelist type="QVariantList" key="Qt4ProjectManager.MaemoRunConfiguration.LastDeployedTimes">
+       <value type="QDateTime">2014-12-23T13:48:59</value>
        <value type="QDateTime">2014-03-07T15:30:29</value>
+       <value type="QDateTime">2014-12-01T13:46:48</value>
+       <value type="QDateTime">2014-07-08T01:21:19</value>
+       <value type="QDateTime">2014-08-20T22:45:08</value>
+       <value type="QDateTime">2015-01-31T15:15:49</value>
+       <value type="QDateTime">2014-05-18T17:22:34</value>
+       <value type="QDateTime">2015-01-31T15:13:10</value>
        <value type="QDateTime">2013-12-13T20:37:21</value>
+       <value type="QDateTime">2014-05-19T15:10:44</value>
        <value type="QDateTime">2014-03-05T15:14:25</value>
       </valuelist>
      </valuemap>

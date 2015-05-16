@@ -31,6 +31,6 @@ public:
     virtual ServicePlugin* createServicePlugin() = 0;
 };
 
-Q_DECLARE_INTERFACE(ServiceInterface, "com.marxoft.QDL.ServiceInterface/1.0")
+Q_DECLARE_INTERFACE(ServiceInterface, "com.marxian.QDL.ServiceInterface/1.0")
 
 #endif // SERVICEINTERFACE_H

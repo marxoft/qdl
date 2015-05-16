@@ -28,6 +28,9 @@ class MegaShares : public RecaptchaPlugin
 {
     Q_OBJECT
     Q_INTERFACES(RecaptchaInterface)
+#if QT_VERSION >= 0x050000
+    Q_PLUGIN_METADATA(IID "org.qdl.MegaSharesRecaptcha")
+#endif
 
 public:
     explicit MegaShares(QObject *parent = 0);

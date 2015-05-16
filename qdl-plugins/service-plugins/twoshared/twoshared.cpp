@@ -21,6 +21,9 @@
 #include <QNetworkRequest>
 #include <QRegExp>
 #include <QTimer>
+#if QT_VERSION >= 0x050000
+#include <QUrlQuery>
+#endif
 
 TwoShared::TwoShared(QObject *parent) :
     ServicePlugin(parent),
@@ -213,10 +216,17 @@ void TwoShared::checkDownloadLink() {
     }
 
     QUrl redirect = reply->attribute(QNetworkRequest::RedirectionTargetAttribute).toUrl();
-
+#if QT_VERSION >= 0x050000
+    QUrlQuery query(redirect);
+    
+    if (query.hasQueryItem("cau2")) {
+        emit error(NotFound);
+    }
+#else
     if (redirect.hasQueryItem("cau2")) {
         emit error(NotFound);
     }
+#endif
     else {
         emit downloadRequestReady(QNetworkRequest(m_downloadUrl));
     }
@@ -232,4 +242,6 @@ bool TwoShared::cancelCurrentOperation() {
     return true;
 }
 
+#if QT_VERSION < 0x050000
 Q_EXPORT_PLUGIN2(twoshared, TwoShared)
+#endif

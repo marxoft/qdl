@@ -149,8 +149,11 @@ void RapidShare::checkUrlIsValid() {
     }
     else {
         QStringList files = response.split("file:", QString::SkipEmptyParts);
+#if QT_VERSION >= 0x050000
+        QString shareId = QUrlQuery(reply->request().url()).queryItemValue("share");
+#else
         QString shareId = reply->request().url().queryItemValue("share");
-
+#endif
         if ((files.isEmpty()) || (shareId.isEmpty())) {
             emit urlChecked(false);
         }
@@ -267,8 +270,11 @@ void RapidShare::checkDownloadUrl() {
     }
     else {
         QStringList fileData = response.section('\"', 1, 1).split(',', QString::SkipEmptyParts);
+#if QT_VERSION >= 0x050000
+        QString shareId = QUrlQuery(reply->request().url()).queryItemValue("share");
+#else
         QString shareId = reply->request().url().queryItemValue("share");
-                
+#endif
         if ((fileData.size() >= 6) && (!shareId.isEmpty())) {
             QString fileId = fileData.first();
             QString fileName = fileData.at(1);
@@ -357,4 +363,6 @@ bool RapidShare::cancelCurrentOperation() {
     return true;
 }
 
+#if QT_VERSION < 0x050000
 Q_EXPORT_PLUGIN2(rapidshare, RapidShare)
+#endif

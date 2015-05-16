@@ -905,26 +905,22 @@ void TransferModel::onTransferStatusChanged(Transfers::Status status) {
 }
 
 void TransferModel::onMaximumConcurrentTransfersChanged(int oldMaximum, int newMaximum) {
+    int active = m_activeTransfers.size();
+    
     if (newMaximum > oldMaximum) {
-        if (newMaximum > m_activeTransfers.size()) {
+        if (newMaximum > active) {
             this->startNextTransfers();
         }
     }
-    else if (newMaximum < oldMaximum) {
-        if (newMaximum < m_activeTransfers.size()) {
-            const int diff = qMin(m_activeTransfers.size(), oldMaximum) - newMaximum;
-            QSet<Transfer*> paused;
-            
-            for (int i = 0; i < diff; i++) {
-                for (int p = Transfers::LowPriority; p >= Transfers::HighPriority; p--) {
-                    for (int i = m_activeTransfers.size() - 1; i >= 0; i--) {
-                        Transfer *transfer = m_activeTransfers.at(i);
-                        
-                        if ((transfer->priority() == p) && (!paused.contains(transfer))) {
-                            transfer->pause();
-                            paused.insert(transfer);
-                            break;
-                        }
+    else if (active > newMaximum) {
+        for (int priority = Transfers::LowPriority; priority >= Transfers::HighPriority; priority--) {
+            for (int i = m_activeTransfers.size() - 1; i >= 0; i--) {
+                if (m_activeTransfers.at(i)->priority() == priority) {
+                    m_activeTransfers.at(i)->pause();
+                    active--;
+                
+                    if (active == newMaximum) {
+                        return;
                     }
                 }
             }

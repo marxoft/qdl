@@ -1,15 +1,15 @@
 QT += core network
 QT -= gui
-TARGET = joggs
+TARGET = imagegrabber
 TEMPLATE = lib
 
 HEADERS += \
-    joggs.h \
+    imagegrabber.h \
     serviceinterface.h \
     serviceplugin.h
 
 SOURCES += \
-    joggs.cpp
+    imagegrabber.cpp
 
 icon.files = "$$TARGET".jpg
 

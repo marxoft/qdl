@@ -45,6 +45,7 @@
 #include <QComboBox>
 #include <QToolButton>
 #include <QDropEvent>
+#include <QMimeData>
 #include <QLabel>
 #include <QProgressDialog>
 #include <QPushButton>

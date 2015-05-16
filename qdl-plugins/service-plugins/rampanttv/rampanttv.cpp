@@ -27,7 +27,7 @@ RampantTV::RampantTV(QObject *parent) :
 }
 
 QRegExp RampantTV::urlPattern() const {
-    return QRegExp("http://tube.rampant.tv/videos/\\w+", Qt::CaseInsensitive);
+    return QRegExp("http(s|)://tube.rampant.tv/videos/\\w+", Qt::CaseInsensitive);
 }
 
 bool RampantTV::urlSupported(const QUrl &url) const {
@@ -135,4 +135,6 @@ bool RampantTV::cancelCurrentOperation() {
     return true;
 }
 
+#if QT_VERSION < 0x050000
 Q_EXPORT_PLUGIN2(rampanttv, RampantTV)
+#endif

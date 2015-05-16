@@ -186,7 +186,7 @@ void ShareVnn::getDownloadLink() {
     query.addQueryItem("pkg", "download");
     query.addQueryItem("fnc", "getlink");
     query.addQueryItem("id", m_fileId);
-    url.setQuery(url);
+    url.setQuery(query);
 #else
     url.addQueryItem("pkg", "download");
     url.addQueryItem("fnc", "getlink");
@@ -259,4 +259,6 @@ bool ShareVnn::cancelCurrentOperation() {
     return true;
 }
 
+#if QT_VERSION < 0x050000
 Q_EXPORT_PLUGIN2(sharevnn, ShareVnn)
+#endif

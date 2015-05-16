@@ -22,8 +22,10 @@
 #include "../dbus/dbusservice.h"
 #include "../dbus/dbusserviceadaptor.h"
 #include <QApplication>
+#if QT_VERSION < 0x050000
 #include <QSsl>
 #include <QSslConfiguration>
+#endif
 
 int main(int argc, char *argv[])
 {
@@ -33,14 +35,16 @@ int main(int argc, char *argv[])
     app.setWindowIcon(QIcon::fromTheme("qdl"));
     app.setQuitOnLastWindowClosed(false);
     
+#if QT_VERSION < 0x050000
     QSslConfiguration config = QSslConfiguration::defaultConfiguration();
     config.setProtocol(QSsl::TlsV1);
     QSslConfiguration::setDefaultConfiguration(config);
+#endif
+
+    QIcon::setThemeName("Lubuntu");
 
     qRegisterMetaType< QList<Transfer*> >("QList<Transfer*>");
     qRegisterMetaType< QList<QUrl> >("QList<QUrl>");
-
-    QIcon::setThemeName("elementary");
 
     Session session;
 

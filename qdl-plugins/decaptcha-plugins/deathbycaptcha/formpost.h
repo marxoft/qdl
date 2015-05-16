@@ -4,7 +4,6 @@
 #include <QString>
 #include <QByteArray>
 #include <QFile>
-#include <QProgressBar>
 #include <QDateTime>
 #include <QNetworkAccessManager>
 #include <QNetworkRequest>

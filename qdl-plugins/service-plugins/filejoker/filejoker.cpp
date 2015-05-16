@@ -15,14 +15,14 @@
  * Inc., 51 Franklin St - Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "xerver.h"
+#include "filejoker.h"
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QNetworkRequest>
 #include <QTimer>
 #include <QRegExp>
 
-Xerver::Xerver(QObject *parent) :
+FileJoker::FileJoker(QObject *parent) :
     ServicePlugin(parent),
     m_waitTimer(new QTimer(this)),
     m_waitTime(0),
@@ -31,17 +31,17 @@ Xerver::Xerver(QObject *parent) :
     this->connect(m_waitTimer, SIGNAL(timeout()), this, SLOT(updateWaitTime()));
 }
 
-QRegExp Xerver::urlPattern() const {
-    return QRegExp("http(s|)://(www.|)xerver.co/\\w+", Qt::CaseInsensitive);
+QRegExp FileJoker::urlPattern() const {
+    return QRegExp("http(s|)://(www\\.|)filejoker\\.net/\\w+", Qt::CaseInsensitive);
 }
 
-bool Xerver::urlSupported(const QUrl &url) const {
+bool FileJoker::urlSupported(const QUrl &url) const {
     return this->urlPattern().indexIn(url.toString()) == 0;
 }
 
-void Xerver::login(const QString &username, const QString &password) {
-    QString data = QString("op=login&redirect=&login=%1&password=%2").arg(username).arg(password);
-    QUrl url("http://xerver.co");
+void FileJoker::login(const QString &username, const QString &password) {
+    QString data = QString("op=login&redirect=&login=%1&password=%2&x=0&y=0").arg(username).arg(password);
+    QUrl url("https://filejoker.net/login");
     QNetworkRequest request(url);
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
     QNetworkReply *reply = this->networkAccessManager()->post(request, data.toUtf8());
@@ -49,7 +49,7 @@ void Xerver::login(const QString &username, const QString &password) {
     this->connect(this, SIGNAL(currentOperationCancelled()), reply, SLOT(deleteLater()));
 }
 
-void Xerver::checkLogin() {
+void FileJoker::checkLogin() {
     QNetworkReply *reply = qobject_cast<QNetworkReply*>(this->sender());
 
     if (!reply) {
@@ -75,7 +75,7 @@ void Xerver::checkLogin() {
     reply->deleteLater();
 }
 
-void Xerver::checkUrl(const QUrl &url) {
+void FileJoker::checkUrl(const QUrl &url) {
     QNetworkRequest request(url);
     request.setRawHeader("Accept-Language", "en-GB,en-US;q=0.8,en;q=0.6");
     QNetworkReply *reply = this->networkAccessManager()->get(request);
@@ -83,7 +83,7 @@ void Xerver::checkUrl(const QUrl &url) {
     this->connect(this, SIGNAL(currentOperationCancelled()), reply, SLOT(deleteLater()));
 }
 
-void Xerver::checkUrlIsValid() {
+void FileJoker::checkUrlIsValid() {
     QNetworkReply *reply = qobject_cast<QNetworkReply*>(this->sender());
 
     if (!reply) {
@@ -92,7 +92,7 @@ void Xerver::checkUrlIsValid() {
     }
 
     QString redirect = reply->attribute(QNetworkRequest::RedirectionTargetAttribute).toString();
-    QRegExp re("http://\\d+\\.\\d+\\.\\d+\\.\\d+:\\d+/d/[^'\"]+");
+    QRegExp re("http(s|)://fs\\d+.filejoker\\.net:.+/[^'\"]+");
 
     if ((!redirect.isEmpty()) && (re.indexIn(redirect) == -1)) {
         this->checkUrl(QUrl(redirect));
@@ -118,7 +118,7 @@ void Xerver::checkUrlIsValid() {
     reply->deleteLater();
 }
 
-void Xerver::getDownloadRequest(const QUrl &url) {
+void FileJoker::getDownloadRequest(const QUrl &url) {
     emit statusChanged(Connecting);
     m_url = url;
     QNetworkRequest request(url);
@@ -128,7 +128,7 @@ void Xerver::getDownloadRequest(const QUrl &url) {
     this->connect(this, SIGNAL(currentOperationCancelled()), reply, SLOT(deleteLater()));
 }
 
-void Xerver::onWebPageDownloaded() {
+void FileJoker::onWebPageDownloaded() {
     QNetworkReply *reply = qobject_cast<QNetworkReply*>(this->sender());
 
     if (!reply) {
@@ -136,7 +136,7 @@ void Xerver::onWebPageDownloaded() {
         return;
     }
 
-    QRegExp re("http://\\d+\\.\\d+\\.\\d+\\.\\d+:\\d+/d/[^'\"]+");
+    QRegExp re("http(s|)://fs\\d+.filejoker\\.net:.+/[^'\"]+");
     QString redirect = reply->attribute(QNetworkRequest::RedirectionTargetAttribute).toString();
 
     if (re.indexIn(redirect) == 0) {
@@ -161,7 +161,7 @@ void Xerver::onWebPageDownloaded() {
         else {
             m_fileId = response.section("id\" value=\"", 1, 1).section('"', 0, 0);
             m_fileName = response.section("fname\" value=\"", 1, 1).section('"', 0, 0);
-           
+            
             if ((m_fileId.isEmpty()) || (m_fileName.isEmpty())) {
                 emit error(UnknownError);
             }
@@ -174,8 +174,8 @@ void Xerver::onWebPageDownloaded() {
     reply->deleteLater();
 }
 
-void Xerver::getWaitTime() {
-    QString data = QString("op=download1&id=%1&fname=%2&method_free=STANDARD+DOWNLOAD").arg(m_fileId).arg(m_fileName);
+void FileJoker::getWaitTime() {
+    QString data = QString("op=download1&id=%1&fname=%2&method_free=1").arg(m_fileId).arg(m_fileName);
     QNetworkRequest request(m_url);
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
     QNetworkReply *reply = this->networkAccessManager()->post(request, data.toUtf8());
@@ -183,7 +183,7 @@ void Xerver::getWaitTime() {
     this->connect(this, SIGNAL(currentOperationCancelled()), reply, SLOT(deleteLater()));
 }
 
-void Xerver::checkWaitTime() {
+void FileJoker::checkWaitTime() {
     QNetworkReply *reply = qobject_cast<QNetworkReply*>(this->sender());
 
     if (!reply) {
@@ -192,13 +192,33 @@ void Xerver::checkWaitTime() {
     }
 
     QString response(reply->readAll());
+    int hours = 0;
     int mins = 0;
     int secs = 0;
 
-    if (response.contains("You have to wait")) {
-        mins = response.section("You have to wait ", 1, 1).section(" minutes", 0, 0).toInt();
-        secs = response.section(" till the next download", 0, 0).section(' ', 1, 1).toInt();
-        this->startWait((mins * 60000) + (secs + 1000));
+    if (response.contains("until the next download becomes available")) {
+        QString waitString = response.section("Please wait", 1, 1)
+                                     .section("until the next download becomes available", 0, 0).trimmed();
+        
+        QRegExp re("\\d+(?= hours)");
+        
+        if (re.indexIn(waitString) != -1) {
+            hours = re.cap().toInt();
+        }
+        
+        re.setPattern("\\d+(?= minutes)");
+        
+        if (re.indexIn(waitString) != -1) {
+            mins = re.cap().toInt();
+        }
+        
+        re.setPattern("\\d+(?= seconds)");
+        
+        if (re.indexIn(waitString) != -1) {
+            secs = re.cap().toInt();
+        }
+
+        this->startWait(qMax(60000, (hours * 3600000) + (mins * 60000) + (secs + 1000)));
         this->connect(this, SIGNAL(waitFinished()), this, SLOT(onWaitFinished()));
     }
     else if (response.contains("You can download files up to ")) {
@@ -209,36 +229,37 @@ void Xerver::checkWaitTime() {
         emit error(UnknownError);
     }
     else {
-        secs = response.section(QRegExp("Please Wait <span id=\"\\w+\">"), 1, 1).section('<', 0, 0).toInt();
+        secs = response.section("span id=\"count\" class=\"alert-success\">", 1, 1).section('<', 0, 0).toInt();
         m_rand = response.section("rand\" value=\"", 1, 1).section('"', 0, 0);
+        m_captchaKey = response.section("http://www.google.net/recaptcha/api/challenge?k=", 1, 1).section('"', 0, 0);
 
-        if (m_rand.isEmpty()) {
+        if ((secs <= 0) || (m_rand.isEmpty()) || (m_captchaKey.isEmpty())) {
             emit error(UnknownError);
         }
-        else if (secs > 0) {
-            m_waitTime = secs * 1000;
-            this->startWait(m_waitTime);
-            this->connect(this, SIGNAL(waitFinished()), this, SLOT(getDownloadLink()));
-        }
         else {
-            this->getDownloadLink();
+            this->startWait(secs * 1000);
+            this->connect(this, SIGNAL(waitFinished()), this, SLOT(downloadCaptcha()));
         }
     }
 
     reply->deleteLater();
 }
 
-void Xerver::getDownloadLink() {
-    QString data = QString("op=download2&id=%1&fname=%2&rand=%3&method_free=STANDARD+DOWNLOAD&down_script=1").arg(m_fileId).arg(m_fileName).arg(m_rand);
+void FileJoker::downloadCaptcha() {
+    emit statusChanged(CaptchaRequired);
+    this->disconnect(this, SIGNAL(waitFinished()), this, SLOT(downloadCaptcha()));
+}
+
+void FileJoker::submitCaptchaResponse(const QString &challenge, const QString &response) {
+    QString data = QString("op=download2&id=%1&fname=%2&rand=%3&method_free=1&down_direct=1&recaptcha_challenge_field=%4&recaptcha_response_field=%5").arg(m_fileId).arg(m_fileName).arg(m_rand).arg(challenge).arg(response);
     QNetworkRequest request(m_url);
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
     QNetworkReply *reply = this->networkAccessManager()->post(request, data.toUtf8());
-    this->connect(reply, SIGNAL(finished()), this, SLOT(checkDownloadLink()));
+    this->connect(reply, SIGNAL(finished()), this, SLOT(onCaptchaSubmitted()));
     this->connect(this, SIGNAL(currentOperationCancelled()), reply, SLOT(deleteLater()));
-    this->disconnect(this, SIGNAL(waitFinished()), this, SLOT(getDownloadLink()));
 }
 
-void Xerver::checkDownloadLink() {
+void FileJoker::onCaptchaSubmitted() {
     QNetworkReply *reply = qobject_cast<QNetworkReply*>(this->sender());
 
     if (!reply) {
@@ -246,32 +267,26 @@ void Xerver::checkDownloadLink() {
         return;
     }
 
-    QRegExp re("http://\\d+\\.\\d+\\.\\d+\\.\\d+:\\d+/d/[^'\"]+");
-    QString redirect = reply->attribute(QNetworkRequest::RedirectionTargetAttribute).toString();
+    QRegExp re("http(s|)://fs\\d+.filejoker\\.net:.+/[^'\"]+");
+    QString response(reply->readAll());
 
-    if (re.indexIn(redirect) == 0) {
+    if (re.indexIn(response) >= 0) {
         QNetworkRequest request;
         request.setUrl(QUrl(re.cap()));
         emit downloadRequestReady(request);
     }
+    else if (response.contains("Wrong Captcha")) {
+        emit error(CaptchaError);
+    }
     else {
-        QString response(reply->readAll());
-
-        if (re.indexIn(response) >= 0) {
-            QNetworkRequest request;
-            request.setUrl(QUrl(re.cap()));
-            emit downloadRequestReady(request);
-        }
-        else {
-            emit error(UnknownError);
-        }
+        emit error(UnknownError);
     }
 
     reply->deleteLater();
 }
 
-void Xerver::startWait(int msecs) {
-    if (msecs > m_waitTime) {
+void FileJoker::startWait(int msecs) {
+    if (msecs > 120000) {
         emit statusChanged(LongWait);
     }
     else {
@@ -283,7 +298,7 @@ void Xerver::startWait(int msecs) {
     m_waitTimer->start(1000);
 }
 
-void Xerver::updateWaitTime() {
+void FileJoker::updateWaitTime() {
     m_waitTime -= m_waitTimer->interval();
     emit waiting(m_waitTime);
 
@@ -293,12 +308,12 @@ void Xerver::updateWaitTime() {
     }
 }
 
-void Xerver::onWaitFinished() {
+void FileJoker::onWaitFinished() {
     emit statusChanged(Ready);
     this->disconnect(this, SIGNAL(waitFinished()), this, SLOT(onWaitFinished()));
 }
 
-bool Xerver::cancelCurrentOperation() {
+bool FileJoker::cancelCurrentOperation() {
     m_waitTimer->stop();
     this->disconnect(this, SIGNAL(waitFinished()), this, 0);
     emit currentOperationCancelled();
@@ -306,4 +321,6 @@ bool Xerver::cancelCurrentOperation() {
     return true;
 }
 
-Q_EXPORT_PLUGIN2(xerver, Xerver)
+#if QT_VERSION < 0x050000
+Q_EXPORT_PLUGIN2(filejoker, FileJoker)
+#endif

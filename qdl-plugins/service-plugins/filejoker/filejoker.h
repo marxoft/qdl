@@ -15,8 +15,8 @@
  * Inc., 51 Franklin St - Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef XERVER_H
-#define XERVER_H
+#ifndef FILEJOKER_H
+#define FILEJOKER_H
 
 #include <QObject>
 #include <QUrl>
@@ -24,26 +24,33 @@
 
 class QTimer;
 
-class Xerver : public ServicePlugin
+class FileJoker : public ServicePlugin
 {
     Q_OBJECT
     Q_INTERFACES(ServiceInterface)
+#if QT_VERSION >= 0x050000
+    Q_PLUGIN_METADATA(IID "org.qdl.FileJoker")
+#endif
 
 public:
-    explicit Xerver(QObject *parent = 0);
-    ServicePlugin* createServicePlugin() { return new Xerver; }
-    inline QString iconName() const { return QString("xerver.jpg"); }
-    inline QString serviceName() const { return QString("Xerver"); }
+    explicit FileJoker(QObject *parent = 0);
+    ServicePlugin* createServicePlugin() { return new FileJoker; }
+    inline QString iconName() const { return QString("filejoker.jpg"); }
+    inline QString serviceName() const { return QString("FileJoker"); }
     QRegExp urlPattern() const;
     bool urlSupported(const QUrl &url) const;
     void checkUrl(const QUrl &url);
     void getDownloadRequest(const QUrl &url);
     void login(const QString &username, const QString &password);
     inline bool loginSupported() const { return true; }
-    inline bool recaptchaRequired() const { return false; }
+    inline bool recaptchaRequired() const { return true; }
+    inline QString recaptchaKey() const { return m_captchaKey; }
     inline QString errorString() const { return m_errorString; }
     inline int maximumConnections() const { return m_connections; }
     bool cancelCurrentOperation();
+
+public slots:
+    void submitCaptchaResponse(const QString &challenge, const QString &response);
 
 private:
     void getWaitTime();
@@ -55,8 +62,8 @@ private slots:
     void checkUrlIsValid();
     void onWebPageDownloaded();
     void checkWaitTime();
-    void getDownloadLink();
-    void checkDownloadLink();
+    void downloadCaptcha();
+    void onCaptchaSubmitted();
     void updateWaitTime();
     void onWaitFinished();
 
@@ -68,10 +75,11 @@ private:
     QString m_fileId;
     QString m_fileName;
     QString m_rand;
+    QString m_captchaKey;
     QTimer *m_waitTimer;
     int m_waitTime;
     int m_connections;
     QString m_errorString;
 };
 
-#endif // XERVER_H
+#endif // FILEJOKER_H

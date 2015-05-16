@@ -27,6 +27,7 @@
 #include <QGridLayout>
 #include <QFile>
 #include <QDropEvent>
+#include <QMimeData>
 #include <QUrl>
 
 AddUrlsDialog::AddUrlsDialog(QWidget *parent) :
