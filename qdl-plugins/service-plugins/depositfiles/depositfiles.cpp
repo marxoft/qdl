@@ -28,6 +28,7 @@
 
 DepositFiles::DepositFiles(QObject *parent) :
     ServicePlugin(parent),
+    m_captchaKey("SIJ6c0A4jnoMjxJKEXAaE.ZeenhDtKlH"),
     m_waitTimer(new QTimer(this)),
     m_waitTime(0),
     m_connections(1)
@@ -104,10 +105,10 @@ void DepositFiles::checkUrlIsValid() {
     else {
         QString response(reply->readAll());
 
-	if (response.contains("file does not exist")) {
-	    emit urlChecked(false);
-	}
-	else {
+        if (response.contains("file does not exist")) {
+            emit urlChecked(false);
+        }
+        else {
             QScriptEngine engine;
             QString script = response.section("eval( ", 1, 1).section(");", 0, 0);
             QString fileNameElement = engine.evaluate(script).toString();
@@ -119,7 +120,7 @@ void DepositFiles::checkUrlIsValid() {
                 QString fileName = fileNameElement.section("title=\"", 1, 1).section('"', 0, 0);
                 emit urlChecked(true, reply->request().url(), this->serviceName(), fileName);
             }
-	}
+        }
     }
 
     reply->deleteLater();
@@ -127,6 +128,7 @@ void DepositFiles::checkUrlIsValid() {
 
 void DepositFiles::getDownloadRequest(const QUrl &url) {
     emit statusChanged(Connecting);
+    m_url = url;
     QNetworkRequest request(url);
     request.setRawHeader("Accept-Language", "en-GB,en-US;q=0.8,en;q=0.6");
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
@@ -174,16 +176,15 @@ void DepositFiles::onWebPageDownloaded() {
             }
         }
         else {
-            m_captchaKey = response.section("Recaptcha.create('", 1, 1).section('\'', 0, 0);
             m_fileId = response.section("var fid = '", 1, 1).section('\'', 0, 0);
 
             if ((m_captchaKey.isEmpty()) || (m_fileId.isEmpty())) {
-		if (response.contains("file does not exist")) {
+                if (response.contains("file does not exist")) {
                     emit error(NotFound);
-		}
-		else {
-		    emit error(UrlError);
-		}
+                }
+                else {
+                    emit error(UrlError);
+                }
             }
             else {
                 this->startWait(60000);
@@ -202,19 +203,23 @@ void DepositFiles::downloadCaptcha() {
 
 void DepositFiles::submitCaptchaResponse(const QString &challenge, const QString &response) {
     QUrl url("http://depositfiles.com/get_file.php");
+    url.setHost(m_url.host());
 #if QT_VERSION >= 0x050000
     QUrlQuery query(url);
     query.addQueryItem("fid", m_fileId);
     query.addQueryItem("challenge", challenge);
     query.addQueryItem("response", response);
+    query.addQueryItem("acpuzzle", "1");
     url.setQuery(query);
 #else
     url.addQueryItem("fid", m_fileId);
     url.addQueryItem("challenge", challenge);
     url.addQueryItem("response", response);
+    url.addQueryItem("acpuzzle", "1");
 #endif
     QNetworkRequest request(url);
     request.setRawHeader("Accept-Language", "en-GB,en-US;q=0.8,en;q=0.6");
+    request.setRawHeader("X-Requested-With", "XMLHttpRequest");
     QNetworkReply *reply = this->networkAccessManager()->get(request);
     this->connect(reply, SIGNAL(finished()), this, SLOT(onCaptchaSubmitted()));
     this->connect(this, SIGNAL(currentOperationCancelled()), reply, SLOT(deleteLater()));
@@ -230,6 +235,7 @@ void DepositFiles::onCaptchaSubmitted() {
 
     QRegExp re("http://fileshare\\d+.(depositfiles.com|dfiles.\\w+)/[^'\"]+");
     QString response(reply->readAll());
+    qDebug() << response;
 
     if (re.indexIn(response) >= 0) {
         QNetworkRequest request;

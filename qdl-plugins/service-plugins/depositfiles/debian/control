@@ -8,6 +8,6 @@ Homepage: http://marxoft.co.uk/qdl
 
 Package: qdl-plugins-depositfiles
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, qdl (>= 1.0.2), qdl-plugins-googlerecaptcha (>= 0.1.0)
+Depends: ${shlibs:Depends}, ${misc:Depends}, qdl (>= 1.0.2), qdl-plugins-solvemediarecaptcha (>= 0.1.0)
 Description: Depositfiles plugin for the QDL download manager.
  This plugin provides access to file downloads via Depositfiles.

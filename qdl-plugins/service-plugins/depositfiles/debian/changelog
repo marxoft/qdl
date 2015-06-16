@@ -1,3 +1,9 @@
+qdl-plugins-depositfiles (0.1.3) unstable; urgency=low
+
+  * Update recaptcha to use SolveMedia.
+
+ -- Stuart Howarth <showarth@marxoft.co.uk>  Mon, 15 Jun 2015 14:48:24 +0000
+
 qdl-plugins-depositfiles (0.1.2) unstable; urgency=low
 
   * Disconnect from timer signal when current operation is canceled.
