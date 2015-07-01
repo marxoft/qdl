@@ -79,6 +79,7 @@ SUBDIRS += \
     usefile \
     videobam \
     videograbber \
+    vidme \
     vimeo \
     vk \
     vube \
