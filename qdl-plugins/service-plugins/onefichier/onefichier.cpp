@@ -99,7 +99,7 @@ void OneFichier::checkUrlIsValid() {
     }
     else {
         QString response(reply->readAll());
-        QString fileName = response.section("FileName :</td>", 1, 1)
+        QString fileName = response.section("File Name :</td>", 1, 1)
                                    .section("class=\"normal\">", 1, 1)
                                    .section('<', 0, 0);
 
