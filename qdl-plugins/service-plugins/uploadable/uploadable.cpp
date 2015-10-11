@@ -44,7 +44,7 @@ bool Uploadable::urlSupported(const QUrl &url) const {
 
 void Uploadable::login(const QString &username, const QString &password) {
     QString data = QString("userName=%1&userPassword=%2").arg(username).arg(password);
-    QUrl url("http://uploadable.ch/login.php");
+    QUrl url("https://uploadable.ch/login.php");
     QNetworkRequest request(url);
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
     QNetworkReply *reply = this->networkAccessManager()->post(request, data.toUtf8());
@@ -95,7 +95,7 @@ void Uploadable::checkUrlIsValid() {
     }
 
     QString redirect = reply->attribute(QNetworkRequest::RedirectionTargetAttribute).toString();
-    QRegExp re("http://adl.uploadable.ch/file/\\w+/[-\\w]+/[-\\w]+");
+    QRegExp re("http(s|)://adl.uploadable.ch/file/\\w+/[-\\w]+/[-\\w]+");
 
     if ((!redirect.isEmpty()) && (re.indexIn(redirect) == -1)) {
         this->checkUrl(QUrl(redirect));
@@ -132,7 +132,7 @@ void Uploadable::onWebPageDownloaded() {
         return;
     }
 
-    QRegExp re("http://adl.uploadable.ch/file/\\w+/[-\\w]+/[-\\w]+");
+    QRegExp re("http(s|)://adl.uploadable.ch/file/\\w+/[-\\w]+/[-\\w]+");
     QString redirect = reply->attribute(QNetworkRequest::RedirectionTargetAttribute).toString();
 
     if (re.indexIn(redirect) == 0) {
@@ -171,13 +171,13 @@ void Uploadable::onWebPageDownloaded() {
 }
 
 void Uploadable::getWaitTime() {
-    QUrl url("http://www.uploadable.ch/file/" + m_fileId);
+    QUrl url("https://www.uploadable.ch/file/" + m_fileId);
     QNetworkRequest request(url);
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
     request.setRawHeader("Accept", "text/javascript, text/html, application/xml, text/xml, */*");
     request.setRawHeader("Accept-Language", "en-US,en;q=0.5");
     request.setRawHeader("X-Requested-With", "XMLHttpRequest");
-    request.setRawHeader("Referer", "http://www.uploadable.ch/file/" + m_fileId.toUtf8());
+    request.setRawHeader("Referer", "https://www.uploadable.ch/file/" + m_fileId.toUtf8());
     QNetworkReply *reply = this->networkAccessManager()->post(request, "downloadLink=wait");
     this->connect(reply, SIGNAL(finished()), this, SLOT(checkWaitTime()));
     this->connect(this, SIGNAL(currentOperationCancelled()), reply, SLOT(deleteLater()));
@@ -213,13 +213,13 @@ void Uploadable::checkWaitTime() {
 }
 
 void Uploadable::getDownloadCheck() {
-    QUrl url("http://www.uploadable.ch/file/" + m_fileId);
+    QUrl url("https://www.uploadable.ch/file/" + m_fileId);
     QNetworkRequest request(url);
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
     request.setRawHeader("Accept", "text/javascript, text/html, application/xml, text/xml, */*");
     request.setRawHeader("Accept-Language", "en-US,en;q=0.5");
     request.setRawHeader("X-Requested-With", "XMLHttpRequest");
-    request.setRawHeader("Referer", "http://www.uploadable.ch/file/" + m_fileId.toUtf8());
+    request.setRawHeader("Referer", "https://www.uploadable.ch/file/" + m_fileId.toUtf8());
     QNetworkReply *reply = this->networkAccessManager()->post(request, "checkDownload=check");
     this->connect(reply, SIGNAL(finished()), this, SLOT(checkDownloadCheck()));
     this->connect(this, SIGNAL(currentOperationCancelled()), reply, SLOT(deleteLater()));
@@ -258,13 +258,13 @@ void Uploadable::checkDownloadCheck() {
 
 void Uploadable::submitCaptchaResponse(const QString &challenge, const QString &response) {
     QString data = QString("recaptcha_challenge_field=%1&recaptcha_response_field=%2&recaptcha_shortencode_field=%3").arg(challenge).arg(response).arg(m_fileId);
-    QUrl url("http://www.uploadable.ch/checkReCaptcha.php");
+    QUrl url("https://www.uploadable.ch/checkReCaptcha.php");
     QNetworkRequest request(url);
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
     request.setRawHeader("Accept", "text/javascript, text/html, application/xml, text/xml, */*");
     request.setRawHeader("Accept-Language", "en-US,en;q=0.5");
     request.setRawHeader("X-Requested-With", "XMLHttpRequest");
-    request.setRawHeader("Referer", "http://www.uploadable.ch/file/" + m_fileId.toUtf8());
+    request.setRawHeader("Referer", "https://www.uploadable.ch/file/" + m_fileId.toUtf8());
     QNetworkReply *reply = this->networkAccessManager()->post(request, data.toUtf8());
     this->connect(reply, SIGNAL(finished()), this, SLOT(onCaptchaSubmitted()));
     this->connect(this, SIGNAL(currentOperationCancelled()), reply, SLOT(deleteLater()));
@@ -304,13 +304,13 @@ void Uploadable::onCaptchaSubmitted() {
 }
 
 void Uploadable::getDownloadLink() {
-    QUrl url("http://www.uploadable.ch/file/" + m_fileId);
+    QUrl url("https://www.uploadable.ch/file/" + m_fileId);
     QNetworkRequest request(url);
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
     request.setRawHeader("Accept", "text/javascript, text/html, application/xml, text/xml, */*");
     request.setRawHeader("Accept-Language", "en-US,en;q=0.5");
     request.setRawHeader("X-Requested-With", "XMLHttpRequest");
-    request.setRawHeader("Referer", "http://www.uploadable.ch/file/" + m_fileId.toUtf8());
+    request.setRawHeader("Referer", "https://www.uploadable.ch/file/" + m_fileId.toUtf8());
     QNetworkReply *reply = this->networkAccessManager()->post(request, "downloadLink=show");
     this->connect(reply, SIGNAL(finished()), this, SLOT(checkDownloadLink()));
     this->connect(this, SIGNAL(currentOperationCancelled()), reply, SLOT(deleteLater()));
@@ -330,13 +330,13 @@ void Uploadable::checkDownloadLink() {
 }
 
 void Uploadable::getRedirect() {
-    QUrl url("http://www.uploadable.ch/file/" + m_fileId);
+    QUrl url("https://www.uploadable.ch/file/" + m_fileId);
     QNetworkRequest request(url);
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
     request.setRawHeader("Accept", "text/javascript, text/html, application/xml, text/xml, */*");
     request.setRawHeader("Accept-Language", "en-US,en;q=0.5");
     request.setRawHeader("X-Requested-With", "XMLHttpRequest");
-    request.setRawHeader("Referer", "http://www.uploadable.ch/file/" + m_fileId.toUtf8());
+    request.setRawHeader("Referer", "https://www.uploadable.ch/file/" + m_fileId.toUtf8());
     QNetworkReply *reply = this->networkAccessManager()->post(request, "download=normal");
     this->connect(reply, SIGNAL(finished()), this, SLOT(checkRedirect()));
     this->connect(this, SIGNAL(currentOperationCancelled()), reply, SLOT(deleteLater()));
