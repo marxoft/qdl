@@ -1,3 +1,15 @@
+qdl-plugins-googledrive (0.0.4) unstable; urgency=low
+
+  * Fix YouTube video format retrieval.
+
+ -- Stuart Howarth <showarth@marxoft.co.uk>  Thu, 22 Oct 2015 03:16:41 +0000
+
+qdl-plugins-googledrive (0.0.3) unstable; urgency=low
+
+  * Fix download URL retrieval.
+
+ -- Stuart Howarth <showarth@marxoft.co.uk>  Mon, 13 Jul 2015 16:48:25 +0000
+
 qdl-plugins-googledrive (0.0.2) unstable; urgency=low
 
   * Handle Google Docs URLs.

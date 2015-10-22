@@ -6,12 +6,10 @@ TEMPLATE = lib
 HEADERS += \
     googledrive.h \
     serviceinterface.h \
-    serviceplugin.h \
-    json.h
+    serviceplugin.h
 
 SOURCES += \
-    googledrive.cpp \
-    json.cpp
+    googledrive.cpp
 
 icon.files = "$$TARGET".jpg
 settings.files = "$$TARGET".xml

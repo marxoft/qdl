@@ -16,7 +16,6 @@
  */
 
 #include "googledrive.h"
-#include "json.h"
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QNetworkRequest>
@@ -27,8 +26,6 @@
 #include <QUrlQuery>
 #endif
 
-using namespace QtJson;
-
 GoogleDrive::GoogleDrive(QObject *parent) :
     ServicePlugin(parent)
 {
@@ -36,7 +33,7 @@ GoogleDrive::GoogleDrive(QObject *parent) :
 }
 
 QRegExp GoogleDrive::urlPattern() const {
-    return QRegExp("http(s|)://(drive|docs).google.com/file/d/\\w+", Qt::CaseInsensitive);
+    return QRegExp("http(s|)://(drive|docs)\\.google\\.com/file/d/[\\w_-]+", Qt::CaseInsensitive);
 }
 
 bool GoogleDrive::urlSupported(const QUrl &url) const {
@@ -61,36 +58,26 @@ void GoogleDrive::checkUrlIsValid() {
     QUrl redirect = reply->attribute(QNetworkRequest::RedirectionTargetAttribute).toUrl();
 
     if (!redirect.isEmpty()) {
-	QUrl url = reply->request().url();
+        QUrl url = reply->request().url();
 
-	if (redirect.scheme().isEmpty()) {
-	    redirect.setScheme(url.scheme());
-	}
+        if (redirect.scheme().isEmpty()) {
+            redirect.setScheme(url.scheme());
+        }
 
-	if (redirect.host().isEmpty()) {
-	    redirect.setHost(url.host());
-	}
+        if (redirect.host().isEmpty()) {
+            redirect.setHost(url.host());
+        }
 	    
         this->checkUrl(redirect);
     }
     else {
         QString response(reply->readAll());
-        bool ok = false;
-	    QString ps = response.section("\"download\":", -1).section("}", 0, 0) + "}";
-        QVariantMap params = Json::parse(response.section("\"download\":", -1).section("}", 0, 0) + "}", ok).toMap();
-
-        if ((!ok) || (params.isEmpty())) {
+        QString fileName = response.section("itemprop=\"name\" content=\"", -1).section('"', 0, 0);
+        if (fileName.isEmpty()) {
             emit urlChecked(false);
         }
         else {
-            QString fileName = params.value("filename").toString();
-
-            if (fileName.isEmpty()) {
-                emit urlChecked(false);
-            }
-            else {
-                emit urlChecked(true, reply->request().url(), this->serviceName(), fileName);
-            }
+            emit urlChecked(true, reply->request().url(), this->serviceName(), fileName);
         }
     }
 
@@ -116,15 +103,15 @@ void GoogleDrive::checkWebPage() {
     QUrl redirect = reply->attribute(QNetworkRequest::RedirectionTargetAttribute).toUrl();
 
     if (!redirect.isEmpty()) {
-	QUrl url = reply->request().url();
+        QUrl url = reply->request().url();
 
-	if (redirect.scheme().isEmpty()) {
-	    redirect.setScheme(url.scheme());
-	}
+        if (redirect.scheme().isEmpty()) {
+            redirect.setScheme(url.scheme());
+        }
 
-	if (redirect.host().isEmpty()) {
-	    redirect.setHost(url.host());
-	}
+        if (redirect.host().isEmpty()) {
+            redirect.setHost(url.host());
+        }
 
         this->getDownloadRequest(redirect);
     }
@@ -133,10 +120,12 @@ void GoogleDrive::checkWebPage() {
 
         QSettings settings("QDL", "QDL");
 
-        if ((response.contains("url_encoded_fmt_stream_map\":")) && (settings.value("Google Drive/useYouTubeForVideos", false).toBool())) {
+        if ((response.contains("url_encoded_fmt_stream_map"))
+            && (settings.value("Google Drive/useYouTubeForVideos", false).toBool())) {
             // Treat as YouTube video if possible
 
-            QString formatMap = response.section("url_encoded_fmt_stream_map\":\"", 1, 1).section("\", \"", 0, 0).trimmed().replace("\\u0026", "&").remove(QRegExp("itag=\\d+"));
+            QString formatMap = response.section("url_encoded_fmt_stream_map\",\"", 1, 1).section("\"]", 0, 0).trimmed()
+                                        .replace("\\u0026", "&").replace("\\u003d", "=").remove(QRegExp("itag=\\d+"));
             QMap<int, QUrl> urlMap = this->getYouTubeVideoUrlMap(formatMap);
             int format = settings.value("Google Drive/videoFormat", 18).toInt();
             QUrl videoUrl;
@@ -153,23 +142,9 @@ void GoogleDrive::checkWebPage() {
                 return;
             }
         }
-
-        bool ok = false;
-        QVariantMap params = Json::parse(response.section("\"download\":", -1).section("}", 0, 0) + "}", ok).toMap();
-
-        if ((!ok) || (params.isEmpty())) {
-            emit error(UnknownError);
-        }
-        else {
-            QUrl url = params.value("url").toUrl();
-
-            if (url.isEmpty()) {
-                emit error(UnknownError);
-            }
-            else {
-                this->getDownloadPage(url);
-            }
-        }
+        
+        this->getDownloadPage(QString("https://docs.google.com/uc?id=%1&export=download")
+                             .arg(reply->url().toString().section("/d/", -1).section('/', 0, 0)));
     }
 
     reply->deleteLater();
@@ -193,21 +168,21 @@ void GoogleDrive::checkDownloadPage() {
     QUrl redirect = reply->attribute(QNetworkRequest::RedirectionTargetAttribute).toUrl();
 
     if (!redirect.isEmpty()) {
-	QUrl url = reply->request().url();
+        QUrl url = reply->request().url();
 
-	if (redirect.scheme().isEmpty()) {
-	    redirect.setScheme(url.scheme());
-	}
+        if (redirect.scheme().isEmpty()) {
+            redirect.setScheme(url.scheme());
+        }
 
-	if (redirect.host().isEmpty()) {
-	    redirect.setHost(url.host());
-	}
+        if (redirect.host().isEmpty()) {
+            redirect.setHost(url.host());
+        }
 
         this->getDownloadPage(redirect);
     }
     else {
         QString response(reply->readAll());
-        QString confirm = response.section("confirm=", -1).section('&', 0, 0);
+        QString confirm = response.contains("confirm=") ? response.section("confirm=", -1).section('&', 0, 0) : "";
 
         if (confirm.isEmpty()) {
             emit error(UnknownError);
