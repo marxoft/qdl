@@ -28,7 +28,7 @@
 
 DepositFiles::DepositFiles(QObject *parent) :
     ServicePlugin(parent),
-    m_captchaKey("SIJ6c0A4jnoMjxJKEXAaE.ZeenhDtKlH"),
+    m_captchaKey("PmNHIzoabGnx1.a18HcKp2KaKlEKu38t"),
     m_waitTimer(new QTimer(this)),
     m_waitTime(0),
     m_connections(1)
@@ -46,7 +46,7 @@ bool DepositFiles::urlSupported(const QUrl &url) const {
 
 void DepositFiles::login(const QString &username, const QString &password) {
     QString data = QString("login=%1&password=%2").arg(username).arg(password);
-    QUrl url("http://depositfiles.com/api/user/login");
+    QUrl url("https://depositfiles.com/api/user/login");
     QNetworkRequest request(url);
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
     QNetworkReply *reply = this->networkAccessManager()->post(request, data.toUtf8());
@@ -97,7 +97,7 @@ void DepositFiles::checkUrlIsValid() {
     }
 
     QString redirect = reply->attribute(QNetworkRequest::RedirectionTargetAttribute).toString();
-    QRegExp re("http://fileshare\\d+.(depositfiles.com|dfiles.\\w+)/[^'\"]+");
+    QRegExp re("http(s|)://fileshare\\d+.(depositfiles.com|dfiles.\\w+)/[^'\"]+");
 
     if ((!redirect.isEmpty()) && (re.indexIn(redirect) == -1)) {
         this->checkUrl(QUrl(redirect));
@@ -145,7 +145,7 @@ void DepositFiles::onWebPageDownloaded() {
         return;
     }
 
-    QRegExp re("http://fileshare\\d+.(depositfiles.com|dfiles.\\w+)/[^'\"]+");
+    QRegExp re("http(s|)://fileshare\\d+.(depositfiles.com|dfiles.\\w+)/[^'\"]+");
     QString redirect = reply->attribute(QNetworkRequest::RedirectionTargetAttribute).toString();
 
     if (re.indexIn(redirect) == 0) {
@@ -202,7 +202,7 @@ void DepositFiles::downloadCaptcha() {
 }
 
 void DepositFiles::submitCaptchaResponse(const QString &challenge, const QString &response) {
-    QUrl url("http://depositfiles.com/get_file.php");
+    QUrl url("https://depositfiles.com/get_file.php");
     url.setHost(m_url.host());
 #if QT_VERSION >= 0x050000
     QUrlQuery query(url);
@@ -233,9 +233,8 @@ void DepositFiles::onCaptchaSubmitted() {
         return;
     }
 
-    QRegExp re("http://fileshare\\d+.(depositfiles.com|dfiles.\\w+)/[^'\"]+");
+    QRegExp re("http(s|)://fileshare\\d+.(depositfiles.com|dfiles.\\w+)/[^'\"]+");
     QString response(reply->readAll());
-    qDebug() << response;
 
     if (re.indexIn(response) >= 0) {
         QNetworkRequest request;
