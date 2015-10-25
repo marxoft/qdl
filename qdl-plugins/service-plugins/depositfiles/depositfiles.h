@@ -61,7 +61,8 @@ private slots:
     void onWebPageDownloaded();
     void onCaptchaSubmitted();
     void updateWaitTime();
-    void downloadCaptcha();
+    void getCaptchaKey();
+    void checkCaptchaKey();
     void onWaitFinished();
 
 signals:

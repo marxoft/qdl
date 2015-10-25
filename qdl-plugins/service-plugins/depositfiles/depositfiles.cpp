@@ -28,7 +28,6 @@
 
 DepositFiles::DepositFiles(QObject *parent) :
     ServicePlugin(parent),
-    m_captchaKey("PmNHIzoabGnx1.a18HcKp2KaKlEKu38t"),
     m_waitTimer(new QTimer(this)),
     m_waitTime(0),
     m_connections(1)
@@ -178,7 +177,7 @@ void DepositFiles::onWebPageDownloaded() {
         else {
             m_fileId = response.section("var fid = '", 1, 1).section('\'', 0, 0);
 
-            if ((m_captchaKey.isEmpty()) || (m_fileId.isEmpty())) {
+            if (m_fileId.isEmpty()) {
                 if (response.contains("file does not exist")) {
                     emit error(NotFound);
                 }
@@ -188,7 +187,7 @@ void DepositFiles::onWebPageDownloaded() {
             }
             else {
                 this->startWait(60000);
-                this->connect(this, SIGNAL(waitFinished()), this, SLOT(downloadCaptcha()));
+                this->connect(this, SIGNAL(waitFinished()), this, SLOT(getCaptchaKey()));
             }
         }
     }
@@ -196,9 +195,43 @@ void DepositFiles::onWebPageDownloaded() {
     reply->deleteLater();
 }
 
-void DepositFiles::downloadCaptcha() {
-    emit statusChanged(CaptchaRequired);
-    this->disconnect(this, SIGNAL(waitFinished()), this, SLOT(downloadCaptcha()));
+void DepositFiles::getCaptchaKey() {
+    QUrl url("https://depositfiles.com/get_file.php");
+    url.setHost(m_url.host());
+#if QT_VERSION >= 0x050000
+    QUrlQuery query(url);
+    query.addQueryItem("fid", m_fileId);
+    url.setQuery(query);
+#else
+    url.addQueryItem("fid", m_fileId);
+#endif
+    QNetworkRequest request(url);
+    request.setRawHeader("Accept-Language", "en-GB,en-US;q=0.8,en;q=0.6");
+    request.setRawHeader("X-Requested-With", "XMLHttpRequest");
+    QNetworkReply *reply = this->networkAccessManager()->get(request);
+    this->connect(reply, SIGNAL(finished()), this, SLOT(checkCaptchaKey()));
+    this->connect(this, SIGNAL(currentOperationCancelled()), reply, SLOT(deleteLater()));
+}
+
+void DepositFiles::checkCaptchaKey() {
+    QNetworkReply *reply = qobject_cast<QNetworkReply*>(this->sender());
+
+    if (!reply) {
+        emit error(NetworkError);
+        return;
+    }
+    
+    QString response(reply->readAll());
+    m_captchaKey = response.section("ACPuzzleKey = '", 1, 1).section('\'', 0, 0);
+    
+    if (m_captchaKey.isEmpty()) {
+        emit error(UnknownError);
+    }
+    else {
+        emit statusChanged(CaptchaRequired);
+    }
+    
+    reply->deleteLater();
 }
 
 void DepositFiles::submitCaptchaResponse(const QString &challenge, const QString &response) {
